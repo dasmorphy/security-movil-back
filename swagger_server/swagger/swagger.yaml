@@ -1,0 +1,293 @@
+openapi: 3.0.3
+info:
+  title: zent-logbook-ms
+  description: Logbook microservice
+  version: 1.0.0
+servers:
+- url: /rest/z-logbook-api/v1.0/
+paths:
+  /post/logbook-entry:
+    post:
+      tags:
+      - Create logbook
+      summary: Guarda la bitacora de ingreso en la base de datos.
+      description: Guardado de bitacora de ingreso
+      operationId: post_logbook_entry
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RequestPostLogbookEntry"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponsePostLogbookEntry"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+        "503":
+          description: Service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+      x-openapi-router-controller: swagger_server.controllers.create_logbook_controller.LogbookView
+  /post/logbook-out:
+    post:
+      tags:
+      - Create logbook
+      summary: Guarda la bitacora de salida en la base de datos.
+      description: Guardado de bitacora de salida
+      operationId: post_logbook_out
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RequestPostLogbookOut"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponsePostLogbookOut"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+        "503":
+          description: Service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+      x-openapi-router-controller: swagger_server.controllers.create_logbook_controller.LogbookView
+components:
+  schemas:
+    RequestPostLogbookEntry:
+      properties:
+        logbook_entry:
+          $ref: "#/components/schemas/LogBookEntryData"
+        channel:
+          type: string
+          example: ZENTINEL
+        externalTransactionId:
+          type: string
+          example: fcea920f7412b5da7be0cf42b8c93759
+    RequestPostLogbookOut:
+      properties:
+        logbook_entry:
+          $ref: "#/components/schemas/LogBookOutData"
+        channel:
+          type: string
+          example: ZENTINEL
+        externalTransactionId:
+          type: string
+          example: fcea920f7412b5da7be0cf42b8c93759
+    ResponsePostLogbookEntry:
+      properties:
+        errorCode:
+          type: integer
+          example: 0
+        message:
+          type: string
+          example: Bitacora de ingreso subido de forma exitosa.
+        internalTransactionId:
+          type: string
+          example: d290f1ee-6c54-4b01-90e6-d701748f0851
+        externalTransactionId:
+          type: string
+          example: fcea920f7412b5da7be0cf42b8c93759
+      example:
+        errorCode: 0
+        internalTransactionId: d290f1ee-6c54-4b01-90e6-d701748f0851
+        externalTransactionId: fcea920f7412b5da7be0cf42b8c93759
+        message: Bitacora de ingreso subido de forma exitosa.
+    ResponsePostLogbookOut:
+      properties:
+        errorCode:
+          type: integer
+          example: 0
+        message:
+          type: string
+          example: Bitacora de salida subida de forma exitosa.
+        internalTransactionId:
+          type: string
+          example: d290f1ee-6c54-4b01-90e6-d701748f0851
+        externalTransactionId:
+          type: string
+          example: fcea920f7412b5da7be0cf42b8c93759
+      example:
+        errorCode: 0
+        internalTransactionId: d290f1ee-6c54-4b01-90e6-d701748f0851
+        externalTransactionId: fcea920f7412b5da7be0cf42b8c93759
+        message: Bitacora de ingreso subido de forma exitosa.
+    LogBookEntryData:
+      type: object
+      properties:
+        id_category:
+          type: integer
+          example: 10
+        shipping_guide:
+          type: string
+          example: "0045555"
+        description:
+          type: string
+          example: Larva de camaron
+        quantity:
+          type: number
+          example: 1
+        id_unity:
+          type: integer
+          example: 1
+        weight:
+          type: number
+          format: double
+          example: 2000000.75
+        provider:
+          type: string
+          example: Camaronera
+        destiny_intern:
+          type: string
+          example: Camanglar
+        authorized_by:
+          type: string
+          example: Camanglar
+        observations:
+          type: string
+          nullable: true
+          example: Sin observaciones
+      example:
+        id_category: 10
+        description: Larva de camaron
+        shipping_guide: "0045555"
+        quantity: 1
+        id_unity: 1
+        weight: 2000000.75
+        provider: Camaronera
+        destiny_intern: Camanglar
+        authorized_by: Camanglar
+        observations: Sin observaciones
+    LogBookOutData:
+      type: object
+      properties:
+        id_category:
+          type: integer
+          example: 10
+        shipping_guide:
+          type: string
+          example: "0045555"
+        id_product:
+          type: integer
+          example: 10
+        quantity:
+          type: number
+          example: 1
+        weight:
+          type: number
+          format: double
+          example: 2000000.75
+        truck_license_plate:
+          type: string
+          example: GME-511
+        name_driver:
+          type: string
+          example: Juan
+        person_picking_up_product:
+          type: string
+          example: Pedro
+        destiny:
+          type: string
+          example: Camanglar
+        authorized_by:
+          type: string
+          example: Camanglar
+        observations:
+          type: string
+          nullable: true
+          example: Sin observaciones
+      example:
+        id_category: 10
+        description: Larva de camaron
+        shipping_guide: "0045555"
+        quantity: 1
+        id_unity: 1
+        weight: 2000000.75
+        provider: Camaronera
+        destiny_intern: Camanglar
+        authorized_by: Camanglar
+        observations: Sin observaciones
+    GenericResponse:
+      properties:
+        data:
+          type: object
+          nullable: true
+          example: Estructura generica.
+        errorCode:
+          type: integer
+          example: 0
+        message:
+          type: string
+          example: Mensaje generico.
+        internalTransactionId:
+          type: string
+          example: d290f1ee-6c54-4b01-90e6-d701748f0851
+        externalTransactionId:
+          type: string
+          example: fcea920f7412b5da7be0cf42b8c93759
+      example:
+        errorCode: 0
+        internalTransactionId: d290f1ee-6c54-4b01-90e6-d701748f0851
+        externalTransactionId: fcea920f7412b5da7be0cf42b8c93759
+        message: Mensaje generico.
+    ResponseError:
+      type: object
+      properties:
+        errorCode:
+          type: integer
+        internalTransactionId:
+          type: string
+        externalTransactionId:
+          type: string
+        message:
+          type: string
+    RequestGeneric:
+      properties:
+        channel:
+          type: string
+          example: ZENTINEL
+        externalTransactionId:
+          type: string
+          example: fcea920f7412b5da7be0cf42b8c9375
