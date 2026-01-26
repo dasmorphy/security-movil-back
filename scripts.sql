@@ -40,7 +40,7 @@ ALTER TABLE IF EXISTS public.category
 
 CREATE TABLE public.unity_weight
 (
-    id_unity integer NOT NULL DEFAULT nextval('unity_weight_id_seq'::regclass),
+    id_unity integer NOT NULL DEFAULT 1,
     name text NOT NULL,
     created_at timestamp without time zone DEFAULT now(),
     updated_at timestamp without time zone DEFAULT now(),

@@ -14,7 +14,7 @@ class LogBookEntryData(Model):
 
     Do not edit the class manually.
     """
-    def __init__(self, id_category: int=None, shipping_guide: str=None, description: str=None, quantity: float=None, id_unity: int=None, weight: float=None, provider: str=None, destiny_intern: str=None, authorized_by: str=None, observations: str=None, user_create: str=None):  # noqa: E501
+    def __init__(self, id_category: int=None, shipping_guide: str=None, description: str=None, quantity: float=None, id_unity: int=None, weight: float=None, provider: str=None, destiny_intern: str=None, authorized_by: str=None, observations: str=None, created_by: str=None):  # noqa: E501
         """LogBookEntryData - a model defined in Swagger
 
         :param id_category: The id_category of this LogBookEntryData.  # noqa: E501
@@ -37,8 +37,8 @@ class LogBookEntryData(Model):
         :type authorized_by: str
         :param observations: The observations of this LogBookEntryData.  # noqa: E501
         :type observations: str
-        :param user_create: The user_create of this LogBookEntryData.  # noqa: E501
-        :type user_create: str
+        :param created_by: The created_by of this LogBookEntryData.  # noqa: E501
+        :type created_by: str
         """
         self.swagger_types = {
             'id_category': int,
@@ -51,7 +51,7 @@ class LogBookEntryData(Model):
             'destiny_intern': str,
             'authorized_by': str,
             'observations': str,
-            'user_create': str
+            'created_by': str
         }
 
         self.attribute_map = {
@@ -65,7 +65,7 @@ class LogBookEntryData(Model):
             'destiny_intern': 'destiny_intern',
             'authorized_by': 'authorized_by',
             'observations': 'observations',
-            'user_create': 'user_create'
+            'created_by': 'created_by'
         }
         self._id_category = id_category
         self._shipping_guide = shipping_guide
@@ -77,7 +77,7 @@ class LogBookEntryData(Model):
         self._destiny_intern = destiny_intern
         self._authorized_by = authorized_by
         self._observations = observations
-        self._user_create = user_create
+        self._created_by = created_by
 
     @classmethod
     def from_dict(cls, dikt) -> 'LogBookEntryData':
@@ -301,22 +301,22 @@ class LogBookEntryData(Model):
         self._observations = observations
 
     @property
-    def user_create(self) -> str:
-        """Gets the user_create of this LogBookEntryData.
+    def created_by(self) -> str:
+        """Gets the created_by of this LogBookEntryData.
 
 
-        :return: The user_create of this LogBookEntryData.
+        :return: The created_by of this LogBookEntryData.
         :rtype: str
         """
-        return self._user_create
+        return self._created_by
 
-    @user_create.setter
-    def user_create(self, user_create: str):
-        """Sets the user_create of this LogBookEntryData.
+    @created_by.setter
+    def created_by(self, created_by: str):
+        """Sets the created_by of this LogBookEntryData.
 
 
-        :param user_create: The user_create of this LogBookEntryData.
-        :type user_create: str
+        :param created_by: The created_by of this LogBookEntryData.
+        :type created_by: str
         """
 
-        self._user_create = user_create
+        self._created_by = created_by

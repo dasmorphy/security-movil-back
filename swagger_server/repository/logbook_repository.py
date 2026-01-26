@@ -151,6 +151,31 @@ class LogbookRepository:
                     {
                         "id_category": c.id_category,
                         "name_category": c.name_category,
+                        "code": c.code,
+                        "created_at": c.created_at,
+                        "updated_at": c.updated_at
+                    }
+                    for c in result.scalars().all()
+                ]
+                return categories
+            except Exception as exception:
+                logger.error('Error: {}', str(exception), internal=internal, external=external)
+                if isinstance(exception, CustomAPIException):
+                    raise exception
+                
+                raise CustomAPIException("Error al obtener en la base de datos", 500)
+            
+    def get_all_unities(self, internal, external):
+        with self.db.session_factory() as session:
+            try:
+                result = session.execute(
+                    select(UnityWeight)
+                )
+                categories = [
+                    {
+                        "id_unity": c.id_unity,
+                        "name": c.name,
+                        "code": c.code,
                         "created_at": c.created_at,
                         "updated_at": c.updated_at
                     }

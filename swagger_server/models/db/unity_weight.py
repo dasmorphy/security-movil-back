@@ -27,6 +27,11 @@ class UnityWeight(Base):
         nullable=False
     )
 
+    code = Column(
+        Text,
+        nullable=False
+    )
+
     
     created_at = Column(
         DateTime,

@@ -25,6 +25,11 @@ class Category(Base):
         nullable=False
     )
 
+    code = Column(
+        Text,
+        nullable=False
+    )
+
     created_at = Column(
         DateTime,
         server_default=func.now()

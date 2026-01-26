@@ -24,7 +24,7 @@ class LogbookUseCase:
             destiny_intern=body.logbook_entry.destiny_intern,
             authorized_by=body.logbook_entry.authorized_by,
             observations=body.logbook_entry.observations,
-            created_by=body.logbook_entry.user_create
+            created_by=body.logbook_entry.created_by
         )
 
         self.logbook_repository.post_logbook_entry(logbook_entry, internal, external)
@@ -48,3 +48,6 @@ class LogbookUseCase:
 
     def get_all_categories(self, internal, external):
         return self.logbook_repository.get_all_categories(internal, external)
+    
+    def get_all_unities(self, internal, external):
+        return self.logbook_repository.get_all_unities(internal, external)

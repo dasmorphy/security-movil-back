@@ -6,6 +6,58 @@ info:
 servers:
 - url: /rest/zent-logbook-api/v1.0/
 paths:
+  /get/allUnitiesWeight:
+    get:
+      tags:
+      - Catalogs
+      summary: Obtiene todos las unidades de medida para ingreso de bitacoras
+      description: Devuelve todos las unidades de medida de la base
+      operationId: get_all_unities
+      parameters:
+        - name: externalTransactionId
+          in: header
+          required: true
+          schema:
+            type: string
+            example: "fcea920f7412b5da7be0cf42b8c93759"
+        - name: channel
+          in: header
+          required: true
+          schema:
+            type: string
+            example: "ZENTINEL"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenericResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+        "503":
+          description: Service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+      x-openapi-router-controller: swagger_server.controllers.logbook_controller.LogbookView
   /get/allCategories:
     get:
       tags:
@@ -241,7 +293,7 @@ components:
           type: string
           nullable: true
           example: Sin observaciones
-        user_create:
+        created_by:
           type: string
           example: dmales
       example:
@@ -255,7 +307,7 @@ components:
         destiny_intern: Camanglar
         authorized_by: Camanglar
         observations: Sin observaciones
-        user_create: dmales
+        created_by: dmales
     LogBookOutData:
       type: object
       properties:
