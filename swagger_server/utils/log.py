@@ -3,7 +3,7 @@ from loguru import logger
 from datetime import datetime, timedelta, time
 
 # VARIABLES (CAMBIAR EN EL CASO QUE SEA NECESARIO)
-MS_NAME: str = 'cw-contract-register-ms'  # NOMBRE DEL MS, CAMBIAR CON EL NOMBRE DE CADA MS
+MS_NAME: str = 'zent-logbook-ms'  # NOMBRE DEL MS, CAMBIAR CON EL NOMBRE DE CADA MS
 LOG_SIZE: int = 2          # CANTIDAD EN MB Ejemplo: (20 = 20MB), debe ser mayor a 1, número entero sin decimales
 LOG_MAX_DAYS: int = 60     # CANTIDAD DE ARCHIVOS DE LOG EN DIAS (MAX DIAS GUARDAR)
 

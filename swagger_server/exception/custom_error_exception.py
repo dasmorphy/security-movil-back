@@ -54,4 +54,5 @@ class CustomAPIException(Exception):
                 logger.error('Error: {}', msg_error, internal=internal, external=external)
         except Exception as ex:
             print('check_exception', internal_process, str(error), str(ex))
-        return response, status_code
+        
+        return response.to_dict(), status_code

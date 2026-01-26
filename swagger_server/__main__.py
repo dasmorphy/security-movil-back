@@ -1,100 +1,111 @@
 #!/usr/bin/env python3
-import logging
-import os
-import connexion
-from swagger_server import encoder
-from connexion.resolver import MethodViewResolver
-from swagger_server.resources.db import db
-from flask_cors import CORS
-from flask import request
-from urllib.parse import quote
-from swagger_server.config.access import access
 from swagger_server.utils.logs.logging import log
-from swagger_server.models.response_error import ResponseError
-from swagger_server.utils.transactions.transaction import Transaction as transactionUuids
-from urllib.parse import urlparse
-from swagger_server.utils.utils import format_uri_connection
-from swagger_server.exception.register import add_handler
+import connexion
+from connexion.resolver import MethodViewResolver
 
-from swagger_server.utils.log import configure_logger
+from swagger_server.controllers import clear_context, set_log_context
 from swagger_server.encoder import JSONEncoder
 
-config = access()
+from swagger_server.models import ResponseError
+from connexion.exceptions import ValidationError, ProblemException, BadRequestProblem, NonConformingResponse, \
+    UnsupportedMediaTypeProblem, AuthenticationProblem
+from flask import request
+from flask_cors import CORS
 
-log()
+from swagger_server.utils.log import configure_logger
 
-transaction: transactionUuids
-
-# Configurar el logger de loguru
-configure_logger()
-
-# VARIABLES
+# VARIABLES (CAMBIAR DE PENDIENDO DE CADA MS)
 MS_NAME: str = 'zent-logbook-ms'
 MS_PORT: int = 2120
-
-
+ORIGINS = [] #Origins permitidos en prod
 # ------------------------------------------------------------------------
-
-def get_transaction():
-    return transaction
+log()
 
 
-def global_transaction_uuids():
-    parsed_uri = urlparse(request.base_url)
-    logging.info(parsed_uri.path)
-    if parsed_uri.path in (
-            "/rest/z-logbook-api/v1.0/post/logbook-entry",
-            "/rest/z-logbook-api/v1.0/post/logbook-out"
-    ):
-        global transaction
-        transaction = transactionUuids()
+def custom_error_handler(error):
+    message = 'Hubo un error en el servidor'
+    external_transaction_id = None
+    status_code: int = 500
 
-        transaction.id_external_transaction = request.json['externalTransactionId']
-        transaction.channel = request.json['channel']
+    # Obtenemos el cuerpo de la solicitud almacenado en el middleware
+    custom_body = getattr(request, 'custom_body', None)
+    if custom_body:
+        external_transaction_id = custom_body.get('externalTransactionId', None)
+
+    error_response = ResponseError(
+        error_code=-1,
+        message=message,
+        data=None,
+        external_transaction_id=external_transaction_id,
+        internal_transaction_id=None
+    )
+    try:
+        detail = getattr(error, 'detail', None)
+
+        if detail is None:
+            detail = str(error)
+
+        title = getattr(error, 'title', None)
+        status = getattr(error, 'status', status_code)
+        # print(type(error))
+
+        status_code = status
+        # print(detail, title, status)
+        error_response.message = detail
+    except:
+        error_response.message = message
+    finally:
+        return JSONEncoder().default(error_response), status_code
+
+
+def store_request_body():
+    """
+        Obtiene el body del request, en caso se haya realizado correctamente
+    """
+    try:
+        request.custom_body = request.get_json()
+    except Exception as ex:
+        pass  # print(str(ex))
+
+
+def add_handler(flask_app):
+    flask_app.add_error_handler(AuthenticationProblem, custom_error_handler)
+    flask_app.add_error_handler(UnsupportedMediaTypeProblem, custom_error_handler)
+    flask_app.add_error_handler(ProblemException, custom_error_handler)
+    flask_app.add_error_handler(BadRequestProblem, custom_error_handler)
+    flask_app.add_error_handler(NonConformingResponse, custom_error_handler)
+    flask_app.add_error_handler(ValidationError, custom_error_handler)
+    flask_app.add_error_handler(AssertionError, custom_error_handler)
+    flask_app.add_error_handler(Exception, custom_error_handler)
+    flask_app.add_error_handler(400, custom_error_handler)
+    flask_app.add_error_handler(500, custom_error_handler)
+    return flask_app
 
 
 def create_app():
     configure_logger()
+    # Configurar flask app
+    flask_app = connexion.App(__name__, specification_dir='./swagger/', server_args = {'static_folder':'../static'})
+    flask_app.app.json_handler = JSONEncoder
+    flask_app.add_api('swagger.yaml', arguments={'title': MS_NAME}, pythonic_params=True,
+                      resolver=MethodViewResolver("swagger_server.controllers"))
+    flask_app.app.json_handler.include_nulls = True
 
-    app = connexion.App(__name__, specification_dir='./swagger/')
-    app.app.json_encoder = encoder.JSONEncoder
-    app.add_api('swagger.yaml',
-                arguments={
-                    'title': 'zent-logbook-api'
-                },
-                pythonic_params=True,
-                resolver=MethodViewResolver('swagger_server.controllers')
-                )
+    # Registramos nuestro handler de errores personalizados para las excepciones de validación.
+    flask_app = add_handler(flask_app=flask_app)
 
-    user = config["DB"]["POSTGRESQL"]["USER"]
-    host = config["DB"]["POSTGRESQL"]["HOST"]
-    port = config["DB"]["POSTGRESQL"]["PORT"]
-    database = config["DB"]["POSTGRESQL"]["DB"]
-    password = quote(config["DB"]["POSTGRESQL"]["PASSWORD"], safe='')
-    string_connection = (
-        f"postgresql+psycopg2://{user}:{password}@{host}:{port}/{database}"
-    )
+    # Add CORS origins
+    CORS(flask_app.app, resources={r"/*": {"origins": "*"}})
 
-    app.app.config["SQLALCHEMY_DATABASE_URI"] = string_connection
-    app.app.config["SQLALCHEMY_ENGINE_OPTIONS"] = config["DB"]["SQLALCHEMY_ENGINE_OPTIONS"]
-    db.init_app(app.app)
-    CORS(app.app, resources={r"/*": {"origins": "*"}})
-    add_handler(app)
+    flask_app.app.before_request(store_request_body)
+    flask_app.app.before_request(set_log_context)  # Establecer variables globales y logger
+    flask_app.app.after_request(clear_context)  # Limpiar logger luego de la solicitud
 
-    app.app.before_request(global_transaction_uuids)
-
-    add_handler(app)
-
-    return app
+    return flask_app
 
 
 def create_app_test():
     app = create_app()
-
-    driver = os.getenv("DATABASE_DRIVER", "postgresql")
-    app.app.config["SQLALCHEMY_DATABASE_URI"] = format_uri_connection(access()["DB"][driver])
-    app.app.config["SQLALCHEMY_ENGINE_OPTIONS"] = access()["DB"]["SQLALCHEMY_ENGINE_OPTIONS"]
-
     return app.app
 
 

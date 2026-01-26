@@ -4,8 +4,60 @@ info:
   description: Logbook microservice
   version: 1.0.0
 servers:
-- url: /rest/z-logbook-api/v1.0/
+- url: /rest/zent-logbook-api/v1.0/
 paths:
+  /get/allCategories:
+    get:
+      tags:
+      - Catalogs
+      summary: Obtiene todos las categorias para ingreso de bitacoras
+      description: Devuelve todos las categorias de la base
+      operationId: get_all_categories
+      parameters:
+        - name: externalTransactionId
+          in: header
+          required: true
+          schema:
+            type: string
+            example: "fcea920f7412b5da7be0cf42b8c93759"
+        - name: channel
+          in: header
+          required: true
+          schema:
+            type: string
+            example: "ZENTINEL"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenericResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+        "503":
+          description: Service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+      x-openapi-router-controller: swagger_server.controllers.logbook_controller.LogbookView
   /post/logbook-entry:
     post:
       tags:
@@ -49,7 +101,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ResponseError"
-      x-openapi-router-controller: swagger_server.controllers.create_logbook_controller.LogbookView
+      x-openapi-router-controller: swagger_server.controllers.logbook_controller.LogbookView
   /post/logbook-out:
     post:
       tags:
@@ -93,7 +145,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ResponseError"
-      x-openapi-router-controller: swagger_server.controllers.create_logbook_controller.LogbookView
+      x-openapi-router-controller: swagger_server.controllers.logbook_controller.LogbookView
 components:
   schemas:
     RequestPostLogbookEntry:
@@ -189,6 +241,9 @@ components:
           type: string
           nullable: true
           example: Sin observaciones
+        user_create:
+          type: string
+          example: dmales
       example:
         id_category: 10
         description: Larva de camaron
@@ -200,6 +255,7 @@ components:
         destiny_intern: Camanglar
         authorized_by: Camanglar
         observations: Sin observaciones
+        user_create: dmales
     LogBookOutData:
       type: object
       properties:
@@ -238,6 +294,9 @@ components:
           type: string
           nullable: true
           example: Sin observaciones
+        user_create:
+          type: string
+          example: dmales
       example:
         id_category: 10
         description: Larva de camaron
@@ -249,6 +308,7 @@ components:
         destiny_intern: Camanglar
         authorized_by: Camanglar
         observations: Sin observaciones
+        user_create: dmales
     GenericResponse:
       properties:
         data:
@@ -272,6 +332,7 @@ components:
         internalTransactionId: d290f1ee-6c54-4b01-90e6-d701748f0851
         externalTransactionId: fcea920f7412b5da7be0cf42b8c93759
         message: Mensaje generico.
+        data: {}
     ResponseError:
       type: object
       properties:

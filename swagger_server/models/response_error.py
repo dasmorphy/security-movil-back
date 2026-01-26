@@ -14,7 +14,7 @@ class ResponseError(Model):
 
     Do not edit the class manually.
     """
-    def __init__(self, error_code: int=None, internal_transaction_id: str=None, external_transaction_id: str=None, message: str=None):  # noqa: E501
+    def __init__(self, error_code: int=None, internal_transaction_id: str=None, external_transaction_id: str=None, message: str=None, data: object=None):  # noqa: E501
         """ResponseError - a model defined in Swagger
 
         :param error_code: The error_code of this ResponseError.  # noqa: E501
@@ -25,24 +25,29 @@ class ResponseError(Model):
         :type external_transaction_id: str
         :param message: The message of this ResponseError.  # noqa: E501
         :type message: str
+        :param data: The data of this ResponseError.  # noqa: E501
+        :type data: object
         """
         self.swagger_types = {
             'error_code': int,
             'internal_transaction_id': str,
             'external_transaction_id': str,
-            'message': str
+            'message': str,
+            'data': object
         }
 
         self.attribute_map = {
             'error_code': 'errorCode',
             'internal_transaction_id': 'internalTransactionId',
             'external_transaction_id': 'externalTransactionId',
-            'message': 'message'
+            'message': 'message',
+            'data': 'data'
         }
         self._error_code = error_code
         self._internal_transaction_id = internal_transaction_id
         self._external_transaction_id = external_transaction_id
         self._message = message
+        self._data = data
 
     @classmethod
     def from_dict(cls, dikt) -> 'ResponseError':
@@ -80,6 +85,7 @@ class ResponseError(Model):
     def internal_transaction_id(self) -> str:
         """Gets the internal_transaction_id of this ResponseError.
 
+        UUID Interno  # noqa: E501
 
         :return: The internal_transaction_id of this ResponseError.
         :rtype: str
@@ -90,6 +96,7 @@ class ResponseError(Model):
     def internal_transaction_id(self, internal_transaction_id: str):
         """Sets the internal_transaction_id of this ResponseError.
 
+        UUID Interno  # noqa: E501
 
         :param internal_transaction_id: The internal_transaction_id of this ResponseError.
         :type internal_transaction_id: str
@@ -101,6 +108,7 @@ class ResponseError(Model):
     def external_transaction_id(self) -> str:
         """Gets the external_transaction_id of this ResponseError.
 
+        UUID Externo  # noqa: E501
 
         :return: The external_transaction_id of this ResponseError.
         :rtype: str
@@ -111,6 +119,7 @@ class ResponseError(Model):
     def external_transaction_id(self, external_transaction_id: str):
         """Sets the external_transaction_id of this ResponseError.
 
+        UUID Externo  # noqa: E501
 
         :param external_transaction_id: The external_transaction_id of this ResponseError.
         :type external_transaction_id: str
@@ -122,6 +131,7 @@ class ResponseError(Model):
     def message(self) -> str:
         """Gets the message of this ResponseError.
 
+        Mensaje de error  # noqa: E501
 
         :return: The message of this ResponseError.
         :rtype: str
@@ -132,9 +142,40 @@ class ResponseError(Model):
     def message(self, message: str):
         """Sets the message of this ResponseError.
 
+        Mensaje de error  # noqa: E501
 
         :param message: The message of this ResponseError.
         :type message: str
         """
 
         self._message = message
+
+    @property
+    def data(self) -> object:
+        """Gets the data of this ResponseError.
+
+
+        :return: The data of this ResponseError.
+        :rtype: object
+        """
+        return self._data
+
+    @data.setter
+    def data(self, data: object):
+        """Sets the data of this ResponseError.
+
+
+        :param data: The data of this ResponseError.
+        :type data: object
+        """
+
+        self._data = data
+
+    def to_dict(self):
+        return {
+            "error_code": self.error_code,
+            "message": self.message,
+            "data": self.data,
+            "external_transaction_id": self.external_transaction_id,
+            "internal_transaction_id": self.internal_transaction_id
+        }

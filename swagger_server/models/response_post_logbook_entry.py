@@ -138,3 +138,11 @@ class ResponsePostLogbookEntry(Model):
         """
 
         self._external_transaction_id = external_transaction_id
+
+    def to_dict(self):
+        return {
+            "error_code": self.error_code,
+            "message": self.message,
+            "internal_transaction_id": self.internal_transaction_id,
+            "external_transaction_id": self.external_transaction_id
+        }

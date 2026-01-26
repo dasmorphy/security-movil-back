@@ -14,7 +14,7 @@ class LogBookOutData(Model):
 
     Do not edit the class manually.
     """
-    def __init__(self, id_category: int=None, shipping_guide: str=None, id_product: int=None, quantity: float=None, weight: float=None, truck_license_plate: str=None, name_driver: str=None, person_picking_up_product: str=None, destiny: str=None, authorized_by: str=None, observations: str=None):  # noqa: E501
+    def __init__(self, id_category: int=None, shipping_guide: str=None, id_product: int=None, quantity: float=None, weight: float=None, truck_license_plate: str=None, name_driver: str=None, person_picking_up_product: str=None, destiny: str=None, authorized_by: str=None, observations: str=None, user_create: str=None):  # noqa: E501
         """LogBookOutData - a model defined in Swagger
 
         :param id_category: The id_category of this LogBookOutData.  # noqa: E501
@@ -39,6 +39,8 @@ class LogBookOutData(Model):
         :type authorized_by: str
         :param observations: The observations of this LogBookOutData.  # noqa: E501
         :type observations: str
+        :param user_create: The user_create of this LogBookOutData.  # noqa: E501
+        :type user_create: str
         """
         self.swagger_types = {
             'id_category': int,
@@ -51,7 +53,8 @@ class LogBookOutData(Model):
             'person_picking_up_product': str,
             'destiny': str,
             'authorized_by': str,
-            'observations': str
+            'observations': str,
+            'user_create': str
         }
 
         self.attribute_map = {
@@ -65,7 +68,8 @@ class LogBookOutData(Model):
             'person_picking_up_product': 'person_picking_up_product',
             'destiny': 'destiny',
             'authorized_by': 'authorized_by',
-            'observations': 'observations'
+            'observations': 'observations',
+            'user_create': 'user_create'
         }
         self._id_category = id_category
         self._shipping_guide = shipping_guide
@@ -78,6 +82,7 @@ class LogBookOutData(Model):
         self._destiny = destiny
         self._authorized_by = authorized_by
         self._observations = observations
+        self._user_create = user_create
 
     @classmethod
     def from_dict(cls, dikt) -> 'LogBookOutData':
@@ -320,3 +325,24 @@ class LogBookOutData(Model):
         """
 
         self._observations = observations
+
+    @property
+    def user_create(self) -> str:
+        """Gets the user_create of this LogBookOutData.
+
+
+        :return: The user_create of this LogBookOutData.
+        :rtype: str
+        """
+        return self._user_create
+
+    @user_create.setter
+    def user_create(self, user_create: str):
+        """Sets the user_create of this LogBookOutData.
+
+
+        :param user_create: The user_create of this LogBookOutData.
+        :type user_create: str
+        """
+
+        self._user_create = user_create

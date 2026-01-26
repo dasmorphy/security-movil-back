@@ -1,46 +1,50 @@
-import psycopg2
-from psycopg2.extras import RealDictCursor
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, registry
+from sqlalchemy.engine import url
 from swagger_server.config.access import access
 
 
-class PostgreSQLConnection:
-    def __init__(self):
-        self.config = access()['DB']['POSTGRESQL']['FLASK_APP']
-        self.connection = None
+class PostgreSQLClient:
 
-    def connect(self):
-        try:
-            self.connection = psycopg2.connect(
-                host=self.config['HOST'],
-                database=self.config['DB'],
-                user=self.config['USER'],
-                password=self.config['PASSWORD'],
-                port=self.config['PORT']
-            )
-            return self.connection
-        except Exception as e:
-            print(f"Error connecting to PostgreSQL: {e}")
-            return None
+    def __init__(self, db: str):
+        self.db = db
 
-    def execute_query(self, query, params=None):
-        try:
-            if not self.connection or self.connection.closed:
-                self.connect()
-            
-            with self.connection.cursor() as cursor:
-                cursor.execute(query, params)
-                
-                if query.strip().upper().startswith(('SELECT', 'RETURNING')):
-                    return cursor.fetchall()
-                else:
-                    self.connection.commit()
-                    return cursor.rowcount
-        except Exception as e:
-            if self.connection:
-                self.connection.rollback()
-            print(f"Error executing query: {e}")
-            return None
+        credentials_db = PostgreSQLClient.get_credentials(self.db)
 
-    def close(self):
-        if self.connection:
-            self.connection.close()
+        driver = "postgresql+psycopg2"
+
+        db_url = url.URL.create(
+            drivername=driver,
+            username=credentials_db["USER"],
+            password=credentials_db["PASSWORD"],
+            host=credentials_db["HOST"],
+            port=credentials_db["PORT"],
+            database=credentials_db["DB"],
+        )
+
+        self.engine = create_engine(
+            db_url,
+            echo=False,
+            pool_pre_ping=True,
+            pool_recycle=300
+        )
+
+        self.session_factory = sessionmaker(
+            bind=self.engine,
+            expire_on_commit=True
+        )
+
+        self.mapper_registry = registry()
+
+    @staticmethod
+    def get_credentials(db: str) -> dict:
+        response_json = access()
+        credentials_db = response_json["DB"][db]
+
+        return {
+            "HOST": credentials_db["HOST"],
+            "DB": credentials_db["DB"],
+            "USER": credentials_db["USER"],
+            "PASSWORD": credentials_db["PASSWORD"],
+            "PORT": credentials_db["PORT"],
+        }
