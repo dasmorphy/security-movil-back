@@ -112,3 +112,5 @@ def create_app_test():
 if __name__ == '__main__':
     app = create_app()
     app.run(port=MS_PORT, debug=False)  # Para hacer debug con el IDE, se debe colocar en "False"
+
+app = create_app().app
