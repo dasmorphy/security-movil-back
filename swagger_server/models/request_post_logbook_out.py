@@ -15,28 +15,28 @@ class RequestPostLogbookOut(Model):
 
     Do not edit the class manually.
     """
-    def __init__(self, logbook_entry: LogBookOutData=None, channel: str=None, external_transaction_id: str=None):  # noqa: E501
+    def __init__(self, logbook_out: LogBookOutData=None, channel: str=None, external_transaction_id: str=None):  # noqa: E501
         """RequestPostLogbookOut - a model defined in Swagger
 
-        :param logbook_entry: The logbook_entry of this RequestPostLogbookOut.  # noqa: E501
-        :type logbook_entry: LogBookOutData
+        :param logbook_out: The logbook_out of this RequestPostLogbookOut.  # noqa: E501
+        :type logbook_out: LogBookOutData
         :param channel: The channel of this RequestPostLogbookOut.  # noqa: E501
         :type channel: str
         :param external_transaction_id: The external_transaction_id of this RequestPostLogbookOut.  # noqa: E501
         :type external_transaction_id: str
         """
         self.swagger_types = {
-            'logbook_entry': LogBookOutData,
+            'logbook_out': LogBookOutData,
             'channel': str,
             'external_transaction_id': str
         }
 
         self.attribute_map = {
-            'logbook_entry': 'logbook_entry',
+            'logbook_out': 'logbook_out',
             'channel': 'channel',
             'external_transaction_id': 'externalTransactionId'
         }
-        self._logbook_entry = logbook_entry
+        self._logbook_out = logbook_out
         self._channel = channel
         self._external_transaction_id = external_transaction_id
 
@@ -52,25 +52,25 @@ class RequestPostLogbookOut(Model):
         return util.deserialize_model(dikt, cls)
 
     @property
-    def logbook_entry(self) -> LogBookOutData:
-        """Gets the logbook_entry of this RequestPostLogbookOut.
+    def logbook_out(self) -> LogBookOutData:
+        """Gets the logbook_out of this RequestPostLogbookOut.
 
 
-        :return: The logbook_entry of this RequestPostLogbookOut.
+        :return: The logbook_out of this RequestPostLogbookOut.
         :rtype: LogBookOutData
         """
-        return self._logbook_entry
+        return self._logbook_out
 
-    @logbook_entry.setter
-    def logbook_entry(self, logbook_entry: LogBookOutData):
-        """Sets the logbook_entry of this RequestPostLogbookOut.
+    @logbook_out.setter
+    def logbook_out(self, logbook_out: LogBookOutData):
+        """Sets the logbook_out of this RequestPostLogbookOut.
 
 
-        :param logbook_entry: The logbook_entry of this RequestPostLogbookOut.
-        :type logbook_entry: LogBookOutData
+        :param logbook_out: The logbook_out of this RequestPostLogbookOut.
+        :type logbook_out: LogBookOutData
         """
 
-        self._logbook_entry = logbook_entry
+        self._logbook_out = logbook_out
 
     @property
     def channel(self) -> str:

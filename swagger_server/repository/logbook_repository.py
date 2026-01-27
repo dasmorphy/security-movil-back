@@ -6,6 +6,7 @@ from sqlalchemy import exists, func, insert, select
 from swagger_server.exception.custom_error_exception import CustomAPIException
 from swagger_server.models.db.logbook_entry import LogbookEntry
 from swagger_server.models.db.category import Category
+from swagger_server.models.db.logbook_out import LogbookOut
 from swagger_server.models.db.unity_weight import UnityWeight
 from swagger_server.resources.databases.postgresql import PostgreSQLClient
 
@@ -19,8 +20,6 @@ class LogbookRepository:
     def post_logbook_entry(self, logbook_entry_body: LogbookEntry, internal, external) -> None:
         with self.db.session_factory() as session:
             try:
-
-                # 🔎 validar si existe la categoría
                 category_exists = session.execute(
                     select(
                         exists().where(
@@ -49,22 +48,7 @@ class LogbookRepository:
                         status_code=404
                     )
                 
-                new_logbook = insert(LogbookEntry).values(
-                    unity_id=logbook_entry_body.unity_id,
-                    category_id=logbook_entry_body.category_id,
-                    shipping_guide=logbook_entry_body.shipping_guide,
-                    description=logbook_entry_body.description,
-                    quantity=logbook_entry_body.quantity,
-                    weight=logbook_entry_body.weight,
-                    provider=logbook_entry_body.provider,
-                    destiny_intern=logbook_entry_body.destiny_intern,
-                    authorized_by=logbook_entry_body.authorized_by,
-                    observations=logbook_entry_body.observations,
-                    created_by=logbook_entry_body.created_by,
-                    updated_by=logbook_entry_body.created_by
-                )
-
-                session.execute(new_logbook)
+                session.add(logbook_entry_body)
                 session.commit()
 
             except Exception as exception:
@@ -78,27 +62,48 @@ class LogbookRepository:
             finally:
                 session.close()
 
-
-    def post_logbook_out(self, logbook_entry_body: LogbookEntry, internal, external) -> None:
+    def post_logbook_out(self, logbook_out_body: LogbookOut, internal, external) -> None:
         with self.db.session_factory() as session:
             try:
-
-                # 🔎 validar si existe la categoría
+                unity_weight_exists = True
                 category_exists = session.execute(
                     select(
                         exists().where(
-                            Category.id_category == logbook_entry_body.category_id
+                            Category.id_category == logbook_out_body.category_id
                         )
                     )
                 ).scalar()
 
-                unity_weight_exists = session.execute(
-                    select(
-                        exists().where(
-                            UnityWeight.id_unity == logbook_entry_body.unity_id
+                #Si no viene unity_id, buscar la unidad por defecto (LB)
+                if not logbook_out_body.unity_id:
+                    unity_weight = session.execute(
+                        select(UnityWeight)
+                        .where(UnityWeight.code == 'LB')
+                    ).scalar_one_or_none()
+
+                    if not unity_weight:
+                        raise CustomAPIException(
+                            message="No existe la unidad de peso por defecto (LB)",
+                            status_code=404
                         )
-                    )
-                ).scalar()
+
+                    logbook_out_body.unity_id = unity_weight.id_unity
+
+                else:
+                    #validar si existe la unidad enviada
+                    unity_weight_exists = session.execute(
+                        select(
+                            exists().where(
+                                UnityWeight.id_unity == logbook_out_body.unity_id
+                            )
+                        )
+                    ).scalar()
+
+                    if not unity_weight_exists:
+                        raise CustomAPIException(
+                            message="No existe la unidad de peso",
+                            status_code=404
+                        )
 
                 if not category_exists:
                     raise CustomAPIException(
@@ -112,22 +117,7 @@ class LogbookRepository:
                         status_code=404
                     )
                 
-                new_logbook = insert(LogbookEntry).values(
-                    unity_id=logbook_entry_body.unity_id,
-                    category_id=logbook_entry_body.category_id,
-                    shipping_guide=logbook_entry_body.shipping_guide,
-                    description=logbook_entry_body.description,
-                    quantity=logbook_entry_body.quantity,
-                    weight=logbook_entry_body.weight,
-                    provider=logbook_entry_body.provider,
-                    destiny_intern=logbook_entry_body.destiny_intern,
-                    authorized_by=logbook_entry_body.authorized_by,
-                    observations=logbook_entry_body.observations,
-                    created_by=logbook_entry_body.created_by,
-                    updated_by=logbook_entry_body.created_by
-                )
-
-                session.execute(new_logbook)
+                session.add(logbook_out_body)
                 session.commit()
 
             except Exception as exception:

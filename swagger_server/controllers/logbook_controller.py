@@ -72,15 +72,15 @@ class LogbookView(MethodView):
         :param body: 
         :type body: dict | bytes
 
-        :rtype: ResponsePostLogbookOut
+        :rtype: GenericResponse
         """
         internal_process = (None, None)
-        function_name = "post_logbook_entry"
+        function_name = "post_logbook_out"
         response = {}
         status_code = 500
         try:
             if connexion.request.is_json:
-                body = RequestPostLogbookEntry.from_dict(connexion.request.get_json())  # noqa: E501
+                body = RequestPostLogbookOut.from_dict(connexion.request.get_json())  # noqa: E501
                 start_time = default_timer()
                 internal_transaction_id = str(generate_internal_transaction_id())
                 external_transaction_id = body.external_transaction_id
@@ -89,9 +89,9 @@ class LogbookView(MethodView):
                 response["external_transaction_id"] = external_transaction_id
                 message = f"start request: {function_name}, channel: {body.channel}"
                 logger.info(message, internal=internal_transaction_id, external=external_transaction_id)
-                self.logbook_use_case.post_logbook_entry(body, internal_transaction_id, external_transaction_id)
+                self.logbook_use_case.post_logbook_out(body, internal_transaction_id, external_transaction_id)
                 response["error_code"] = 0
-                response["message"] = "Bitácora de ingreso creada correctamente"
+                response["message"] = "Bitácora de salida creada correctamente"
                 end_time = default_timer()
                 logger.info(f"Fin de la transacción, procesada en : {end_time - start_time} milisegundos",
                             internal=internal_transaction_id, external=body.external_transaction_id)

@@ -212,7 +212,7 @@ components:
           example: fcea920f7412b5da7be0cf42b8c93759
     RequestPostLogbookOut:
       properties:
-        logbook_entry:
+        logbook_out:
           $ref: "#/components/schemas/LogBookOutData"
         channel:
           type: string
@@ -314,12 +314,12 @@ components:
         id_category:
           type: integer
           example: 10
+        id_unity:
+          type: integer
+          example: 1
         shipping_guide:
           type: string
           example: "0045555"
-        id_product:
-          type: integer
-          example: 10
         quantity:
           type: number
           example: 1
@@ -327,15 +327,15 @@ components:
           type: number
           format: double
           example: 2000000.75
-        truck_license_plate:
+        truck_license:
           type: string
           example: GME-511
         name_driver:
           type: string
-          example: Juan
-        person_picking_up_product:
+          example: Jaime
+        person_withdraws:
           type: string
-          example: Pedro
+          example: Juan
         destiny:
           type: string
           example: Camanglar
@@ -346,21 +346,22 @@ components:
           type: string
           nullable: true
           example: Sin observaciones
-        user_create:
+        created_by:
           type: string
           example: dmales
       example:
         id_category: 10
-        description: Larva de camaron
+        id_unity: 1
         shipping_guide: "0045555"
         quantity: 1
-        id_unity: 1
         weight: 2000000.75
-        provider: Camaronera
-        destiny_intern: Camanglar
+        truck_license: "GME-511"
+        name_driver: "Jaime"
+        person_withdraws: "Juan"
+        destiny: Camanglar
         authorized_by: Camanglar
         observations: Sin observaciones
-        user_create: dmales
+        created_by: dmales
     GenericResponse:
       properties:
         data:

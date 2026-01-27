@@ -14,75 +14,75 @@ class LogBookOutData(Model):
 
     Do not edit the class manually.
     """
-    def __init__(self, id_category: int=None, shipping_guide: str=None, id_product: int=None, quantity: float=None, weight: float=None, truck_license_plate: str=None, name_driver: str=None, person_picking_up_product: str=None, destiny: str=None, authorized_by: str=None, observations: str=None, user_create: str=None):  # noqa: E501
+    def __init__(self, id_category: int=None, id_unity: int=None, shipping_guide: str=None, quantity: float=None, weight: float=None, truck_license: str=None, name_driver: str=None, person_withdraws: str=None, destiny: str=None, authorized_by: str=None, observations: str=None, created_by: str=None):  # noqa: E501
         """LogBookOutData - a model defined in Swagger
 
         :param id_category: The id_category of this LogBookOutData.  # noqa: E501
         :type id_category: int
+        :param id_unity: The id_unity of this LogBookOutData.  # noqa: E501
+        :type id_unity: int
         :param shipping_guide: The shipping_guide of this LogBookOutData.  # noqa: E501
         :type shipping_guide: str
-        :param id_product: The id_product of this LogBookOutData.  # noqa: E501
-        :type id_product: int
         :param quantity: The quantity of this LogBookOutData.  # noqa: E501
         :type quantity: float
         :param weight: The weight of this LogBookOutData.  # noqa: E501
         :type weight: float
-        :param truck_license_plate: The truck_license_plate of this LogBookOutData.  # noqa: E501
-        :type truck_license_plate: str
+        :param truck_license: The truck_license of this LogBookOutData.  # noqa: E501
+        :type truck_license: str
         :param name_driver: The name_driver of this LogBookOutData.  # noqa: E501
         :type name_driver: str
-        :param person_picking_up_product: The person_picking_up_product of this LogBookOutData.  # noqa: E501
-        :type person_picking_up_product: str
+        :param person_withdraws: The person_withdraws of this LogBookOutData.  # noqa: E501
+        :type person_withdraws: str
         :param destiny: The destiny of this LogBookOutData.  # noqa: E501
         :type destiny: str
         :param authorized_by: The authorized_by of this LogBookOutData.  # noqa: E501
         :type authorized_by: str
         :param observations: The observations of this LogBookOutData.  # noqa: E501
         :type observations: str
-        :param user_create: The user_create of this LogBookOutData.  # noqa: E501
-        :type user_create: str
+        :param created_by: The created_by of this LogBookOutData.  # noqa: E501
+        :type created_by: str
         """
         self.swagger_types = {
             'id_category': int,
+            'id_unity': int,
             'shipping_guide': str,
-            'id_product': int,
             'quantity': float,
             'weight': float,
-            'truck_license_plate': str,
+            'truck_license': str,
             'name_driver': str,
-            'person_picking_up_product': str,
+            'person_withdraws': str,
             'destiny': str,
             'authorized_by': str,
             'observations': str,
-            'user_create': str
+            'created_by': str
         }
 
         self.attribute_map = {
             'id_category': 'id_category',
+            'id_unity': 'id_unity',
             'shipping_guide': 'shipping_guide',
-            'id_product': 'id_product',
             'quantity': 'quantity',
             'weight': 'weight',
-            'truck_license_plate': 'truck_license_plate',
+            'truck_license': 'truck_license',
             'name_driver': 'name_driver',
-            'person_picking_up_product': 'person_picking_up_product',
+            'person_withdraws': 'person_withdraws',
             'destiny': 'destiny',
             'authorized_by': 'authorized_by',
             'observations': 'observations',
-            'user_create': 'user_create'
+            'created_by': 'created_by'
         }
         self._id_category = id_category
+        self._id_unity = id_unity
         self._shipping_guide = shipping_guide
-        self._id_product = id_product
         self._quantity = quantity
         self._weight = weight
-        self._truck_license_plate = truck_license_plate
+        self._truck_license = truck_license
         self._name_driver = name_driver
-        self._person_picking_up_product = person_picking_up_product
+        self._person_withdraws = person_withdraws
         self._destiny = destiny
         self._authorized_by = authorized_by
         self._observations = observations
-        self._user_create = user_create
+        self._created_by = created_by
 
     @classmethod
     def from_dict(cls, dikt) -> 'LogBookOutData':
@@ -117,6 +117,27 @@ class LogBookOutData(Model):
         self._id_category = id_category
 
     @property
+    def id_unity(self) -> int:
+        """Gets the id_unity of this LogBookOutData.
+
+
+        :return: The id_unity of this LogBookOutData.
+        :rtype: int
+        """
+        return self._id_unity
+
+    @id_unity.setter
+    def id_unity(self, id_unity: int):
+        """Sets the id_unity of this LogBookOutData.
+
+
+        :param id_unity: The id_unity of this LogBookOutData.
+        :type id_unity: int
+        """
+
+        self._id_unity = id_unity
+
+    @property
     def shipping_guide(self) -> str:
         """Gets the shipping_guide of this LogBookOutData.
 
@@ -136,27 +157,6 @@ class LogBookOutData(Model):
         """
 
         self._shipping_guide = shipping_guide
-
-    @property
-    def id_product(self) -> int:
-        """Gets the id_product of this LogBookOutData.
-
-
-        :return: The id_product of this LogBookOutData.
-        :rtype: int
-        """
-        return self._id_product
-
-    @id_product.setter
-    def id_product(self, id_product: int):
-        """Sets the id_product of this LogBookOutData.
-
-
-        :param id_product: The id_product of this LogBookOutData.
-        :type id_product: int
-        """
-
-        self._id_product = id_product
 
     @property
     def quantity(self) -> float:
@@ -201,25 +201,25 @@ class LogBookOutData(Model):
         self._weight = weight
 
     @property
-    def truck_license_plate(self) -> str:
-        """Gets the truck_license_plate of this LogBookOutData.
+    def truck_license(self) -> str:
+        """Gets the truck_license of this LogBookOutData.
 
 
-        :return: The truck_license_plate of this LogBookOutData.
+        :return: The truck_license of this LogBookOutData.
         :rtype: str
         """
-        return self._truck_license_plate
+        return self._truck_license
 
-    @truck_license_plate.setter
-    def truck_license_plate(self, truck_license_plate: str):
-        """Sets the truck_license_plate of this LogBookOutData.
+    @truck_license.setter
+    def truck_license(self, truck_license: str):
+        """Sets the truck_license of this LogBookOutData.
 
 
-        :param truck_license_plate: The truck_license_plate of this LogBookOutData.
-        :type truck_license_plate: str
+        :param truck_license: The truck_license of this LogBookOutData.
+        :type truck_license: str
         """
 
-        self._truck_license_plate = truck_license_plate
+        self._truck_license = truck_license
 
     @property
     def name_driver(self) -> str:
@@ -243,25 +243,25 @@ class LogBookOutData(Model):
         self._name_driver = name_driver
 
     @property
-    def person_picking_up_product(self) -> str:
-        """Gets the person_picking_up_product of this LogBookOutData.
+    def person_withdraws(self) -> str:
+        """Gets the person_withdraws of this LogBookOutData.
 
 
-        :return: The person_picking_up_product of this LogBookOutData.
+        :return: The person_withdraws of this LogBookOutData.
         :rtype: str
         """
-        return self._person_picking_up_product
+        return self._person_withdraws
 
-    @person_picking_up_product.setter
-    def person_picking_up_product(self, person_picking_up_product: str):
-        """Sets the person_picking_up_product of this LogBookOutData.
+    @person_withdraws.setter
+    def person_withdraws(self, person_withdraws: str):
+        """Sets the person_withdraws of this LogBookOutData.
 
 
-        :param person_picking_up_product: The person_picking_up_product of this LogBookOutData.
-        :type person_picking_up_product: str
+        :param person_withdraws: The person_withdraws of this LogBookOutData.
+        :type person_withdraws: str
         """
 
-        self._person_picking_up_product = person_picking_up_product
+        self._person_withdraws = person_withdraws
 
     @property
     def destiny(self) -> str:
@@ -327,22 +327,22 @@ class LogBookOutData(Model):
         self._observations = observations
 
     @property
-    def user_create(self) -> str:
-        """Gets the user_create of this LogBookOutData.
+    def created_by(self) -> str:
+        """Gets the created_by of this LogBookOutData.
 
 
-        :return: The user_create of this LogBookOutData.
+        :return: The created_by of this LogBookOutData.
         :rtype: str
         """
-        return self._user_create
+        return self._created_by
 
-    @user_create.setter
-    def user_create(self, user_create: str):
-        """Sets the user_create of this LogBookOutData.
+    @created_by.setter
+    def created_by(self, created_by: str):
+        """Sets the created_by of this LogBookOutData.
 
 
-        :param user_create: The user_create of this LogBookOutData.
-        :type user_create: str
+        :param created_by: The created_by of this LogBookOutData.
+        :type created_by: str
         """
 
-        self._user_create = user_create
+        self._created_by = created_by
