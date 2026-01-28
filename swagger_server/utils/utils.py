@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime, timedelta
 from pytz import timezone
 import re
 
@@ -64,3 +64,13 @@ def check_email(email):
         return True
     else:
         return False
+    
+def get_date_range(fecha_inicio=None, fecha_fin=None):
+    if fecha_inicio and fecha_fin:
+        return fecha_inicio, fecha_fin
+
+    today = date.today()
+    start = datetime.combine(today, datetime.min.time())
+    end = start + timedelta(days=1)
+
+    return start, end

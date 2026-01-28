@@ -59,8 +59,43 @@ class LogbookUseCase:
         return self.logbook_repository.get_all_unities(internal, external)
     
 
-    def generar_excel(self, datos, output_path):
-        
+    def generar_excel(self, datos, output_path, internal, external):
+        logbook_entry_rows = self.logbook_repository.get_logbook_resume(internal, external, LogbookEntry, '2026-01-27 00:00:00', '2026-01-28 00:00:00')
+        logbook_out_rows = self.logbook_repository.get_logbook_resume(internal, external, LogbookOut, '2026-01-27 00:00:00', '2026-01-28 00:00:00')
+
+        print(logbook_entry_rows)
+        print(logbook_out_rows)
+
+        resultado = {}
+
+        for row in logbook_out_rows:
+            cat_id = row[0] #id_category
+
+            resultado[cat_id] = {
+                "categoria": row[1], #categoria,
+                "unidad": row[3], #unidad,
+                "salida": row[2], #cantidad,
+                "entrada": 0
+            }
+
+
+        for row in logbook_entry_rows:
+            cat_id = row[0]
+
+            if cat_id not in resultado:
+                resultado[cat_id] = {
+                    "categoria": row[1], #categoria,
+                    "unidad": row[3],
+                    "salida": 0,
+                    "entrada": row[2]
+                }
+            else:
+                resultado[cat_id]["entrada"] = row[2]
+
+
+
+
+
         BASE_DIR = os.path.dirname(os.path.abspath(__file__))
         template_path = os.path.join(
             BASE_DIR,
@@ -72,21 +107,22 @@ class LogbookUseCase:
         ws = wb.active
 
         # Cabecera
-        ws["C3"] = datos["fecha"]
-        ws["C4"] = datos["localidad"]
-        ws["C5"] = datos["puesto_control"]
-        ws["C6"] = datos["agente"]
+        # ws["C3"] = datos["fecha"]
+        # ws["C4"] = datos["localidad"]
+        # ws["C5"] = datos["puesto_control"]
+        # ws["C6"] = datos["agente"]
 
-        ws["F3"] = datos["ref"]
-        ws["F4"] = datos["hora"]
+        # ws["F3"] = datos["ref"]
+        # ws["F4"] = datos["hora"]
 
-        fila_inicio = 10
+        fila_inicio = 15
 
-        for item in datos["items"]:
-            ws[f"C{fila_inicio}"] = item["salida_cant"]
-            ws[f"D{fila_inicio}"] = item["salida_unidad"]
-            ws[f"E{fila_inicio}"] = item["entrada_cant"]
-            ws[f"F{fila_inicio}"] = item["entrada_unidad"]
+        for item in resultado.values():
+            ws[f"B{fila_inicio}"] = f"TOTAL {item['categoria']}"
+            ws[f"D{fila_inicio}"] = item["unidad"]
+            ws[f"C{fila_inicio}"] = item["salida"]
+            ws[f"E{fila_inicio}"] = item["entrada"]
+            ws[f"F{fila_inicio}"] = item["unidad"]
             fila_inicio += 1
 
         wb.save(output_path)

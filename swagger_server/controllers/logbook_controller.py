@@ -204,7 +204,7 @@ class LogbookView(MethodView):
                     "..",
                     "template_report.xlsx"
                 )
-                self.logbook_use_case.generar_excel(datos, output)
+                self.logbook_use_case.generar_excel(datos, output, internal_transaction_id, external_transaction_id)
                 # response["error_code"] = 0
                 # response["message"] = "Unidades de peso obtenidas correctamente"
                 # response["data"] = results
@@ -214,5 +214,6 @@ class LogbookView(MethodView):
                 status_code = 200
         except Exception as ex:
             response, status_code = CustomAPIException.check_exception(ex, function_name, internal_process)
+            return response, status_code
             
         return send_file(output, as_attachment=True)

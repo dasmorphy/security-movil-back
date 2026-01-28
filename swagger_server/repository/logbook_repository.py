@@ -9,6 +9,7 @@ from swagger_server.models.db.category import Category
 from swagger_server.models.db.logbook_out import LogbookOut
 from swagger_server.models.db.unity_weight import UnityWeight
 from swagger_server.resources.databases.postgresql import PostgreSQLClient
+from swagger_server.utils.utils import get_date_range
 
 
 class LogbookRepository:
@@ -172,6 +173,36 @@ class LogbookRepository:
                     for c in result.scalars().all()
                 ]
                 return categories
+            except Exception as exception:
+                logger.error('Error: {}', str(exception), internal=internal, external=external)
+                if isinstance(exception, CustomAPIException):
+                    raise exception
+                
+                raise CustomAPIException("Error al obtener en la base de datos", 500)
+            
+    def get_logbook_resume(self, internal, external, model: LogbookOut | LogbookEntry, fecha_inicio=None, fecha_fin=None):
+        with self.db.session_factory() as session:
+            start, end = get_date_range(fecha_inicio, fecha_fin)
+            try:
+                return (
+                    session.query(
+                        Category.id_category,
+                        Category.name_category,
+                        func.sum(model.quantity).label("cantidad"),
+                        UnityWeight.name.label("unidad"),
+                    )
+                    .join(Category, Category.id_category == model.category_id)
+                    .join(UnityWeight, UnityWeight.id_unity == model.unity_id)
+                    .filter(model.created_at >= start)
+                    .filter(model.created_at < end)
+                    .group_by(
+                        Category.id_category,
+                        Category.name_category,
+                        UnityWeight.name,
+                    )
+                    .order_by(Category.name_category)
+                    .all()
+                )
             except Exception as exception:
                 logger.error('Error: {}', str(exception), internal=internal, external=external)
                 if isinstance(exception, CustomAPIException):
