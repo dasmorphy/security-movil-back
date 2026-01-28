@@ -33,6 +33,12 @@ class LogbookOut(Base):
         nullable=False
     )
 
+    group_business_id = Column(
+        Integer,
+        ForeignKey('public.group_business.id_group_business', onupdate='NO ACTION', ondelete='NO ACTION'),
+        nullable=False
+    )
+
     shipping_guide = Column(Text)
 
     quantity = Column(Integer, nullable=False)

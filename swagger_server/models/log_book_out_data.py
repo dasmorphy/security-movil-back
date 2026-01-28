@@ -14,9 +14,11 @@ class LogBookOutData(Model):
 
     Do not edit the class manually.
     """
-    def __init__(self, id_category: int=None, id_unity: int=None, shipping_guide: str=None, quantity: float=None, weight: float=None, truck_license: str=None, name_driver: str=None, person_withdraws: str=None, destiny: str=None, authorized_by: str=None, observations: str=None, created_by: str=None):  # noqa: E501
+    def __init__(self, id_group_business: int=None, id_category: int=None, id_unity: int=None, shipping_guide: str=None, quantity: float=None, weight: float=None, truck_license: str=None, name_driver: str=None, person_withdraws: str=None, destiny: str=None, authorized_by: str=None, observations: str=None, created_by: str=None):  # noqa: E501
         """LogBookOutData - a model defined in Swagger
 
+        :param id_group_business: The id_group_business of this LogBookOutData.  # noqa: E501
+        :type id_group_business: int
         :param id_category: The id_category of this LogBookOutData.  # noqa: E501
         :type id_category: int
         :param id_unity: The id_unity of this LogBookOutData.  # noqa: E501
@@ -43,6 +45,7 @@ class LogBookOutData(Model):
         :type created_by: str
         """
         self.swagger_types = {
+            'id_group_business': int,
             'id_category': int,
             'id_unity': int,
             'shipping_guide': str,
@@ -58,6 +61,7 @@ class LogBookOutData(Model):
         }
 
         self.attribute_map = {
+            'id_group_business': 'id_group_business',
             'id_category': 'id_category',
             'id_unity': 'id_unity',
             'shipping_guide': 'shipping_guide',
@@ -71,6 +75,7 @@ class LogBookOutData(Model):
             'observations': 'observations',
             'created_by': 'created_by'
         }
+        self._id_group_business = id_group_business
         self._id_category = id_category
         self._id_unity = id_unity
         self._shipping_guide = shipping_guide
@@ -94,6 +99,27 @@ class LogBookOutData(Model):
         :rtype: LogBookOutData
         """
         return util.deserialize_model(dikt, cls)
+
+    @property
+    def id_group_business(self) -> int:
+        """Gets the id_group_business of this LogBookOutData.
+
+
+        :return: The id_group_business of this LogBookOutData.
+        :rtype: int
+        """
+        return self._id_group_business
+
+    @id_group_business.setter
+    def id_group_business(self, id_group_business: int):
+        """Sets the id_group_business of this LogBookOutData.
+
+
+        :param id_group_business: The id_group_business of this LogBookOutData.
+        :type id_group_business: int
+        """
+
+        self._id_group_business = id_group_business
 
     @property
     def id_category(self) -> int:

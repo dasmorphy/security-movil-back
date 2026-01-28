@@ -6,6 +6,117 @@ info:
 servers:
 - url: /rest/zent-logbook-api/v1.0/
 paths:
+  /get/allSector:
+    get:
+      tags:
+      - Catalogs
+      summary: Obtiene todos los sectores
+      description: Devuelve todos los sectores de la base
+      operationId: get_all_sector
+      parameters:
+        - name: externalTransactionId
+          in: header
+          required: true
+          schema:
+            type: string
+            example: "fcea920f7412b5da7be0cf42b8c93759"
+        - name: channel
+          in: header
+          required: true
+          schema:
+            type: string
+            example: "ZENTINEL"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenericResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+        "503":
+          description: Service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+      x-openapi-router-controller: swagger_server.controllers.logbook_controller.LogbookView
+  /get/sector-by-id/{id_sector}:
+    get:
+      tags:
+      - Catalogs
+      summary: Obtiene un sector en especifico
+      description: Devuelve el sector por id
+      operationId: get_sector_by_id
+      parameters:
+        - name: id_sector
+          in: path
+          description: id del sector
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: externalTransactionId
+          in: header
+          required: true
+          schema:
+            type: string
+            example: "fcea920f7412b5da7be0cf42b8c93759"
+        - name: channel
+          in: header
+          required: true
+          schema:
+            type: string
+            example: "ZENTINEL"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenericResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+        "503":
+          description: Service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+      x-openapi-router-controller: swagger_server.controllers.logbook_controller.LogbookView
   /get/allUnitiesWeight:
     get:
       tags:
@@ -313,6 +424,9 @@ components:
     LogBookEntryData:
       type: object
       properties:
+        id_group_business:
+          type: integer
+          example: 1
         id_category:
           type: integer
           example: 10
@@ -349,6 +463,7 @@ components:
           type: string
           example: dmales
       example:
+        id_group_business: 1
         id_category: 10
         description: Larva de camaron
         shipping_guide: "0045555"
@@ -363,6 +478,9 @@ components:
     LogBookOutData:
       type: object
       properties:
+        id_group_business:
+          type: integer
+          example: 1
         id_category:
           type: integer
           example: 10
@@ -402,6 +520,7 @@ components:
           type: string
           example: dmales
       example:
+        id_group_business: 1
         id_category: 10
         id_unity: 1
         shipping_guide: "0045555"

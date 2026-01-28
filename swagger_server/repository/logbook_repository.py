@@ -4,9 +4,13 @@ from typing import List
 from loguru import logger
 from sqlalchemy import exists, func, insert, select
 from swagger_server.exception.custom_error_exception import CustomAPIException
+from swagger_server.models.db.business import Business
+from swagger_server.models.db.business import Business
+from swagger_server.models.db.group_business import GroupBusiness
 from swagger_server.models.db.logbook_entry import LogbookEntry
 from swagger_server.models.db.category import Category
 from swagger_server.models.db.logbook_out import LogbookOut
+from swagger_server.models.db.sector import Sector
 from swagger_server.models.db.unity_weight import UnityWeight
 from swagger_server.resources.databases.postgresql import PostgreSQLClient
 from swagger_server.utils.utils import get_date_range
@@ -37,6 +41,14 @@ class LogbookRepository:
                     )
                 ).scalar()
 
+                group_business_exists = session.execute(
+                    select(
+                        exists().where(
+                            GroupBusiness.id_group_business == logbook_entry_body.group_business_id
+                        )
+                    )
+                ).scalar()
+
                 if not category_exists:
                     raise CustomAPIException(
                         message="No existe la categoría",
@@ -46,6 +58,12 @@ class LogbookRepository:
                 if not unity_weight_exists:
                     raise CustomAPIException(
                         message="No existe la unidad de peso",
+                        status_code=404
+                    )
+                
+                if not group_business_exists:
+                    raise CustomAPIException(
+                        message="No existe el grupo de negocio",
                         status_code=404
                     )
                 
@@ -71,6 +89,14 @@ class LogbookRepository:
                     select(
                         exists().where(
                             Category.id_category == logbook_out_body.category_id
+                        )
+                    )
+                ).scalar()
+
+                group_business_exists = session.execute(
+                    select(
+                        exists().where(
+                            GroupBusiness.id_group_business == logbook_out_body.group_business_id
                         )
                     )
                 ).scalar()
@@ -112,9 +138,9 @@ class LogbookRepository:
                         status_code=404
                     )
                 
-                if not unity_weight_exists:
+                if not group_business_exists:
                     raise CustomAPIException(
-                        message="No existe la unidad de peso",
+                        message="No existe el grupo de negocio",
                         status_code=404
                     )
                 
@@ -180,12 +206,61 @@ class LogbookRepository:
                 
                 raise CustomAPIException("Error al obtener en la base de datos", 500)
             
+    def get_all_sectores(self, internal, external):
+        with self.db.session_factory() as session:
+            try:
+                result = session.execute(
+                    select(Sector)
+                )
+                sectors = [
+                    {
+                        "id_sector": c.id_sector,
+                        "name": c.name,
+                        "created_at": c.created_at,
+                        "updated_at": c.updated_at
+                    }
+                    for c in result.scalars().all()
+                ]
+                return sectors
+            except Exception as exception:
+                logger.error('Error: {}', str(exception), internal=internal, external=external)
+                if isinstance(exception, CustomAPIException):
+                    raise exception
+                
+                raise CustomAPIException("Error al obtener en la base de datos", 500)
+
+    def get_sector_by_id(self, id_sector, internal, external):
+        with self.db.session_factory() as session:
+            try:
+                sector = session.execute(
+                    select(Sector)
+                    .where(Sector.id_sector == id_sector)
+                ).scalar_one_or_none()
+
+                sector_found = {
+                    "id_sector": sector.id_sector,
+                    "name": sector.name,
+                    "created_at": sector.created_at,
+                    "updated_at": sector.updated_at
+                }
+
+                return sector_found
+
+            except Exception as exception:
+                logger.error('Error: {}', str(exception), internal=internal, external=external)
+                if isinstance(exception, CustomAPIException):
+                    raise exception
+                
+                raise CustomAPIException("Error al obtener en la base de datos", 500)
+            
     def get_logbook_resume(self, internal, external, model: LogbookOut | LogbookEntry, fecha_inicio=None, fecha_fin=None):
         with self.db.session_factory() as session:
             start, end = get_date_range(fecha_inicio, fecha_fin)
             try:
                 return (
                     session.query(
+                        GroupBusiness.id_group_business,
+                        GroupBusiness.name.label("grupo_negocio"),
                         Category.id_category,
                         Category.name_category,
                         func.sum(model.quantity).label("cantidad"),
@@ -193,16 +268,43 @@ class LogbookRepository:
                     )
                     .join(Category, Category.id_category == model.category_id)
                     .join(UnityWeight, UnityWeight.id_unity == model.unity_id)
+                    .join(GroupBusiness, GroupBusiness.id_group_business == model.group_business_id)
                     .filter(model.created_at >= start)
                     .filter(model.created_at < end)
                     .group_by(
+                        GroupBusiness.id_group_business,
+                        GroupBusiness.name,
                         Category.id_category,
                         Category.name_category,
                         UnityWeight.name,
                     )
-                    .order_by(Category.name_category)
+                    .order_by(GroupBusiness.name)
                     .all()
                 )
+            except Exception as exception:
+                logger.error('Error: {}', str(exception), internal=internal, external=external)
+                if isinstance(exception, CustomAPIException):
+                    raise exception
+                
+                raise CustomAPIException("Error al obtener en la base de datos", 500)
+            
+    def get_busnisses_by_id (self, internal, external) -> List[Business]:
+        with self.db.session_factory() as session:
+            try:
+                result = session.execute(
+                    select(Business)
+                )
+                businesses = [
+                    {
+                        "id_business": b.id_business,
+                        "name_business": b.name_business,
+                        "code": b.code,
+                        "created_at": b.created_at,
+                        "updated_at": b.updated_at
+                    }
+                    for b in result.scalars().all()
+                ]
+                return businesses
             except Exception as exception:
                 logger.error('Error: {}', str(exception), internal=internal, external=external)
                 if isinstance(exception, CustomAPIException):
