@@ -1,6 +1,7 @@
 
 
 from typing import List
+from unittest import result
 from loguru import logger
 from sqlalchemy import and_, exists, func, insert, select
 from swagger_server.exception.custom_error_exception import CustomAPIException
@@ -10,6 +11,7 @@ from swagger_server.models.db.group_business import GroupBusiness
 from swagger_server.models.db.logbook_entry import LogbookEntry
 from swagger_server.models.db.category import Category
 from swagger_server.models.db.logbook_out import LogbookOut
+from swagger_server.models.db.report_generated import ReportGenerated
 from swagger_server.models.db.sector import Sector
 from swagger_server.models.db.unity_weight import UnityWeight
 from swagger_server.resources.databases.postgresql import PostgreSQLClient
@@ -256,7 +258,11 @@ class LogbookRepository:
     def get_all_logbook_entry(self, filtersBase, internal, external):
         with self.db.session_factory() as session:
             try:
-                stmt = select(LogbookEntry)
+                stmt = select(
+                    LogbookEntry,
+                    GroupBusiness.name.label("group_name")
+                ).join(GroupBusiness, GroupBusiness.id_group_business == LogbookEntry.group_business_id)
+
                 filters = []
 
                 if filtersBase.get("user"):
@@ -274,9 +280,8 @@ class LogbookRepository:
                 if filters:
                     stmt = stmt.where(and_(*filters))
 
-                result = session.execute(stmt)
-
-                return result.scalars().all()
+                result = session.execute(stmt).all()
+                return result
 
             except Exception as exception:
                 logger.error('Error: {}', str(exception), internal=internal, external=external)
@@ -289,7 +294,11 @@ class LogbookRepository:
     def get_all_logbook_out(self, filtersBase, internal, external):
         with self.db.session_factory() as session:
             try:
-                stmt = select(LogbookOut)
+                stmt = select(
+                    LogbookOut,
+                    GroupBusiness.name.label("group_name")
+                ).join(GroupBusiness, GroupBusiness.id_group_business == LogbookOut.group_business_id)
+
                 filters = []
 
                 if filtersBase.get("user"):
@@ -307,9 +316,8 @@ class LogbookRepository:
                 if filters:
                     stmt = stmt.where(and_(*filters))
 
-                result = session.execute(stmt)
-
-                return result.scalars().all()
+                result = session.execute(stmt).all()
+                return result
 
             except Exception as exception:
                 logger.error('Error: {}', str(exception), internal=internal, external=external)
@@ -376,3 +384,46 @@ class LogbookRepository:
                     raise exception
                 
                 raise CustomAPIException("Error al obtener en la base de datos", 500)
+            
+    def post_report_generated(self, datos, internal, external) -> None:
+        with self.db.session_factory() as session:
+            try:
+                business_exists = session.execute(
+                    select(
+                        exists().where(
+                            Business.id_business == datos["business_id"]
+                        )
+                    )
+                ).scalar()
+
+                if not business_exists:
+                    raise CustomAPIException(
+                        message="No existe la empresa",
+                        status_code=404
+                    )
+                
+                new_report = ReportGenerated(
+                    business_id=datos["business_id"],
+                    type_report=datos["type_report"],
+                    status=datos["status"],
+                    shipping_error=datos["shipping_error"],
+                    created_at=datos["created_at"],
+                    deadline=datos["deadline"],
+                    shipping_date=datos["shipping_date"],
+                    created_by=datos["created_by"],
+                    start_date=datos["start_date"],
+                )
+
+                session.add(new_report)
+                session.commit()
+
+            except Exception as exception:
+                session.rollback()
+                logger.error('Error: {}', str(exception), internal=internal, external=external)
+                if isinstance(exception, CustomAPIException):
+                    raise exception
+                
+                raise CustomAPIException("Error al insertar en la base de datos", 500)
+
+            finally:
+                session.close()

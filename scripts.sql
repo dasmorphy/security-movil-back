@@ -311,3 +311,46 @@ ALTER TABLE IF EXISTS public.logbook_out
     ON DELETE NO ACTION;
 CREATE INDEX IF NOT EXISTS fki_logbook_out_group_business_id_fkey
     ON public.logbook_out(group_business_id);
+
+
+---------------------------------------------------------------------------------
+
+CREATE TABLE public.report_generated
+(
+    id_report integer NOT NULL DEFAULT 1,
+    business_id integer NOT NULL,
+    type_report text NOT NULL,
+    status text,
+    shipping_date timestamp without time zone,
+    shipping_error text,
+    created_at timestamp without time zone DEFAULT now(),
+    deadline timestamp without time zone,
+    start_date timestamp without time zone,
+    created_by text,
+    CONSTRAINT report_generated_pkey PRIMARY KEY (id_report),
+    CONSTRAINT report_generated_business_id_fkey FOREIGN KEY (business_id)
+        REFERENCES public.business (id_business) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.report_generated
+    OWNER to nextgen;
+
+CREATE SEQUENCE public.report_generated_id_seq
+    INCREMENT 1
+    START 1
+    MINVALUE 1
+    MAXVALUE 2147483647
+    CACHE 1;
+
+ALTER SEQUENCE public.report_generated_id_seq
+    OWNED BY public.report_generated.id_report;
+
+ALTER SEQUENCE public.report_generated_id_seq
+    OWNER TO nextgen;
+
+ALTER TABLE IF EXISTS public.report_generated
+    ALTER COLUMN id_report SET DEFAULT nextval('report_generated_id_seq'::regclass);

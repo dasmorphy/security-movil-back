@@ -84,6 +84,7 @@ class LogbookUseCase:
             {
                 "id_logbook_entry": c.id_logbook_entry,
                 "unity_id": c.unity_id,
+                "group_name": group_name,
                 "category_id": c.category_id,
                 "group_business_id": c.group_business_id,
                 "shipping_guide": c.shipping_guide,
@@ -99,7 +100,7 @@ class LogbookUseCase:
                 "created_by": c.created_by,
                 "updated_by": c.updated_by
             }
-            for c in rows
+            for c, group_name in rows
         ]
 
         return results
@@ -119,6 +120,7 @@ class LogbookUseCase:
                 "id_logbook_out": c.id_logbook_out,
                 "unity_id": c.unity_id,
                 "category_id": c.category_id,
+                "group_name": group_name,
                 "group_business_id": c.group_business_id,
                 "shipping_guide": c.shipping_guide,
                 "quantity": c.quantity,
@@ -134,7 +136,7 @@ class LogbookUseCase:
                 "created_by": c.created_by,
                 "updated_by": c.updated_by
             }
-            for c in rows
+            for c, group_name in rows
         ]
 
         return results
@@ -151,8 +153,12 @@ class LogbookUseCase:
         )
 
         return rows
+    
+    def post_report_generated(self, datos, internal, external) -> None:
+        self.logbook_repository.post_report_generated(datos, internal, external)
 
-    def generar_excel(self, datos, output_path, internal, external):
+
+    def generate_excel(self, datos, output_path, internal, external):
         # '2026-01-27 00:00:00', '2026-01-28 00:00:00'
         now = datetime.now()
         date = now.strftime("%d/%m/%Y")

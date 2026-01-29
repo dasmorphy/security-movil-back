@@ -1,3 +1,4 @@
+from datetime import datetime
 from json import JSONEncoder
 import os
 from timeit import default_timer
@@ -239,6 +240,23 @@ class LogbookView(MethodView):
                     "agente": "Juan Perez",
                     "ref": "RP2026-010",
                     "hora": "19:00",
+                    "business_id": 1,
+
+                    "type_report": "REPORTE DIARIO",
+                    "status": "GENERADO",
+                    "shipping_error": None,
+                    "created_at": datetime.now(),
+                    "deadline": datetime.now(),
+                    "shipping_date": datetime.now(),
+                    "created_by": "Juan Perez",
+                    "start_date": datetime.now().replace(
+                        hour=0,
+                        minute=0,
+                        second=0,
+                        microsecond=0
+                    ),
+
+
                     "items": [
                         {
                             "salida_cant": 0,
@@ -261,7 +279,8 @@ class LogbookView(MethodView):
                     "..",
                     "template_report.xlsx"
                 )
-                self.logbook_use_case.generar_excel(datos, output, internal_transaction_id, external_transaction_id)
+                self.logbook_use_case.generate_excel(datos, output, internal_transaction_id, external_transaction_id)
+                self.logbook_use_case.post_report_generated(datos, internal_transaction_id, external_transaction_id)
                 # response["error_code"] = 0
                 # response["message"] = "Unidades de peso obtenidas correctamente"
                 # response["data"] = results
@@ -274,6 +293,8 @@ class LogbookView(MethodView):
             return response, status_code
             
         return send_file(output, as_attachment=True)
+    
+
     
     def get_all_logbook_entry(self):
         internal_process = (None, None)
