@@ -274,3 +274,87 @@ class LogbookView(MethodView):
             return response, status_code
             
         return send_file(output, as_attachment=True)
+    
+    def get_all_logbook_entry(self):
+        internal_process = (None, None)
+        function_name = "get_all_logbook_entry"
+        response = {}
+        status_code = 500
+        try:
+            if connexion.request.headers:
+                start_time = default_timer()
+                internal_transaction_id = str(generate_internal_transaction_id())
+                external_transaction_id = request.headers.get('externalTransactionId')
+                internal_process = (internal_transaction_id, external_transaction_id)
+                response["internal_transaction_id"] = internal_transaction_id
+                response["external_transaction_id"] = external_transaction_id
+                message = f"start request: {function_name}, channel: {request.headers.get('channel')}"
+                logger.info(message, internal=internal_transaction_id, external=external_transaction_id)
+                result = self.logbook_use_case.get_logbooks_entry(request.headers, request.args, internal_transaction_id, external_transaction_id)
+                response["error_code"] = 0
+                response["message"] = "Bitacoras de entrada obtenidas correctamente"
+                response["data"] = result
+                end_time = default_timer()
+                logger.info(f"Fin de la transacción, procesada en : {end_time - start_time} milisegundos",
+                            internal=internal_transaction_id, external=external_transaction_id)
+                status_code = 200
+        except Exception as ex:
+            response, status_code = CustomAPIException.check_exception(ex, function_name, internal_process)
+            
+        return response, status_code
+    
+    def get_all_logbook_out(self):
+        internal_process = (None, None)
+        function_name = "get_all_logbook_out"
+        response = {}
+        status_code = 500
+        try:
+            if connexion.request.headers:
+                start_time = default_timer()
+                internal_transaction_id = str(generate_internal_transaction_id())
+                external_transaction_id = request.headers.get('externalTransactionId')
+                internal_process = (internal_transaction_id, external_transaction_id)
+                response["internal_transaction_id"] = internal_transaction_id
+                response["external_transaction_id"] = external_transaction_id
+                message = f"start request: {function_name}, channel: {request.headers.get('channel')}"
+                logger.info(message, internal=internal_transaction_id, external=external_transaction_id)
+                result = self.logbook_use_case.get_logbooks_out(request.headers, request.args, internal_transaction_id, external_transaction_id)
+                response["error_code"] = 0
+                response["message"] = "Bitacoras de salida obtenidas correctamente"
+                response["data"] = result
+                end_time = default_timer()
+                logger.info(f"Fin de la transacción, procesada en : {end_time - start_time} milisegundos",
+                            internal=internal_transaction_id, external=external_transaction_id)
+                status_code = 200
+        except Exception as ex:
+            response, status_code = CustomAPIException.check_exception(ex, function_name, internal_process)
+            
+        return response, status_code
+    
+    def get_history_logbook(self):
+        internal_process = (None, None)
+        function_name = "get_history_logbook"
+        response = {}
+        status_code = 500
+        try:
+            if connexion.request.headers:
+                start_time = default_timer()
+                internal_transaction_id = str(generate_internal_transaction_id())
+                external_transaction_id = request.headers.get('externalTransactionId')
+                internal_process = (internal_transaction_id, external_transaction_id)
+                response["internal_transaction_id"] = internal_transaction_id
+                response["external_transaction_id"] = external_transaction_id
+                message = f"start request: {function_name}, channel: {request.headers.get('channel')}"
+                logger.info(message, internal=internal_transaction_id, external=external_transaction_id)
+                result = self.logbook_use_case.get_history_logbooks(request.headers, request.args, internal_transaction_id, external_transaction_id)
+                response["error_code"] = 0
+                response["message"] = "Historial de bitacoras obtenido correctamente"
+                response["data"] = result
+                end_time = default_timer()
+                logger.info(f"Fin de la transacción, procesada en : {end_time - start_time} milisegundos",
+                            internal=internal_transaction_id, external=external_transaction_id)
+                status_code = 200
+        except Exception as ex:
+            response, status_code = CustomAPIException.check_exception(ex, function_name, internal_process)
+            
+        return response, status_code

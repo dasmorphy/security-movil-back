@@ -2,7 +2,7 @@
 
 from typing import List
 from loguru import logger
-from sqlalchemy import exists, func, insert, select
+from sqlalchemy import and_, exists, func, insert, select
 from swagger_server.exception.custom_error_exception import CustomAPIException
 from swagger_server.models.db.business import Business
 from swagger_server.models.db.business import Business
@@ -245,6 +245,71 @@ class LogbookRepository:
                 }
 
                 return sector_found
+
+            except Exception as exception:
+                logger.error('Error: {}', str(exception), internal=internal, external=external)
+                if isinstance(exception, CustomAPIException):
+                    raise exception
+                
+                raise CustomAPIException("Error al obtener en la base de datos", 500)
+            
+    def get_all_logbook_entry(self, filtersBase, internal, external):
+        with self.db.session_factory() as session:
+            try:
+                stmt = select(LogbookEntry)
+                filters = []
+
+                if filtersBase.get("user"):
+                    filters.append(LogbookEntry.created_by == filtersBase.get("user"))
+
+                if filtersBase.get("groups_business_id"):
+                    filters.append(LogbookEntry.group_business_id.in_(filtersBase.get("groups_business_id")))
+
+                if filtersBase.get("start_date"):
+                    filters.append(LogbookEntry.created_at >= filtersBase.get("start_date"))
+
+                if filtersBase.get("end_date"):
+                    filters.append(LogbookEntry.created_at <= filtersBase.get("end_date"))
+
+                if filters:
+                    stmt = stmt.where(and_(*filters))
+
+                result = session.execute(stmt)
+
+                return result.scalars().all()
+
+            except Exception as exception:
+                logger.error('Error: {}', str(exception), internal=internal, external=external)
+                if isinstance(exception, CustomAPIException):
+                    raise exception
+                
+                raise CustomAPIException("Error al obtener en la base de datos", 500)
+            
+
+    def get_all_logbook_out(self, filtersBase, internal, external):
+        with self.db.session_factory() as session:
+            try:
+                stmt = select(LogbookOut)
+                filters = []
+
+                if filtersBase.get("user"):
+                    filters.append(LogbookOut.created_by == filtersBase.get("user"))
+
+                if filtersBase.get("groups_business_id"):
+                    filters.append(LogbookOut.group_business_id.in_(filtersBase.get("groups_business_id")))
+
+                if filtersBase.get("start_date"):
+                    filters.append(LogbookOut.created_at >= filtersBase.get("start_date"))
+
+                if filtersBase.get("end_date"):
+                    filters.append(LogbookOut.created_at <= filtersBase.get("end_date"))
+
+                if filters:
+                    stmt = stmt.where(and_(*filters))
+
+                result = session.execute(stmt)
+
+                return result.scalars().all()
 
             except Exception as exception:
                 logger.error('Error: {}', str(exception), internal=internal, external=external)

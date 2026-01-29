@@ -70,6 +70,87 @@ class LogbookUseCase:
     def get_sector_by_id(self, id_sector, internal, external):
         return self.logbook_repository.get_sector_by_id(id_sector, internal, external)
 
+    def get_logbooks_entry(self, headers, params, internal, external):
+        groups = headers.get("groups_business_id")
+        filters = {
+            "user": headers.get("user"),
+            "groups_business_id": [int(x) for x in groups.split(",")] if groups else [],
+            "start_date": params.get("start_date"),
+            "end_date": params.get("end_date")
+        }
+        rows = self.logbook_repository.get_all_logbook_entry(filters, internal, external)
+
+        results = [
+            {
+                "id_logbook_entry": c.id_logbook_entry,
+                "unity_id": c.unity_id,
+                "category_id": c.category_id,
+                "group_business_id": c.group_business_id,
+                "shipping_guide": c.shipping_guide,
+                "description": c.description,
+                "quantity": c.quantity,
+                "weight": c.weight,
+                "provider": c.provider,
+                "destiny_intern": c.destiny_intern,
+                "authorized_by": c.authorized_by,
+                "observations": c.observations,
+                "created_at": c.created_at,
+                "updated_at": c.updated_at,
+                "created_by": c.created_by,
+                "updated_by": c.updated_by
+            }
+            for c in rows
+        ]
+
+        return results
+    
+    def get_logbooks_out(self, headers, params, internal, external):
+        groups = headers.get("groups_business_id")
+        filters = {
+            "user": headers.get("user"),
+            "groups_business_id": [int(x) for x in groups.split(",")] if groups else [],
+            "start_date": params.get("start_date"),
+            "end_date": params.get("end_date")
+        }
+        rows = self.logbook_repository.get_all_logbook_out(filters, internal, external)
+
+        results = [
+            {
+                "id_logbook_out": c.id_logbook_out,
+                "unity_id": c.unity_id,
+                "category_id": c.category_id,
+                "group_business_id": c.group_business_id,
+                "shipping_guide": c.shipping_guide,
+                "quantity": c.quantity,
+                "weight": c.weight,
+                "truck_license": c.truck_license,
+                "name_driver": c.name_driver,
+                "person_withdraws": c.person_withdraws,
+                "destiny": c.destiny,
+                "authorized_by": c.authorized_by,
+                "observations": c.observations,
+                "created_at": c.created_at,
+                "updated_at": c.updated_at,
+                "created_by": c.created_by,
+                "updated_by": c.updated_by
+            }
+            for c in rows
+        ]
+
+        return results
+    
+    def get_history_logbooks(self, headers, params, internal, external):
+        rows_entry = self.get_logbooks_entry(headers, params, internal, external)
+        rows_out = self.get_logbooks_out(headers, params, internal, external)
+
+        rows = rows_entry + rows_out
+
+        rows.sort(
+            key=lambda x: x["created_at"],
+            reverse=True
+        )
+
+        return rows
 
     def generar_excel(self, datos, output_path, internal, external):
         # '2026-01-27 00:00:00', '2026-01-28 00:00:00'
