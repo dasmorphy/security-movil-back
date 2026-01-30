@@ -295,7 +295,7 @@ class LogbookRepository:
                 filters = []
 
                 if filtersBase.get("user"):
-                    filters.append(LogbookEntry.created_by == filtersBase.get("user"))
+                    filters.append(LogbookEntry.name_user == filtersBase.get("user"))
 
                 if filtersBase.get("groups_business_id"):
                     filters.append(LogbookEntry.group_business_id.in_(filtersBase.get("groups_business_id")))
@@ -331,7 +331,7 @@ class LogbookRepository:
                 filters = []
 
                 if filtersBase.get("user"):
-                    filters.append(LogbookOut.created_by == filtersBase.get("user"))
+                    filters.append(LogbookOut.name_user == filtersBase.get("user"))
 
                 if filtersBase.get("groups_business_id"):
                     filters.append(LogbookOut.group_business_id.in_(filtersBase.get("groups_business_id")))
