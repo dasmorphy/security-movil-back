@@ -14,7 +14,7 @@ class LogBookEntryData(Model):
 
     Do not edit the class manually.
     """
-    def __init__(self, id_group_business: int=None, id_category: int=None, shipping_guide: str=None, description: str=None, quantity: float=None, id_unity: int=None, weight: float=None, provider: str=None, destiny_intern: str=None, authorized_by: str=None, observations: str=None, created_by: str=None):  # noqa: E501
+    def __init__(self, id_group_business: int=None, id_category: int=None, shipping_guide: str=None, description: str=None, quantity: float=None, id_unity: int=None, weight: float=None, provider: str=None, destiny_intern: str=None, authorized_by: str=None, observations: str=None, created_by: str=None, name_user: str=None):  # noqa: E501
         """LogBookEntryData - a model defined in Swagger
 
         :param id_group_business: The id_group_business of this LogBookEntryData.  # noqa: E501
@@ -41,6 +41,8 @@ class LogBookEntryData(Model):
         :type observations: str
         :param created_by: The created_by of this LogBookEntryData.  # noqa: E501
         :type created_by: str
+        :param name_user: The name_user of this LogBookEntryData.  # noqa: E501
+        :type name_user: str
         """
         self.swagger_types = {
             'id_group_business': int,
@@ -54,7 +56,8 @@ class LogBookEntryData(Model):
             'destiny_intern': str,
             'authorized_by': str,
             'observations': str,
-            'created_by': str
+            'created_by': str,
+            'name_user': str
         }
 
         self.attribute_map = {
@@ -69,7 +72,8 @@ class LogBookEntryData(Model):
             'destiny_intern': 'destiny_intern',
             'authorized_by': 'authorized_by',
             'observations': 'observations',
-            'created_by': 'created_by'
+            'created_by': 'created_by',
+            'name_user': 'name_user'
         }
         self._id_group_business = id_group_business
         self._id_category = id_category
@@ -83,6 +87,7 @@ class LogBookEntryData(Model):
         self._authorized_by = authorized_by
         self._observations = observations
         self._created_by = created_by
+        self._name_user = name_user
 
     @classmethod
     def from_dict(cls, dikt) -> 'LogBookEntryData':
@@ -346,3 +351,24 @@ class LogBookEntryData(Model):
         """
 
         self._created_by = created_by
+
+    @property
+    def name_user(self) -> str:
+        """Gets the name_user of this LogBookEntryData.
+
+
+        :return: The name_user of this LogBookEntryData.
+        :rtype: str
+        """
+        return self._name_user
+
+    @name_user.setter
+    def name_user(self, name_user: str):
+        """Sets the name_user of this LogBookEntryData.
+
+
+        :param name_user: The name_user of this LogBookEntryData.
+        :type name_user: str
+        """
+
+        self._name_user = name_user

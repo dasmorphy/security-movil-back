@@ -46,6 +46,7 @@ class LogbookOut(Base):
 
     truck_license = Column(Text)
     name_driver = Column(Text)
+    name_user = Column(Text)
     person_withdraws = Column(Text)
     destiny = Column(Text)
     authorized_by = Column(Text)

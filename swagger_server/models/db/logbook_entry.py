@@ -40,6 +40,7 @@ class LogbookEntry(Base):
     )
 
     shipping_guide = Column(Text)
+    name_user = Column(Text)
     description = Column(Text)
 
     quantity = Column(Integer, nullable=False)

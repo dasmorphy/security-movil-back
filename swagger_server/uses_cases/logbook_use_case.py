@@ -30,7 +30,8 @@ class LogbookUseCase:
             authorized_by=body.logbook_entry.authorized_by,
             observations=body.logbook_entry.observations,
             created_by=body.logbook_entry.created_by,
-            updated_by=body.logbook_entry.created_by
+            updated_by=body.logbook_entry.created_by,
+            name_user=body.logbook_entry.name_user
         )
 
         self.logbook_repository.post_logbook_entry(logbook_entry, internal, external)
@@ -50,7 +51,8 @@ class LogbookUseCase:
             authorized_by=body.logbook_out.authorized_by,
             observations=body.logbook_out.observations,
             created_by=body.logbook_out.created_by,
-            updated_by=body.logbook_out.created_by
+            updated_by=body.logbook_out.created_by,
+            name_user=body.logbook_out.name_user
         )
 
         self.logbook_repository.post_logbook_out(logbook_out, internal, external)
@@ -69,6 +71,9 @@ class LogbookUseCase:
 
     def get_sector_by_id(self, id_sector, internal, external):
         return self.logbook_repository.get_sector_by_id(id_sector, internal, external)
+    
+    def get_group_business_by_id_business(self, id_business, internal, external):
+        return self.logbook_repository.get_group_business_by_id_business(id_business, internal, external)
 
     def get_logbooks_entry(self, headers, params, internal, external):
         groups = headers.get("groups_business_id")
