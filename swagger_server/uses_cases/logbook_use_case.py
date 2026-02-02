@@ -427,16 +427,16 @@ class LogbookUseCase:
         group_row_indexes = []
         localidad_row_indexes = []
 
+        # 👉 LOCALIDAD (UNA SOLA VEZ)
+        localidad_row_index = len(table_data)
+        localidad_row_indexes.append(localidad_row_index)
+
+        # Fila con la LOCALIDAD (solo primera columna)
+        table_data.append([
+            datos["localidad"].upper(), "", "", "", ""
+        ])
+
         for grupo, data in resultado.items():
-            # localidad_row_index = len(table_data)
-            localidad_row_index = len(table_data)
-            localidad_row_indexes.append(localidad_row_index)
-
-
-            # Fila con la LOCALIDAD (solo primera columna)
-            table_data.append([
-                datos["localidad"].upper(), "", "", "", ""
-            ])
 
             group_row_index = len(table_data)
             group_row_indexes.append(group_row_index)
@@ -466,14 +466,14 @@ class LogbookUseCase:
             ("ALIGN", (1, 1), (-1, -1), "CENTER"),
         ]
 
-        # Estilo LOCALIDAD
+        # Estilo LOCALIDAD (amarillo)
         for row in localidad_row_indexes:
             style_commands.extend([
                 ("BACKGROUND", (0, row), (-1, row), colors.yellow),
                 ("FONTNAME", (0, row), (0, row), "Helvetica-Bold"),
             ])
 
-        # Estilo GRUPO
+        # Estilo GRUPO (solo negrita)
         for row in group_row_indexes:
             style_commands.append(
                 ("FONTNAME", (0, row), (0, row), "Helvetica-Bold")
