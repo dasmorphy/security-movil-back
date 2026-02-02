@@ -310,6 +310,88 @@ class LogbookView(MethodView):
                 )
                 self.logbook_use_case.generate_excel(datos, output, internal_transaction_id, external_transaction_id)
                 self.logbook_use_case.post_report_generated(datos, internal_transaction_id, external_transaction_id)
+                
+                # response["error_code"] = 0
+                # response["message"] = "Unidades de peso obtenidas correctamente"
+                # response["data"] = results
+                end_time = default_timer()
+                logger.info(f"Fin de la transacción, procesada en : {end_time - start_time} milisegundos",
+                            internal=internal_transaction_id, external=external_transaction_id)
+                status_code = 200
+        except Exception as ex:
+            response, status_code = CustomAPIException.check_exception(ex, function_name, internal_process)
+            return response, status_code
+            
+        return send_file(output, as_attachment=True)
+    
+
+    def get_generate_pdf(self):
+        internal_process = (None, None)
+        function_name = "get_generate_pdf"
+        response = {}
+        status_code = 500
+        try:
+            if connexion.request.headers:
+                start_time = default_timer()
+                internal_transaction_id = str(generate_internal_transaction_id())
+                external_transaction_id = request.headers.get('externalTransactionId')
+                internal_process = (internal_transaction_id, external_transaction_id)
+                response["internal_transaction_id"] = internal_transaction_id
+                response["external_transaction_id"] = external_transaction_id
+                message = f"start request: {function_name}, channel: {request.headers.get('channel')}"
+                logger.info(message, internal=internal_transaction_id, external=external_transaction_id)
+
+
+                datos = {
+                    "fecha": "01/10/2026",
+                    "localidad": "TAURA (TOTAL)",
+                    "puesto_control": "GARITA DE SEGURIDAD",
+                    "agente": "Juan Perez",
+                    "ref": "RP2026-010",
+                    "hora": "19:00",
+                    "business_id": 1,
+
+                    "type_report": "REPORTE DIARIO",
+                    "status": "GENERADO",
+                    "shipping_error": None,
+                    "created_at": datetime.now(),
+                    "deadline": datetime.now(),
+                    "shipping_date": datetime.now(),
+                    "created_by": "Juan Perez",
+                    "start_date": datetime.now().replace(
+                        hour=0,
+                        minute=0,
+                        second=0,
+                        microsecond=0
+                    ),
+
+
+                    "items": [
+                        {
+                            "salida_cant": 0,
+                            "salida_unidad": "LIBRAS",
+                            "entrada_cant": 0,
+                            "entrada_unidad": "LIBRAS"
+                        },
+                        {
+                            "salida_cant": 0,
+                            "salida_unidad": "GALONES",
+                            "entrada_cant": 1980,
+                            "entrada_unidad": "GALONES"
+                        }
+                    ]
+                }
+                
+                BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+                output = os.path.join(
+                    BASE_DIR,
+                    "..",
+                    "template_report.pdf"
+                )
+                # self.logbook_use_case.generate_excel(datos, output, internal_transaction_id, external_transaction_id)
+                # self.logbook_use_case.post_report_generated(datos, internal_transaction_id, external_transaction_id)
+                self.logbook_use_case.generate_pdf(datos, output, internal_transaction_id, external_transaction_id)
+                
                 # response["error_code"] = 0
                 # response["message"] = "Unidades de peso obtenidas correctamente"
                 # response["data"] = results
@@ -399,6 +481,34 @@ class LogbookView(MethodView):
                 result = self.logbook_use_case.get_history_logbooks(request.headers, request.args, internal_transaction_id, external_transaction_id)
                 response["error_code"] = 0
                 response["message"] = "Historial de bitacoras obtenido correctamente"
+                response["data"] = result
+                end_time = default_timer()
+                logger.info(f"Fin de la transacción, procesada en : {end_time - start_time} milisegundos",
+                            internal=internal_transaction_id, external=external_transaction_id)
+                status_code = 200
+        except Exception as ex:
+            response, status_code = CustomAPIException.check_exception(ex, function_name, internal_process)
+            
+        return response, status_code
+
+    def get_resume_graphs(self):
+        internal_process = (None, None)
+        function_name = "get_resume_graphs"
+        response = {}
+        status_code = 500
+        try:
+            if connexion.request.headers:
+                start_time = default_timer()
+                internal_transaction_id = str(generate_internal_transaction_id())
+                external_transaction_id = request.headers.get('externalTransactionId')
+                internal_process = (internal_transaction_id, external_transaction_id)
+                response["internal_transaction_id"] = internal_transaction_id
+                response["external_transaction_id"] = external_transaction_id
+                message = f"start request: {function_name}, channel: {request.headers.get('channel')}"
+                logger.info(message, internal=internal_transaction_id, external=external_transaction_id)
+                result = self.logbook_use_case.get_resume_graphs(request.headers, request.args, internal_transaction_id, external_transaction_id)
+                response["error_code"] = 0
+                response["message"] = "Datos obtenidos correctamente"
                 response["data"] = result
                 end_time = default_timer()
                 logger.info(f"Fin de la transacción, procesada en : {end_time - start_time} milisegundos",

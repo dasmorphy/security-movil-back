@@ -1,6 +1,7 @@
 
 
 import os
+from typing import Counter
 from openpyxl import load_workbook
 from datetime import datetime
 from swagger_server.models.db.logbook_entry import LogbookEntry
@@ -9,6 +10,12 @@ from swagger_server.models.request_post_logbook_entry import RequestPostLogbookE
 from swagger_server.models.request_post_logbook_out import RequestPostLogbookOut
 from swagger_server.repository.logbook_repository import LogbookRepository
 from openpyxl.styles import Font, PatternFill
+
+from reportlab.lib.pagesizes import A4
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.platypus import Spacer, Image
 
 
 class LogbookUseCase:
@@ -161,6 +168,62 @@ class LogbookUseCase:
 
         return rows
     
+    def get_resume_graphs(self, headers, params, internal, external):
+        rows_entry = self.get_logbooks_entry(headers, params, internal, external)
+        rows_out = self.get_logbooks_out(headers, params, internal, external)
+        
+        all_rows = rows_entry + rows_out
+
+        if len(all_rows) == 0:
+            data = {
+                "porcentaje_entrada": 0,
+                "porcentaje_salida": 0,
+                "categorias": []
+            }
+
+            return data
+
+        percentage_entry = len(rows_entry) / len(all_rows) * 100
+        percentage_out = len(rows_out) / len(all_rows) * 100
+        categories = self.get_all_categories(internal, external)
+
+        #Crear diccionario {id: nombre}
+        category_map = {
+            c["id_category"]: c["name_category"]
+            for c in categories
+        }
+
+        #Contadores por categoría
+        entry_counter = Counter(row["category_id"] for row in rows_entry)
+        out_counter = Counter(row["category_id"] for row in rows_out)
+
+        #Unimos todas las categorías presentes
+        all_category_ids = set(entry_counter.keys()) | set(out_counter.keys())
+        categorias = []
+
+        for category_id in all_category_ids:
+            entry_count = entry_counter.get(category_id, 0)
+            out_count = out_counter.get(category_id, 0)
+
+            entrada_pct = round((entry_count / len(all_rows)) * 100, 2)
+            salida_pct = round((out_count / len(all_rows)) * 100, 2)
+            total_pct = round(entrada_pct + salida_pct, 2)
+
+            categorias.append({
+                "categoria": category_map.get(category_id, "Sin categoría"),
+                "entrada": entrada_pct,
+                "salida": salida_pct,
+                "porcentaje_total": total_pct
+            })
+
+        data = {
+            "porcentaje_entrada": percentage_entry,
+            "porcentaje_salida": percentage_out,
+            "categorias": categorias
+        }
+
+        return data
+    
     def post_report_generated(self, datos, internal, external) -> None:
         self.logbook_repository.post_report_generated(datos, internal, external)
 
@@ -269,3 +332,155 @@ class LogbookUseCase:
             fila_inicio += 1
 
         wb.save(output_path)
+
+    def generate_pdf(self, datos, output_path, internal, external):
+        # '2026-01-27 00:00:00', '2026-01-28 00:00:00'
+        now = datetime.now()
+        date = now.strftime("%d/%m/%Y")
+        time = now.strftime("%H:%M:%S")
+        BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+        logo_path = os.path.join(BASE_DIR, "templates", "logo_report.png")
+
+        logo = Image(
+            logo_path,
+            width=230,   # ancho en puntos
+            height=60    # alto en puntos
+        )
+
+
+        logbook_entry_rows = self.logbook_repository.get_logbook_resume(internal, external, LogbookEntry)
+        logbook_out_rows = self.logbook_repository.get_logbook_resume(internal, external, LogbookOut)
+        # business_user, name_user = self.get_user_info(datos)
+
+        print(logbook_entry_rows)
+        print(logbook_out_rows)
+
+        resultado = {}
+
+        for row in logbook_out_rows:
+            grupo = row[1]          # GroupBusiness.name
+            cat_id = row[2]         # Category.id_category
+
+            if grupo not in resultado:
+                resultado[grupo] = {
+                    "categorias": {}
+                }
+
+            resultado[grupo]["categorias"][cat_id] = {
+                "categoria": row[3],
+                "unidad": row[5],
+                "salida": row[4],
+                "entrada": 0
+            }
+
+
+        for row in logbook_entry_rows:
+            grupo = row[1]
+            cat_id = row[2]
+
+            if grupo not in resultado:
+                resultado[grupo] = {
+                    "categorias": {}
+                }
+
+            if cat_id not in resultado[grupo]["categorias"]:
+                resultado[grupo]["categorias"][cat_id] = {
+                    "categoria": row[3],
+                    "unidad": row[5],
+                    "salida": 0,
+                    "entrada": row[4]
+                }
+            else:
+                resultado[grupo]["categorias"][cat_id]["entrada"] = row[4]
+
+
+        doc = SimpleDocTemplate(
+            output_path,
+            pagesize=A4,
+            rightMargin=30,
+            leftMargin=30,
+            topMargin=30,
+            bottomMargin=30
+        )
+
+        styles = getSampleStyleSheet()
+        elements = []
+
+        # Título
+        elements.append(logo)
+        elements.append(Spacer(1, 12))
+        # elements.append(Paragraph("<b>REPORTE DIARIO</b>", styles["Title"]))
+        elements.append(Paragraph(f"Fecha: {date}", styles["Normal"]))
+        elements.append(Paragraph(f"Hora: {time}", styles["Normal"]))
+        elements.append(Paragraph(f"Localidad: {datos['localidad']}", styles["Normal"]))
+        elements.append(Paragraph(f"Puesto de control: {datos['puesto_control']}", styles["Normal"]))
+        elements.append(Paragraph(f"Agente: {datos['agente']}", styles["Normal"]))
+        elements.append(Paragraph(f"REP#: {datos['ref']}", styles["Normal"]))
+        elements.append(Spacer(1, 12))
+        elements.append(Spacer(1, 12))
+
+        # Tabla
+        table_data = [
+            ["Descripción", "Salida", "Unidad", "Entrada", "Unidad"]
+        ]
+
+        group_row_indexes = []
+        localidad_row_indexes = []
+
+        for grupo, data in resultado.items():
+            # localidad_row_index = len(table_data)
+            localidad_row_index = len(table_data)
+            localidad_row_indexes.append(localidad_row_index)
+
+
+            # Fila con la LOCALIDAD (solo primera columna)
+            table_data.append([
+                datos["localidad"].upper(), "", "", "", ""
+            ])
+
+            group_row_index = len(table_data)
+            group_row_indexes.append(group_row_index)
+
+            # Fila del grupo
+            table_data.append([
+                grupo.upper(), "", "", "", ""
+            ])
+
+            for item in data["categorias"].values():
+                table_data.append([
+                    f"TOTAL {item['categoria'].upper()}",
+                    item["salida"],
+                    item["unidad"],
+                    item["entrada"],
+                    item["unidad"]
+                ])
+
+            table_data.append(["", "", "", "", ""])
+
+        table = Table(table_data, colWidths=[180, 60, 60, 60, 60])
+
+        style_commands = [
+            ("GRID", (0, 0), (-1, -1), 0.5, colors.black),
+            ("BACKGROUND", (0, 0), (-1, 0), colors.lightgrey),
+            ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+            ("ALIGN", (1, 1), (-1, -1), "CENTER"),
+        ]
+
+        # Estilo LOCALIDAD
+        for row in localidad_row_indexes:
+            style_commands.extend([
+                ("BACKGROUND", (0, row), (-1, row), colors.yellow),
+                ("FONTNAME", (0, row), (0, row), "Helvetica-Bold"),
+            ])
+
+        # Estilo GRUPO
+        for row in group_row_indexes:
+            style_commands.append(
+                ("FONTNAME", (0, row), (0, row), "Helvetica-Bold")
+            )
+
+        table.setStyle(TableStyle(style_commands))
+
+
+        elements.append(table)
+        doc.build(elements)
