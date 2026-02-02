@@ -171,58 +171,50 @@ class LogbookUseCase:
     def get_resume_graphs(self, headers, params, internal, external):
         rows_entry = self.get_logbooks_entry(headers, params, internal, external)
         rows_out = self.get_logbooks_out(headers, params, internal, external)
-        
+
         all_rows = rows_entry + rows_out
 
         if len(all_rows) == 0:
-            data = {
-                "porcentaje_entrada": 0,
-                "porcentaje_salida": 0,
+            return {
+                "total_entrada": 0,
+                "total_salida": 0,
                 "categorias": []
             }
 
-            return data
+        # Totales generales
+        total_entry = len(rows_entry)
+        total_out = len(rows_out)
 
-        percentage_entry = len(rows_entry) / len(all_rows) * 100
-        percentage_out = len(rows_out) / len(all_rows) * 100
         categories = self.get_all_categories(internal, external)
 
-        #Crear diccionario {id: nombre}
+        # Mapa {id: nombre}
         category_map = {
             c["id_category"]: c["name_category"]
             for c in categories
         }
 
-        #Contadores por categoría
+        # Contadores por categoría
         entry_counter = Counter(row["category_id"] for row in rows_entry)
         out_counter = Counter(row["category_id"] for row in rows_out)
 
-        #Unimos todas las categorías presentes
+        # Todas las categorías presentes
         all_category_ids = set(entry_counter.keys()) | set(out_counter.keys())
+
         categorias = []
 
         for category_id in all_category_ids:
-            entry_count = entry_counter.get(category_id, 0)
-            out_count = out_counter.get(category_id, 0)
-
-            entrada_pct = round((entry_count / len(all_rows)) * 100, 2)
-            salida_pct = round((out_count / len(all_rows)) * 100, 2)
-            total_pct = round(entrada_pct + salida_pct, 2)
-
             categorias.append({
                 "categoria": category_map.get(category_id, "Sin categoría"),
-                "entrada": entrada_pct,
-                "salida": salida_pct,
-                "porcentaje_total": total_pct
+                "entrada": entry_counter.get(category_id, 0),
+                "salida": out_counter.get(category_id, 0),
+                "total": entry_counter.get(category_id, 0) + out_counter.get(category_id, 0)
             })
 
-        data = {
-            "porcentaje_entrada": percentage_entry,
-            "porcentaje_salida": percentage_out,
+        return {
+            "total_entrada": total_entry,
+            "total_salida": total_out,
             "categorias": categorias
         }
-
-        return data
     
     def post_report_generated(self, datos, internal, external) -> None:
         self.logbook_repository.post_report_generated(datos, internal, external)
@@ -333,7 +325,7 @@ class LogbookUseCase:
 
         wb.save(output_path)
 
-    def generate_pdf(self, datos, output_path, internal, external):
+    def generate_pdf(self, args, datos, output_path, internal, external):
         # '2026-01-27 00:00:00', '2026-01-28 00:00:00'
         now = datetime.now()
         date = now.strftime("%d/%m/%Y")
@@ -347,7 +339,7 @@ class LogbookUseCase:
             height=60    # alto en puntos
         )
 
-
+        
         logbook_entry_rows = self.logbook_repository.get_logbook_resume(internal, external, LogbookEntry)
         logbook_out_rows = self.logbook_repository.get_logbook_resume(internal, external, LogbookOut)
         # business_user, name_user = self.get_user_info(datos)

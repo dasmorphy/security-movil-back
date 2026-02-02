@@ -117,6 +117,65 @@ paths:
               schema:
                 $ref: "#/components/schemas/ResponseError"
       x-openapi-router-controller: swagger_server.controllers.logbook_controller.LogbookView
+  /get/sector-by-business/{id_business}:
+    get:
+      tags:
+      - Catalogs
+      summary: Obtiene todos los sectores por id de negocio
+      description: Devuelve todos los grupos de negocio de la base
+      operationId: get_sector_by_business
+      parameters:
+        - name: id_business
+          in: path
+          description: id del negocio
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: externalTransactionId
+          in: header
+          required: true
+          schema:
+            type: string
+            example: "fcea920f7412b5da7be0cf42b8c93759"
+        - name: channel
+          in: header
+          required: true
+          schema:
+            type: string
+            example: "ZENTINEL"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenericResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+        "503":
+          description: Service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+      x-openapi-router-controller: swagger_server.controllers.logbook_controller.LogbookView
   /get/sector-by-id/{id_sector}:
     get:
       tags:
@@ -610,6 +669,26 @@ paths:
       description: Devuelve todos las unidades de medida de la base
       operationId: get_generate_excel
       parameters:
+        - name: groups_business_id
+          in: header
+          required: false
+          schema:
+            type: string
+            example: "1,2,3"
+        - name: start_date
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+            example: "2025-01-21T00:00:00"
+        - name: end_date
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+            example: "2025-01-22T00:00:00"
         - name: externalTransactionId
           in: header
           required: true
@@ -662,6 +741,26 @@ paths:
       description: Devuelve todos las unidades de medida de la base
       operationId: get_generate_pdf
       parameters:
+        - name: groups_business_id
+          in: header
+          required: false
+          schema:
+            type: string
+            example: "1,2,3"
+        - name: start_date
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+            example: "2025-01-21T00:00:00"
+        - name: end_date
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+            example: "2025-01-22T00:00:00"
         - name: externalTransactionId
           in: header
           required: true
@@ -714,6 +813,26 @@ paths:
       description: Devuelve todos los porcentajes para graficos
       operationId: get_resume_graphs
       parameters:
+        - name: groups_business_id
+          in: header
+          required: false
+          schema:
+            type: string
+            example: "1,2,3"
+        - name: start_date
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+            example: "2025-01-21T00:00:00"
+        - name: end_date
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+            example: "2025-01-22T00:00:00"
         - name: externalTransactionId
           in: header
           required: true
