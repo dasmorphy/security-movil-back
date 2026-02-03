@@ -5,7 +5,7 @@ from timeit import default_timer
 import connexion
 from flask import jsonify, request, send_file
 import six
-
+import json
 from flask.views import MethodView
 
 from swagger_server.exception.custom_error_exception import CustomAPIException
@@ -81,17 +81,27 @@ class LogbookView(MethodView):
         response = {}
         status_code = 500
         try:
-            if connexion.request.is_json:
-                body = RequestPostLogbookOut.from_dict(connexion.request.get_json())  # noqa: E501
+            if request.content_type.startswith("multipart/form-data"):
                 start_time = default_timer()
                 internal_transaction_id = str(generate_internal_transaction_id())
+
+                logbook_file = request.files.get("logbook_out")
+                if not logbook_file:
+                    raise CustomAPIException("Campo logbook_out no enviado", 400)
+
+                logbook_raw = logbook_file.read().decode("utf-8")
+                logbook_dict = json.loads(logbook_raw)
+                
+                body = RequestPostLogbookOut.from_dict(logbook_dict)
+
                 external_transaction_id = body.external_transaction_id
                 internal_process = (internal_transaction_id, external_transaction_id)
                 response["internal_transaction_id"] = internal_transaction_id
                 response["external_transaction_id"] = external_transaction_id
                 message = f"start request: {function_name}, channel: {body.channel}"
                 logger.info(message, internal=internal_transaction_id, external=external_transaction_id)
-                self.logbook_use_case.post_logbook_out(body, internal_transaction_id, external_transaction_id)
+                files = request.files.getlist("images")
+                self.logbook_use_case.post_logbook_out(body, files, internal_transaction_id, external_transaction_id)
                 response["error_code"] = 0
                 response["message"] = "Bitácora de salida creada correctamente"
                 end_time = default_timer()

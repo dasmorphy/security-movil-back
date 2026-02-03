@@ -662,7 +662,7 @@ paths:
       operationId: post_logbook_out
       requestBody:
         content:
-          application/json:
+          multipart/form-data:
             schema:
               $ref: "#/components/schemas/RequestPostLogbookOut"
       responses:
@@ -1096,6 +1096,12 @@ components:
         name_user:
           type: string
           example: Daniel
+        images:
+          type: array
+          maxItems: 10
+          items:
+            type: string
+            format: binary
       example:
         id_group_business: 1
         id_category: 10
@@ -1111,6 +1117,7 @@ components:
         observations: Sin observaciones
         created_by: dmales
         name_user: Daniel Males
+        images: []
     GenericResponse:
       properties:
         data:

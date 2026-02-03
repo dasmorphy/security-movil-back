@@ -44,7 +44,7 @@ class LogbookUseCase:
 
         self.logbook_repository.post_logbook_entry(logbook_entry, internal, external)
 
-    def post_logbook_out(self, body: RequestPostLogbookOut, internal, external) -> None:
+    def post_logbook_out(self, body: RequestPostLogbookOut, images, internal, external) -> None:
         logbook_out = LogbookOut(
             unity_id=body.logbook_out.id_unity,
             category_id=body.logbook_out.id_category,
@@ -64,7 +64,7 @@ class LogbookUseCase:
             workday=body.logbook_out.workday
         )
 
-        self.logbook_repository.post_logbook_out(logbook_out, internal, external)
+        self.logbook_repository.post_logbook_out(logbook_out, images, internal, external)
 
     def get_all_categories(self, internal, external):
         return self.logbook_repository.get_all_categories(internal, external)

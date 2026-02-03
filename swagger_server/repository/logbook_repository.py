@@ -10,13 +10,17 @@ from swagger_server.models.db.business import Business
 from swagger_server.models.db.group_business import GroupBusiness
 from swagger_server.models.db.logbook_entry import LogbookEntry
 from swagger_server.models.db.category import Category
+from swagger_server.models.db.logbook_images import LogbookImages
 from swagger_server.models.db.logbook_out import LogbookOut
 from swagger_server.models.db.report_generated import ReportGenerated
 from swagger_server.models.db.sector import Sector
 from swagger_server.models.db.unity_weight import UnityWeight
 from swagger_server.resources.databases.postgresql import PostgreSQLClient
 from swagger_server.utils.utils import get_date_range
-
+import os
+from PIL import Image
+from uuid import uuid4
+from werkzeug.utils import secure_filename
 
 class LogbookRepository:
     
@@ -83,7 +87,13 @@ class LogbookRepository:
             finally:
                 session.close()
 
-    def post_logbook_out(self, logbook_out_body: LogbookOut, internal, external) -> None:
+    def post_logbook_out(self, logbook_out_body: LogbookOut, images, internal, external) -> None:
+        saved_files = []
+
+        if len(images) > 10:
+            raise CustomAPIException("Máximo 10 imagenes", 500)
+
+
         with self.db.session_factory() as session:
             try:
                 unity_weight_exists = True
@@ -147,10 +157,33 @@ class LogbookRepository:
                     )
                 
                 session.add(logbook_out_body)
+                session.flush()
+
+                logbook_out_id = logbook_out_body.id
+
+                #Guardar imágenes (máx 10)
+                for file in images[:10]:
+                    result = self.save_image_as_webp(file)
+                    saved_files.append(result["url"])
+
+                    image = LogbookImages(
+                        logbook_id_out=logbook_out_id,
+                        image_path=result["url"]
+                    )
+
+                    session.add(image)
+
                 session.commit()
 
             except Exception as exception:
                 session.rollback()
+
+                #limpia archivos guardados si falla DB
+                for path in saved_files:
+                    full_path = os.path.join("/var/www", path.lstrip("/"))
+                    if os.path.exists(full_path):
+                        os.remove(full_path)
+
                 logger.error('Error: {}', str(exception), internal=internal, external=external)
                 if isinstance(exception, CustomAPIException):
                     raise exception
@@ -531,3 +564,34 @@ class LogbookRepository:
 
             finally:
                 session.close()
+
+    def save_image_as_webp(self, file):
+        ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "webp"}
+        ext = file.filename.rsplit(".", 1)[-1].lower()
+        folder = f"/var/www/uploads/logbooks"
+
+        if not file or file.filename == "":
+            raise ValueError("Archivo inválido")
+
+        if ext not in ALLOWED_EXTENSIONS:
+            raise ValueError("Formato no permitido")
+
+        original_name = secure_filename(file.filename)
+        base_name = os.path.splitext(original_name)[0]
+
+        filename = f"{uuid4()}_{base_name}.webp"
+        path = os.path.join(folder, filename)
+
+        image = Image.open(file)
+        image = image.convert("RGB")  # Evita problemas con PNG
+
+        image.save(
+            path,
+            "WEBP",
+            quality=80,     # 🔥 sweet spot
+            method=6        # máxima compresión
+        )
+
+        return {
+            "url": f"/uploads/logbooks/{filename}"
+        }

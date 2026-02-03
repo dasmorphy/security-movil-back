@@ -14,7 +14,7 @@ class LogBookOutData(Model):
 
     Do not edit the class manually.
     """
-    def __init__(self, id_group_business: int=None, id_category: int=None, id_unity: int=None, shipping_guide: str=None, quantity: float=None, weight: float=None, truck_license: str=None, name_driver: str=None, person_withdraws: str=None, workday: str=None, destiny: str=None, authorized_by: str=None, observations: str=None, created_by: str=None, name_user: str=None):  # noqa: E501
+    def __init__(self, id_group_business: int=None, id_category: int=None, id_unity: int=None, shipping_guide: str=None, quantity: float=None, weight: float=None, truck_license: str=None, name_driver: str=None, person_withdraws: str=None, workday: str=None, destiny: str=None, authorized_by: str=None, observations: str=None, created_by: str=None, name_user: str=None, images: List[str]=None):  # noqa: E501
         """LogBookOutData - a model defined in Swagger
 
         :param id_group_business: The id_group_business of this LogBookOutData.  # noqa: E501
@@ -47,6 +47,8 @@ class LogBookOutData(Model):
         :type created_by: str
         :param name_user: The name_user of this LogBookOutData.  # noqa: E501
         :type name_user: str
+        :param images: The images of this LogBookOutData.  # noqa: E501
+        :type images: List[str]
         """
         self.swagger_types = {
             'id_group_business': int,
@@ -63,7 +65,8 @@ class LogBookOutData(Model):
             'authorized_by': str,
             'observations': str,
             'created_by': str,
-            'name_user': str
+            'name_user': str,
+            'images': List[str]
         }
 
         self.attribute_map = {
@@ -81,7 +84,8 @@ class LogBookOutData(Model):
             'authorized_by': 'authorized_by',
             'observations': 'observations',
             'created_by': 'created_by',
-            'name_user': 'name_user'
+            'name_user': 'name_user',
+            'images': 'images'
         }
         self._id_group_business = id_group_business
         self._id_category = id_category
@@ -98,6 +102,7 @@ class LogBookOutData(Model):
         self._observations = observations
         self._created_by = created_by
         self._name_user = name_user
+        self._images = images
 
     @classmethod
     def from_dict(cls, dikt) -> 'LogBookOutData':
@@ -424,3 +429,24 @@ class LogBookOutData(Model):
         """
 
         self._name_user = name_user
+
+    @property
+    def images(self) -> List[str]:
+        """Gets the images of this LogBookOutData.
+
+
+        :return: The images of this LogBookOutData.
+        :rtype: List[str]
+        """
+        return self._images
+
+    @images.setter
+    def images(self, images: List[str]):
+        """Sets the images of this LogBookOutData.
+
+
+        :param images: The images of this LogBookOutData.
+        :type images: List[str]
+        """
+
+        self._images = images

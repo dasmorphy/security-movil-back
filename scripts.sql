@@ -358,3 +358,46 @@ ALTER SEQUENCE public.report_generated_id_seq
 
 ALTER TABLE IF EXISTS public.report_generated
     ALTER COLUMN id_report SET DEFAULT nextval('report_generated_id_seq'::regclass);
+
+-------------------------------------------------------------------------------------------------------
+
+
+CREATE TABLE public.logbook_images
+(
+    id_image integer NOT NULL DEFAULT 1,
+    logbook_id_out integer,
+    logbook_id_entry integer,
+    image_path text NOT NULL,
+    created_at timestamp without time zone DEFAULT now(),
+    CONSTRAINT logbook_images_pkey PRIMARY KEY (id_image),
+    CONSTRAINT logbook_images_logbook_entry_id_fkey FOREIGN KEY (logbook_id_entry)
+        REFERENCES public.logbook_entry (id_logbook_entry) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION,
+    CONSTRAINT logbook_images_logbook_out_id_fkey FOREIGN KEY (logbook_id_out)
+        REFERENCES public.logbook_out (id_logbook_out) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.logbook_images
+    OWNER to nextgen;
+
+
+CREATE SEQUENCE public.logbook_images_id_seq
+    INCREMENT 1
+    START 1
+    MINVALUE 1
+    MAXVALUE 2147483647
+    CACHE 1;
+
+ALTER SEQUENCE public.logbook_images_id_seq
+    OWNED BY public.logbook_images.id_image;
+
+ALTER SEQUENCE public.logbook_images_id_seq
+    OWNER TO nextgen;
+
+ALTER TABLE IF EXISTS public.logbook_images
+    ALTER COLUMN id_image SET DEFAULT nextval('logbook_images_id_seq'::regclass);
