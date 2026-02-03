@@ -284,15 +284,69 @@ class LogbookRepository:
                 
                 raise CustomAPIException("Error al obtener en la base de datos", 500)
             
+    def get_sector_by_business(self, id_business, internal, external):
+        with self.db.session_factory() as session:
+            try:
+                query = (
+                    session.query(
+                        Sector.id_sector,
+                        Sector.name,
+                        Sector.created_at,
+                        Sector.updated_at
+                    )
+                    .join(GroupBusiness, Sector.id_sector == GroupBusiness.sector_id)
+                    .join(Business, Business.id_business == GroupBusiness.business_id)
+                    .filter(Business.id_business == id_business)
+                    .group_by(Sector.id_sector)
+                )
+
+                result = query.all()
+
+
+                sectors_found = [
+                    {
+                        "id_sector": sector.id_sector,
+                        "name": sector.name,
+                        "created_at": sector.created_at,
+                        "updated_at": sector.updated_at
+                    }
+                    for sector in result
+                ]
+
+                return sectors_found
+
+            except Exception as exception:
+                logger.error('Error: {}', str(exception), internal=internal, external=external)
+                if isinstance(exception, CustomAPIException):
+                    raise exception
+                
+                raise CustomAPIException("Error al obtener en la base de datos", 500)
+
+            
     def get_all_logbook_entry(self, filtersBase, internal, external):
         with self.db.session_factory() as session:
             try:
-                stmt = select(
-                    LogbookEntry,
-                    GroupBusiness.name.label("group_name")
-                ).join(GroupBusiness, GroupBusiness.id_group_business == LogbookEntry.group_business_id)
+                stmt = (
+                    select(
+                        LogbookEntry,
+                        GroupBusiness.name.label("group_name"),
+                        Sector.id_sector.label("id_sector"),
+                        Sector.name.label("name_sector")
+                    )
+                    .join(
+                        GroupBusiness,
+                        GroupBusiness.id_group_business == LogbookEntry.group_business_id
+                    )
+                    .join(
+                        Sector,
+                        Sector.id_sector == GroupBusiness.sector_id
+                    )
+                )
 
                 filters = []
+
+                if filtersBase.get("sector_id"):
+                    filters.append(Sector.id_sector.in_(filtersBase.get("sector_id")))
 
                 if filtersBase.get("user"):
                     filters.append(LogbookEntry.created_by == filtersBase.get("user"))
@@ -305,6 +359,9 @@ class LogbookRepository:
 
                 if filtersBase.get("end_date"):
                     filters.append(LogbookEntry.created_at <= filtersBase.get("end_date"))
+
+                if filtersBase.get("workday"):
+                    filters.append(LogbookEntry.workday.in_(filtersBase.get("workday")))
 
                 if filters:
                     stmt = stmt.where(and_(*filters))
@@ -323,12 +380,27 @@ class LogbookRepository:
     def get_all_logbook_out(self, filtersBase, internal, external):
         with self.db.session_factory() as session:
             try:
-                stmt = select(
-                    LogbookOut,
-                    GroupBusiness.name.label("group_name")
-                ).join(GroupBusiness, GroupBusiness.id_group_business == LogbookOut.group_business_id)
+                stmt = (
+                    select(
+                        LogbookOut,
+                        GroupBusiness.name.label("group_name"),
+                        Sector.id_sector.label("id_sector"),
+                        Sector.name.label("name_sector")
+                    )
+                    .join(
+                        GroupBusiness,
+                        GroupBusiness.id_group_business == LogbookOut.group_business_id
+                    )
+                    .join(
+                        Sector,
+                        Sector.id_sector == GroupBusiness.sector_id
+                    )
+                )
 
                 filters = []
+
+                if filtersBase.get("sector_id"):
+                    filters.append(Sector.id_sector.in_(filtersBase.get("sector_id")))
 
                 if filtersBase.get("user"):
                     filters.append(LogbookOut.created_by == filtersBase.get("user"))
@@ -341,6 +413,9 @@ class LogbookRepository:
 
                 if filtersBase.get("end_date"):
                     filters.append(LogbookOut.created_at <= filtersBase.get("end_date"))
+
+                if filtersBase.get("workday"):
+                    filters.append(LogbookOut.workday.in_(filtersBase.get("workday")))
 
                 if filters:
                     stmt = stmt.where(and_(*filters))

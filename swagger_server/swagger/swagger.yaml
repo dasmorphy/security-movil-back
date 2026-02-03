@@ -353,6 +353,18 @@ paths:
           schema:
             type: string
             example: "dmales"
+        - name: sectors
+          in: header
+          required: false
+          schema:
+            type: string
+            example: "1,2,3"
+        - name: workday
+          in: header
+          required: false
+          schema:
+            type: string
+            example: "Diurna, Nocturna"
         - name: groups_business_id
           in: header
           required: false
@@ -431,6 +443,18 @@ paths:
           schema:
             type: string
             example: "dmales"
+        - name: sectors
+          in: header
+          required: false
+          schema:
+            type: string
+            example: "1,2,3"
+        - name: workday
+          in: header
+          required: false
+          schema:
+            type: string
+            example: "Diurna, Nocturna"
         - name: groups_business_id
           in: header
           required: false
@@ -509,6 +533,18 @@ paths:
           schema:
             type: string
             example: "dmales"
+        - name: sectors
+          in: header
+          required: false
+          schema:
+            type: string
+            example: "1,2,3"
+        - name: workday
+          in: header
+          required: false
+          schema:
+            type: string
+            example: "Diurna, Nocturna"
         - name: groups_business_id
           in: header
           required: false
@@ -813,6 +849,18 @@ paths:
       description: Devuelve todos los porcentajes para graficos
       operationId: get_resume_graphs
       parameters:
+        - name: sectors
+          in: header
+          required: false
+          schema:
+            type: string
+            example: "1,2,3"
+        - name: workday
+          in: header
+          required: false
+          schema:
+            type: string
+            example: "Diurna, Nocturna"
         - name: groups_business_id
           in: header
           required: false
@@ -962,6 +1010,9 @@ components:
           type: number
           format: double
           example: 2000000.75
+        workday:
+          type: string
+          example: Diurna
         provider:
           type: string
           example: Camaronera
@@ -1026,6 +1077,9 @@ components:
         person_withdraws:
           type: string
           example: Juan
+        workday:
+          type: string
+          example: Diurna
         destiny:
           type: string
           example: Camanglar

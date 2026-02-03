@@ -38,7 +38,8 @@ class LogbookUseCase:
             observations=body.logbook_entry.observations,
             created_by=body.logbook_entry.created_by,
             updated_by=body.logbook_entry.created_by,
-            name_user=body.logbook_entry.name_user
+            name_user=body.logbook_entry.name_user,
+            workday=body.logbook_entry.workday
         )
 
         self.logbook_repository.post_logbook_entry(logbook_entry, internal, external)
@@ -59,7 +60,8 @@ class LogbookUseCase:
             observations=body.logbook_out.observations,
             created_by=body.logbook_out.created_by,
             updated_by=body.logbook_out.created_by,
-            name_user=body.logbook_out.name_user
+            name_user=body.logbook_out.name_user,
+            workday=body.logbook_out.workday
         )
 
         self.logbook_repository.post_logbook_out(logbook_out, internal, external)
@@ -72,6 +74,9 @@ class LogbookUseCase:
     
     def get_all_sector(self, internal, external):
         return self.logbook_repository.get_all_sectores(internal, external)
+    
+    def get_sector_by_business(self, id_business, internal, external):
+        return self.logbook_repository.get_sector_by_business(id_business, internal, external)
 
     def get_user_info(datos):
         return 
@@ -84,11 +89,15 @@ class LogbookUseCase:
 
     def get_logbooks_entry(self, headers, params, internal, external):
         groups = headers.get("groups_business_id")
+        sectors = headers.get("sectors")
+        workday = headers.get("workday")
         filters = {
             "user": headers.get("user"),
             "groups_business_id": [int(x) for x in groups.split(",")] if groups else [],
             "start_date": params.get("start_date"),
-            "end_date": params.get("end_date")
+            "end_date": params.get("end_date"),
+            "sector_id": [int(x) for x in sectors.split(",")] if sectors else [],
+            "workday": [(x) for x in workday.split(",")] if workday else [],
         }
         rows = self.logbook_repository.get_all_logbook_entry(filters, internal, external)
 
@@ -111,20 +120,27 @@ class LogbookUseCase:
                 "created_at": c.created_at,
                 "updated_at": c.updated_at,
                 "created_by": c.created_by,
-                "updated_by": c.updated_by
+                "updated_by": c.updated_by,
+                "workdday": c.workday,
+                "id_sector": id_sector,
+                "name_sector": name_sector,
             }
-            for c, group_name in rows
+            for c, group_name, id_sector, name_sector in rows
         ]
 
         return results
     
     def get_logbooks_out(self, headers, params, internal, external):
         groups = headers.get("groups_business_id")
+        sectors = headers.get("sectors")
+        workday = headers.get("workday")
         filters = {
             "user": headers.get("user"),
             "groups_business_id": [int(x) for x in groups.split(",")] if groups else [],
             "start_date": params.get("start_date"),
-            "end_date": params.get("end_date")
+            "end_date": params.get("end_date"),
+            "sector_id": [int(x) for x in sectors.split(",")] if sectors else [],
+            "workday": [(x) for x in workday.split(",")] if workday else [],
         }
         rows = self.logbook_repository.get_all_logbook_out(filters, internal, external)
 
@@ -148,9 +164,12 @@ class LogbookUseCase:
                 "created_at": c.created_at,
                 "updated_at": c.updated_at,
                 "created_by": c.created_by,
-                "updated_by": c.updated_by
+                "updated_by": c.updated_by,
+                "workdday": c.workday,
+                "id_sector": id_sector,
+                "name_sector": name_sector,
             }
-            for c, group_name in rows
+            for c, group_name, id_sector, name_sector in rows
         ]
 
         return results

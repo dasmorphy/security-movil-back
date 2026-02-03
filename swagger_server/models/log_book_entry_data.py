@@ -14,7 +14,7 @@ class LogBookEntryData(Model):
 
     Do not edit the class manually.
     """
-    def __init__(self, id_group_business: int=None, id_category: int=None, shipping_guide: str=None, description: str=None, quantity: float=None, id_unity: int=None, weight: float=None, provider: str=None, destiny_intern: str=None, authorized_by: str=None, observations: str=None, created_by: str=None, name_user: str=None):  # noqa: E501
+    def __init__(self, id_group_business: int=None, id_category: int=None, shipping_guide: str=None, description: str=None, quantity: float=None, id_unity: int=None, weight: float=None, workday: str=None, provider: str=None, destiny_intern: str=None, authorized_by: str=None, observations: str=None, created_by: str=None, name_user: str=None):  # noqa: E501
         """LogBookEntryData - a model defined in Swagger
 
         :param id_group_business: The id_group_business of this LogBookEntryData.  # noqa: E501
@@ -31,6 +31,8 @@ class LogBookEntryData(Model):
         :type id_unity: int
         :param weight: The weight of this LogBookEntryData.  # noqa: E501
         :type weight: float
+        :param workday: The workday of this LogBookEntryData.  # noqa: E501
+        :type workday: str
         :param provider: The provider of this LogBookEntryData.  # noqa: E501
         :type provider: str
         :param destiny_intern: The destiny_intern of this LogBookEntryData.  # noqa: E501
@@ -52,6 +54,7 @@ class LogBookEntryData(Model):
             'quantity': float,
             'id_unity': int,
             'weight': float,
+            'workday': str,
             'provider': str,
             'destiny_intern': str,
             'authorized_by': str,
@@ -68,6 +71,7 @@ class LogBookEntryData(Model):
             'quantity': 'quantity',
             'id_unity': 'id_unity',
             'weight': 'weight',
+            'workday': 'workday',
             'provider': 'provider',
             'destiny_intern': 'destiny_intern',
             'authorized_by': 'authorized_by',
@@ -82,6 +86,7 @@ class LogBookEntryData(Model):
         self._quantity = quantity
         self._id_unity = id_unity
         self._weight = weight
+        self._workday = workday
         self._provider = provider
         self._destiny_intern = destiny_intern
         self._authorized_by = authorized_by
@@ -246,6 +251,27 @@ class LogBookEntryData(Model):
         """
 
         self._weight = weight
+
+    @property
+    def workday(self) -> str:
+        """Gets the workday of this LogBookEntryData.
+
+
+        :return: The workday of this LogBookEntryData.
+        :rtype: str
+        """
+        return self._workday
+
+    @workday.setter
+    def workday(self, workday: str):
+        """Sets the workday of this LogBookEntryData.
+
+
+        :param workday: The workday of this LogBookEntryData.
+        :type workday: str
+        """
+
+        self._workday = workday
 
     @property
     def provider(self) -> str:

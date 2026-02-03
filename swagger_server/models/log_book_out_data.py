@@ -14,7 +14,7 @@ class LogBookOutData(Model):
 
     Do not edit the class manually.
     """
-    def __init__(self, id_group_business: int=None, id_category: int=None, id_unity: int=None, shipping_guide: str=None, quantity: float=None, weight: float=None, truck_license: str=None, name_driver: str=None, person_withdraws: str=None, destiny: str=None, authorized_by: str=None, observations: str=None, created_by: str=None, name_user: str=None):  # noqa: E501
+    def __init__(self, id_group_business: int=None, id_category: int=None, id_unity: int=None, shipping_guide: str=None, quantity: float=None, weight: float=None, truck_license: str=None, name_driver: str=None, person_withdraws: str=None, workday: str=None, destiny: str=None, authorized_by: str=None, observations: str=None, created_by: str=None, name_user: str=None):  # noqa: E501
         """LogBookOutData - a model defined in Swagger
 
         :param id_group_business: The id_group_business of this LogBookOutData.  # noqa: E501
@@ -35,6 +35,8 @@ class LogBookOutData(Model):
         :type name_driver: str
         :param person_withdraws: The person_withdraws of this LogBookOutData.  # noqa: E501
         :type person_withdraws: str
+        :param workday: The workday of this LogBookOutData.  # noqa: E501
+        :type workday: str
         :param destiny: The destiny of this LogBookOutData.  # noqa: E501
         :type destiny: str
         :param authorized_by: The authorized_by of this LogBookOutData.  # noqa: E501
@@ -56,6 +58,7 @@ class LogBookOutData(Model):
             'truck_license': str,
             'name_driver': str,
             'person_withdraws': str,
+            'workday': str,
             'destiny': str,
             'authorized_by': str,
             'observations': str,
@@ -73,6 +76,7 @@ class LogBookOutData(Model):
             'truck_license': 'truck_license',
             'name_driver': 'name_driver',
             'person_withdraws': 'person_withdraws',
+            'workday': 'workday',
             'destiny': 'destiny',
             'authorized_by': 'authorized_by',
             'observations': 'observations',
@@ -88,6 +92,7 @@ class LogBookOutData(Model):
         self._truck_license = truck_license
         self._name_driver = name_driver
         self._person_withdraws = person_withdraws
+        self._workday = workday
         self._destiny = destiny
         self._authorized_by = authorized_by
         self._observations = observations
@@ -293,6 +298,27 @@ class LogBookOutData(Model):
         """
 
         self._person_withdraws = person_withdraws
+
+    @property
+    def workday(self) -> str:
+        """Gets the workday of this LogBookOutData.
+
+
+        :return: The workday of this LogBookOutData.
+        :rtype: str
+        """
+        return self._workday
+
+    @workday.setter
+    def workday(self, workday: str):
+        """Sets the workday of this LogBookOutData.
+
+
+        :param workday: The workday of this LogBookOutData.
+        :type workday: str
+        """
+
+        self._workday = workday
 
     @property
     def destiny(self) -> str:
