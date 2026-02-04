@@ -16,6 +16,7 @@ from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.platypus import Spacer, Image
+from collections import defaultdict
 
 
 class LogbookUseCase:
@@ -216,23 +217,60 @@ class LogbookUseCase:
         entry_counter = Counter(row["category_id"] for row in rows_entry)
         out_counter = Counter(row["category_id"] for row in rows_out)
 
+        # =========================
+        # POR CANTIDAD (quantity)
+        # =========================
+        entry_quantity = defaultdict(int)
+        out_quantity = defaultdict(int)
+
+        for row in rows_entry:
+            entry_quantity[row["category_id"]] += row.get("quantity", 0)
+
+        for row in rows_out:
+            out_quantity[row["category_id"]] += row.get("quantity", 0)
+
         # Todas las categorías presentes
-        all_category_ids = set(entry_counter.keys()) | set(out_counter.keys())
+        all_category_ids = (
+            set(entry_counter.keys())
+            | set(out_counter.keys())
+            | set(entry_quantity.keys())
+            | set(out_quantity.keys())
+        )
 
         categorias = []
+        categorias_cantidad = []
+
 
         for category_id in all_category_ids:
+            categoria_nombre = category_map.get(category_id, "Sin categoría")
+
+            # Por registros
+            entrada_reg = entry_counter.get(category_id, 0)
+            salida_reg = out_counter.get(category_id, 0)
+
             categorias.append({
-                "categoria": category_map.get(category_id, "Sin categoría"),
-                "entrada": entry_counter.get(category_id, 0),
-                "salida": out_counter.get(category_id, 0),
-                "total": entry_counter.get(category_id, 0) + out_counter.get(category_id, 0)
+                "categoria": categoria_nombre,
+                "entrada": entrada_reg,
+                "salida": salida_reg,
+                "total": entrada_reg + salida_reg
+            })
+
+            # Por quantity
+            entrada_qty = entry_quantity.get(category_id, 0)
+            salida_qty = out_quantity.get(category_id, 0)
+
+            categorias_cantidad.append({
+                "categoria": categoria_nombre,
+                "entrada": entrada_qty,
+                "salida": salida_qty,
+                "total": entrada_qty + salida_qty
             })
 
         return {
             "total_entrada": total_entry,
             "total_salida": total_out,
-            "categorias": categorias
+            "categorias": categorias,
+            "categorias_cantidad": categorias_cantidad
         }
     
     def post_report_generated(self, datos, internal, external) -> None:
