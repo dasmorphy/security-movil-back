@@ -401,3 +401,106 @@ ALTER SEQUENCE public.logbook_images_id_seq
 
 ALTER TABLE IF EXISTS public.logbook_images
     ALTER COLUMN id_image SET DEFAULT nextval('logbook_images_id_seq'::regclass);
+
+
+--------------------------------------------------------------------------------------------
+
+CREATE TABLE public.roles
+(
+    id_rol integer NOT NULL DEFAULT 1,
+    name text NOT NULL,
+    created_at timestamp without time zone DEFAULT now(),
+    CONSTRAINT roles_pkey PRIMARY KEY (id_rol)
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.roles
+    OWNER to nextgen;
+
+
+
+---------------------------------------------------------------------------------------
+
+CREATE TABLE public.users
+(
+    id_user uuid NOT NULL DEFAULT gen_random_uuid(),
+    "user" text NOT NULL,
+    email text,
+    password text NOT NULL,
+    role_id integer NOT NULL,
+    attributes jsonb,
+    is_active boolean DEFAULT true,
+    created_at timestamp without time zone DEFAULT now(),
+    updated_at timestamp without time zone DEFAULT now(),
+    CONSTRAINT users_pkey PRIMARY KEY (id_user),
+    CONSTRAINT users_role_id_fkey FOREIGN KEY (role_id)
+        REFERENCES public.roles (id_rol) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.users
+    OWNER to nextgen;
+
+
+-----------------------------------------------------------------------------------------------------------
+
+CREATE TABLE public.permissions
+(
+    id_permission uuid NOT NULL DEFAULT gen_random_uuid(),
+    name text NOT NULL,
+    created_at timestamp without time zone DEFAULT now(),
+    CONSTRAINT permissions_pkey PRIMARY KEY (id_permission)
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.permissions
+    OWNER to nextgen;
+
+---------------------------------------------------------------------------------------------------------------
+
+CREATE TABLE public.role_permissions
+(
+    role_id uuid NOT NULL,
+    permission_id uuid NOT NULL,
+    created_at timestamp without time zone DEFAULT now(),
+    CONSTRAINT permission_id_pk PRIMARY KEY (role_id, permission_id),
+    CONSTRAINT permission_id_fkey FOREIGN KEY (permission_id, role_id)
+        REFERENCES public.permissions (id_permission, id_rol) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.role_permissions
+    OWNER to nextgen;
+
+
+---------------------------------------------------------------------------------------------
+
+CREATE TABLE public.role_permissions
+(
+    id_role_permission uuid NOT NULL DEFAULT gen_random_uuid(),
+    role_id uuid NOT NULL,
+    permission_id uuid NOT NULL,
+    created_at timestamp without time zone DEFAULT now(),
+    CONSTRAINT permission_rol_id_pk PRIMARY KEY (id_role_permission),
+    CONSTRAINT role_id__fkey FOREIGN KEY (role_id)
+        REFERENCES public.roles (id_rol) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION,
+    CONSTRAINT permission_id_fkey FOREIGN KEY (permission_id)
+        REFERENCES public.permissions (id_permission) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.role_permissions
+    OWNER to nextgen;

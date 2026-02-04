@@ -125,8 +125,9 @@ class LogbookUseCase:
                 "workdday": c.workday,
                 "id_sector": id_sector,
                 "name_sector": name_sector,
+                "images": images or []
             }
-            for c, group_name, id_sector, name_sector in rows
+            for c, group_name, id_sector, name_sector, images in rows
         ]
 
         return results
@@ -169,8 +170,9 @@ class LogbookUseCase:
                 "workdday": c.workday,
                 "id_sector": id_sector,
                 "name_sector": name_sector,
+                "images": images or []
             }
-            for c, group_name, id_sector, name_sector in rows
+            for c, group_name, id_sector, name_sector, images in rows
         ]
 
         return results

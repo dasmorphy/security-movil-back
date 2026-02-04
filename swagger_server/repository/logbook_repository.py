@@ -177,6 +177,10 @@ class LogbookRepository:
 
                 session.commit()
 
+            except OSError as e:
+                if e.errno == 36:
+                    raise CustomAPIException("Nombre de archivo demasiado largo", 400)
+                
             except Exception as exception:
                 session.rollback()
 
@@ -366,7 +370,12 @@ class LogbookRepository:
                         LogbookEntry,
                         GroupBusiness.name.label("group_name"),
                         Sector.id_sector.label("id_sector"),
-                        Sector.name.label("name_sector")
+                        Sector.name.label("name_sector"),
+                        func.coalesce(
+                            func.array_agg(LogbookImages.image_path)
+                                .filter(LogbookImages.image_path.isnot(None)),
+                            []
+                        ).label("images")
                     )
                     .join(
                         GroupBusiness,
@@ -376,6 +385,17 @@ class LogbookRepository:
                         Sector,
                         Sector.id_sector == GroupBusiness.sector_id
                     )
+                    .outerjoin(
+                        LogbookImages,
+                        LogbookImages.logbook_id_entry == LogbookEntry.id_logbook_entry
+                    )
+                )
+
+                stmt = stmt.group_by(
+                    LogbookEntry.id_logbook_entry,
+                    GroupBusiness.name,
+                    Sector.id_sector,
+                    Sector.name
                 )
 
                 filters = []
@@ -420,7 +440,12 @@ class LogbookRepository:
                         LogbookOut,
                         GroupBusiness.name.label("group_name"),
                         Sector.id_sector.label("id_sector"),
-                        Sector.name.label("name_sector")
+                        Sector.name.label("name_sector"),
+                        func.coalesce(
+                            func.array_agg(LogbookImages.image_path)
+                                .filter(LogbookImages.image_path.isnot(None)),
+                            []
+                        ).label("images")
                     )
                     .join(
                         GroupBusiness,
@@ -430,6 +455,17 @@ class LogbookRepository:
                         Sector,
                         Sector.id_sector == GroupBusiness.sector_id
                     )
+                    .outerjoin(
+                        LogbookImages,
+                        LogbookImages.logbook_id_out == LogbookOut.id_logbook_out
+                    )
+                )
+
+                stmt = stmt.group_by(
+                    LogbookOut.id_logbook_out,
+                    GroupBusiness.name,
+                    Sector.id_sector,
+                    Sector.name
                 )
 
                 filters = []
@@ -570,6 +606,9 @@ class LogbookRepository:
     def save_image_as_webp(self, file):
         folder = f"/var/www/uploads/logbooks"
         ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "webp"}
+        MAX_FILENAME_LEN = 255
+        MAX_BASENAME_LEN = 50
+
         ext = file.filename.rsplit(".", 1)[-1].lower()
 
         if not os.path.exists(folder):
@@ -587,9 +626,13 @@ class LogbookRepository:
             raise ValueError("Formato no permitido")
 
         original_name = secure_filename(file.filename)
-        base_name = os.path.splitext(original_name)[0]
+        base_name = os.path.splitext(original_name)[0][:MAX_BASENAME_LEN]
 
         filename = f"{uuid4()}_{base_name}.webp"
+
+        if len(filename.encode("utf-8")) > MAX_FILENAME_LEN:
+            filename = f"{uuid4().hex}.webp"  # fallback seguro
+
         path = os.path.join(folder, filename)
 
         image = Image.open(file)
