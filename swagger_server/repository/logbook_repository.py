@@ -21,6 +21,7 @@ import os
 from PIL import Image
 from uuid import uuid4
 from werkzeug.utils import secure_filename
+import getpass
 
 class LogbookRepository:
     
@@ -158,20 +159,21 @@ class LogbookRepository:
                 
                 session.add(logbook_out_body)
                 session.flush()
+                
+                if logbook_out_body.shipping_guide == 'test daniel': #Prueba
+                    logbook_out_id = logbook_out_body.id_logbook_out
 
-                logbook_out_id = logbook_out_body.id
+                    #Guardar imágenes (máx 10)
+                    for file in images[:10]:
+                        result = self.save_image_as_webp(file)
+                        saved_files.append(result["url"])
 
-                #Guardar imágenes (máx 10)
-                for file in images[:10]:
-                    result = self.save_image_as_webp(file)
-                    saved_files.append(result["url"])
+                        image = LogbookImages(
+                            logbook_id_out=logbook_out_id,
+                            image_path=result["url"]
+                        )
 
-                    image = LogbookImages(
-                        logbook_id_out=logbook_out_id,
-                        image_path=result["url"]
-                    )
-
-                    session.add(image)
+                        session.add(image)
 
                 session.commit()
 
@@ -566,9 +568,17 @@ class LogbookRepository:
                 session.close()
 
     def save_image_as_webp(self, file):
+        folder = f"/var/www/uploads/logbooks"
         ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "webp"}
         ext = file.filename.rsplit(".", 1)[-1].lower()
-        folder = f"/var/www/uploads/logbooks"
+
+        if not os.path.exists(folder):
+            raise CustomAPIException(f"La carpeta root de imágenes no existe {getpass.getuser()} - {os.getuid()} - {os.geteuid()}", 404)
+        
+
+        if not os.access(folder, os.W_OK):
+            raise CustomAPIException(f"No hay permisos de escritura en la carpeta de imágenes {getpass.getuser()} - {os.getuid()} - {os.geteuid()}", 400)
+        
 
         if not file or file.filename == "":
             raise ValueError("Archivo inválido")

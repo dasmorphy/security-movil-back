@@ -45,24 +45,24 @@ class LogbookUseCase:
 
         self.logbook_repository.post_logbook_entry(logbook_entry, internal, external)
 
-    def post_logbook_out(self, body: RequestPostLogbookOut, images, internal, external) -> None:
+    def post_logbook_out(self, body, images, internal, external) -> None:
         logbook_out = LogbookOut(
-            unity_id=body.logbook_out.id_unity,
-            category_id=body.logbook_out.id_category,
-            group_business_id=body.logbook_out.id_group_business,
-            shipping_guide=body.logbook_out.shipping_guide,
-            quantity=body.logbook_out.quantity,
-            weight=body.logbook_out.weight,
-            truck_license=body.logbook_out.truck_license,
-            name_driver=body.logbook_out.name_driver,
-            person_withdraws=body.logbook_out.person_withdraws,
-            destiny=body.logbook_out.destiny,
-            authorized_by=body.logbook_out.authorized_by,
-            observations=body.logbook_out.observations,
-            created_by=body.logbook_out.created_by,
-            updated_by=body.logbook_out.created_by,
-            name_user=body.logbook_out.name_user,
-            workday=body.logbook_out.workday
+            unity_id=body['id_unity'],
+            category_id=body['id_category'],
+            group_business_id=body['id_group_business'],
+            shipping_guide=body['shipping_guide'],
+            quantity=body['quantity'],
+            weight=body['weight'],
+            truck_license=body['truck_license'],
+            name_driver=body['name_driver'],
+            person_withdraws=body['person_withdraws'],
+            destiny=body['destiny'],
+            authorized_by=body['authorized_by'],
+            observations=body['observations'],
+            created_by=body['created_by'],
+            updated_by=body['created_by'],
+            name_user=body['name_user'],
+            workday=body['workday']
         )
 
         self.logbook_repository.post_logbook_out(logbook_out, images, internal, external)
