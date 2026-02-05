@@ -6,6 +6,146 @@ info:
 servers:
 - url: /rest/zent-logbook-api/v1.0/
 paths:
+  /get/all-users:
+    get:
+      tags:
+      - Users
+      summary: Obtiene todos los usuarios
+      description: Devuelve todos los usuarios de la base
+      operationId: get_all_users
+      parameters:
+        - name: externalTransactionId
+          in: header
+          required: true
+          schema:
+            type: string
+            example: "fcea920f7412b5da7be0cf42b8c93759"
+        - name: channel
+          in: header
+          required: true
+          schema:
+            type: string
+            example: "ZENTINEL"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenericResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+        "503":
+          description: Service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+      x-openapi-router-controller: swagger_server.controllers.user_controller.UserView
+  /post/login:
+    post:
+      tags:
+      - Users
+      summary: Autentica e inicia sesión.
+      description: Inicio de sesion
+      operationId: login
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RequestLogin"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenericResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+        "503":
+          description: Service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+      x-openapi-router-controller: swagger_server.controllers.user_controller.UserView
+  /post/new-user:
+    post:
+      tags:
+      - Users
+      summary: Guarda el usuario en la base de datos.
+      description: Guardado de usuario
+      operationId: new_user
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RequestPostNewUser"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenericResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+        "503":
+          description: Service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+      x-openapi-router-controller: swagger_server.controllers.user_controller.UserView
   /get/group-business-by-id-business/{id_business}:
     get:
       tags:
@@ -927,6 +1067,26 @@ paths:
       x-openapi-router-controller: swagger_server.controllers.logbook_controller.LogbookView
 components:
   schemas:
+    RequestLogin:
+      properties:
+        login:
+          $ref: "#/components/schemas/LoginData"
+        channel:
+          type: string
+          example: ZENTINEL
+        externalTransactionId:
+          type: string
+          example: fcea920f7412b5da7be0cf42b8c93759
+    RequestPostNewUser:
+      properties:
+        new_user:
+          $ref: "#/components/schemas/NewUserData"
+        channel:
+          type: string
+          example: ZENTINEL
+        externalTransactionId:
+          type: string
+          example: fcea920f7412b5da7be0cf42b8c93759
     RequestPostLogbookEntry:
       properties:
         logbook_entry:
@@ -1118,6 +1278,41 @@ components:
         created_by: dmales
         name_user: Daniel Males
         images: []
+    LoginData:
+      type: object
+      properties:
+        user:
+          type: string
+          example: "dmales"
+        password:
+          type: string
+          example: "123456"
+      example:
+        user: ""
+        password: ""
+    NewUserData:
+      type: object
+      properties:
+        user:
+          type: string
+          example: "dmales"
+        email:
+          type: string
+          example: "daniel@hotmail.com"
+        password:
+          type: string
+          example: "123456"
+        attributes:
+          type: object
+        role_id:
+          type: string
+          example: "d290f1ee-6c54-4b01-90e6-d701748f0851"
+      example:
+        user: "dmales"
+        email: "daniel@hotmail.com"
+        password: "123456"
+        attributes: {}
+        role_id: "d290f1ee-6c54-4b01-90e6-d701748f0851"
     GenericResponse:
       properties:
         data:

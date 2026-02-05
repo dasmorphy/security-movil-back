@@ -428,13 +428,13 @@ CREATE TABLE public.users
     "user" text NOT NULL,
     email text,
     password text NOT NULL,
-    role_id integer NOT NULL,
+    role_id uuid NOT NULL,
     attributes jsonb,
     is_active boolean DEFAULT true,
     created_at timestamp without time zone DEFAULT now(),
     updated_at timestamp without time zone DEFAULT now(),
     CONSTRAINT users_pkey PRIMARY KEY (id_user),
-    CONSTRAINT users_role_id_fkey FOREIGN KEY (role_id)
+    CONSTRAINT role_id_fkey FOREIGN KEY (role_id)
         REFERENCES public.roles (id_rol) MATCH SIMPLE
         ON UPDATE NO ACTION
         ON DELETE NO ACTION
