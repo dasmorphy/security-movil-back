@@ -322,7 +322,10 @@ class LogbookRepository:
                 stmt = select(GroupBusiness)
 
                 if id_business != 0:
-                    stmt = stmt.where(GroupBusiness.business_id == id_business)
+                    stmt = stmt.where(
+                        GroupBusiness.business_id == id_business,
+                        GroupBusiness.is_active == True
+                    )
 
                 group_business = session.execute(stmt).scalars().all()
 

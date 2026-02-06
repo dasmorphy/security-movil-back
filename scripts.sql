@@ -260,6 +260,7 @@ CREATE TABLE public.group_business
     id_group_business integer NOT NULL DEFAULT 1,
     sector_id integer NOT NULL,
     name text NOT NULL,
+    is_active boolean DEFAULT true,
     created_at timestamp without time zone DEFAULT now(),
     updated_at timestamp without time zone DEFAULT now(),
     CONSTRAINT group_business_pkey PRIMARY KEY (id_group_business),

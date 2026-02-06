@@ -1,5 +1,6 @@
 from swagger_server.models.db import Base
 from sqlalchemy import (
+    Boolean,
     Column,
     DateTime,
     Integer,
@@ -34,6 +35,9 @@ class GroupBusiness(Base):
     )
 
     name = Column(Text)
+
+    is_active = Column(Boolean, default=True)
+
     
     created_at = Column(
         DateTime,
