@@ -673,6 +673,12 @@ paths:
           schema:
             type: string
             example: "dmales"
+        - name: id_business
+          in: header
+          required: false
+          schema:
+            type: integer
+            format: int64
         - name: sectors
           in: header
           required: false
@@ -758,7 +764,7 @@ paths:
       operationId: post_logbook_entry
       requestBody:
         content:
-          application/json:
+          multipart/form-data:
             schema:
               $ref: "#/components/schemas/RequestPostLogbookEntry"
       responses:
@@ -1166,6 +1172,12 @@ components:
         id_unity:
           type: integer
           example: 1
+        truck_license:
+          type: string
+          example: GME-511
+        name_driver:
+          type: string
+          example: Jaime
         weight:
           type: number
           format: double
@@ -1192,9 +1204,17 @@ components:
         name_user:
           type: string
           example: Daniel
+        images:
+          type: array
+          maxItems: 10
+          items:
+            type: string
+            format: binary
       example:
         id_group_business: 1
         id_category: 10
+        truck_license: "GME-511"
+        name_driver: "Daniel"
         description: Larva de camaron
         shipping_guide: "0045555"
         quantity: 1
@@ -1206,6 +1226,7 @@ components:
         observations: Sin observaciones
         created_by: dmales
         name_user: Daniel
+        images: []
     LogBookOutData:
       type: object
       properties:

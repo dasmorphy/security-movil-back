@@ -28,7 +28,7 @@ class LogbookView(MethodView):
         logbook_repository = LogbookRepository()
         self.logbook_use_case = LogbookUseCase(logbook_repository)
 
-    def post_logbook_entry(self, body=None):  # noqa: E501
+    def post_logbook_entry(self):  # noqa: E501
         """Guarda la bitacora de ingreso en la base de datos.
 
         Guardado de bitacora de ingreso # noqa: E501
@@ -43,22 +43,30 @@ class LogbookView(MethodView):
         response = {}
         status_code = 500
         try:
-            if connexion.request.is_json:
-                body = RequestPostLogbookEntry.from_dict(connexion.request.get_json())  # noqa: E501
+            if request.content_type.startswith("multipart/form-data"):
                 start_time = default_timer()
                 internal_transaction_id = str(generate_internal_transaction_id())
-                external_transaction_id = body.external_transaction_id
+
+                logbook_file = request.files.get("logbook_entry")
+                if not logbook_file:
+                    raise CustomAPIException("Campo logbook_entry no enviado", 400)
+
+                logbook_raw = logbook_file.read().decode("utf-8")
+                logbook_dict = json.loads(logbook_raw)
+
+                external_transaction_id = logbook_dict['external_transaction_id']
                 internal_process = (internal_transaction_id, external_transaction_id)
                 response["internal_transaction_id"] = internal_transaction_id
                 response["external_transaction_id"] = external_transaction_id
-                message = f"start request: {function_name}, channel: {body.channel}"
+                message = f"start request: {function_name}, channel: {logbook_dict['channel']}"
                 logger.info(message, internal=internal_transaction_id, external=external_transaction_id)
-                self.logbook_use_case.post_logbook_entry(body, internal_transaction_id, external_transaction_id)
+                files = request.files.getlist("images")
+                self.logbook_use_case.post_logbook_entry(logbook_dict, files, internal_transaction_id, external_transaction_id)
                 response["error_code"] = 0
                 response["message"] = "Bitácora de ingreso creada correctamente"
                 end_time = default_timer()
                 logger.info(f"Fin de la transacción, procesada en : {end_time - start_time} milisegundos",
-                            internal=internal_transaction_id, external=body.external_transaction_id)
+                            internal=internal_transaction_id, external=logbook_dict['external_transaction_id'])
                 status_code = 200
         except Exception as ex:
             response, status_code = CustomAPIException.check_exception(ex, function_name, internal_process)

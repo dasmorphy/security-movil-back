@@ -24,26 +24,28 @@ class LogbookUseCase:
     def __init__(self, logbook_repository: LogbookRepository):
         self.logbook_repository = logbook_repository
 
-    def post_logbook_entry(self, body: RequestPostLogbookEntry, internal, external) -> None:
+    def post_logbook_entry(self, body, images, internal, external) -> None:
         logbook_entry = LogbookEntry(
-            unity_id=body.logbook_entry.id_unity,
-            category_id=body.logbook_entry.id_category,
-            group_business_id=body.logbook_entry.id_group_business,
-            shipping_guide=body.logbook_entry.shipping_guide,
-            description=body.logbook_entry.description,
-            quantity=body.logbook_entry.quantity,
-            weight=body.logbook_entry.weight,
-            provider=body.logbook_entry.provider,
-            destiny_intern=body.logbook_entry.destiny_intern,
-            authorized_by=body.logbook_entry.authorized_by,
-            observations=body.logbook_entry.observations,
-            created_by=body.logbook_entry.created_by,
-            updated_by=body.logbook_entry.created_by,
-            name_user=body.logbook_entry.name_user,
-            workday=body.logbook_entry.workday
+            unity_id=body['id_unity'],
+            category_id=body['id_category'],
+            group_business_id=body['id_group_business'],
+            shipping_guide=body['shipping_guide'],
+            description=body['description'],
+            quantity=body['quantity'],
+            weight=body['weight'],
+            provider=body['provider'],
+            truck_license=body['truck_license'],
+            name_driver=body['name_driver'],
+            destiny_intern=body['destiny_intern'],
+            authorized_by=body['authorized_by'],
+            observations=body['observations'],
+            created_by=body['created_by'],
+            updated_by=body['created_by'],
+            name_user=body['name_user'],
+            workday=body['workday']
         )
 
-        self.logbook_repository.post_logbook_entry(logbook_entry, internal, external)
+        self.logbook_repository.post_logbook_entry(logbook_entry, images, internal, external)
 
     def post_logbook_out(self, body, images, internal, external) -> None:
         logbook_out = LogbookOut(
@@ -97,6 +99,7 @@ class LogbookUseCase:
             "groups_business_id": [int(x) for x in groups.split(",")] if groups else [],
             "start_date": params.get("start_date"),
             "end_date": params.get("end_date"),
+            "id_business": params.get("id_business"),
             "sector_id": [int(x) for x in sectors.split(",")] if sectors else [],
             "workday": [(x) for x in workday.split(",")] if workday else [],
         }
@@ -117,6 +120,8 @@ class LogbookUseCase:
                 "provider": c.provider,
                 "destiny_intern": c.destiny_intern,
                 "authorized_by": c.authorized_by,
+                "truck_license": c.truck_license,
+                "name_driver": c.name_driver,
                 "observations": c.observations,
                 "created_at": c.created_at,
                 "updated_at": c.updated_at,
@@ -143,6 +148,7 @@ class LogbookUseCase:
             "end_date": params.get("end_date"),
             "sector_id": [int(x) for x in sectors.split(",")] if sectors else [],
             "workday": [(x) for x in workday.split(",")] if workday else [],
+            "id_business": params.get("id_business"),
         }
         rows = self.logbook_repository.get_all_logbook_out(filters, internal, external)
 

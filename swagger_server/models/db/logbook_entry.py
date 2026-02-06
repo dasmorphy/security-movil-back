@@ -42,6 +42,8 @@ class LogbookEntry(Base):
     shipping_guide = Column(Text)
     name_user = Column(Text)
     description = Column(Text)
+    truck_license = Column(Text)
+    name_driver = Column(Text)
 
     quantity = Column(Integer, nullable=False)
     weight = Column(Integer, nullable=False)

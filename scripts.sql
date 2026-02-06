@@ -86,6 +86,8 @@ CREATE TABLE public.logbook_entry
     quantity integer NOT NULL,
     weight integer NOT NULL,
     provider text,
+    truck_license text,
+    name_driver text,
     destiny_intern text,
     authorized_by text,
     observations text,

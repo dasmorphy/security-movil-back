@@ -29,7 +29,12 @@ class LogbookRepository:
         self.db = PostgreSQLClient("POSTGRESQL")
 
 
-    def post_logbook_entry(self, logbook_entry_body: LogbookEntry, internal, external) -> None:
+    def post_logbook_entry(self, logbook_entry_body: LogbookEntry, images, internal, external) -> None:
+        saved_files = []
+
+        if len(images) > 10:
+            raise CustomAPIException("Máximo 10 imagenes", 500)
+
         with self.db.session_factory() as session:
             try:
                 category_exists = session.execute(
@@ -75,6 +80,23 @@ class LogbookRepository:
                     )
                 
                 session.add(logbook_entry_body)
+                session.flush()
+                
+                if logbook_entry_body.shipping_guide == 'test daniel': #Prueba
+                    logbook_entry_id = logbook_entry_body.id_logbook_entry
+
+                    #Guardar imágenes (máx 10)
+                    for file in images[:10]:
+                        result = self.save_image_as_webp(file)
+                        saved_files.append(result["url"])
+
+                        image = LogbookImages(
+                            logbook_id_entry=logbook_entry_id,
+                            image_path=result["url"]
+                        )
+
+                        session.add(image)
+
                 session.commit()
 
             except Exception as exception:
@@ -420,6 +442,9 @@ class LogbookRepository:
                 if filtersBase.get("workday"):
                     filters.append(LogbookEntry.workday.in_(filtersBase.get("workday")))
 
+                if filtersBase.get("id_business"):
+                    filters.append(GroupBusiness.business_id == filtersBase.get("id_business"))
+
                 if filters:
                     stmt = stmt.where(and_(*filters))
 
@@ -489,6 +514,9 @@ class LogbookRepository:
 
                 if filtersBase.get("workday"):
                     filters.append(LogbookOut.workday.in_(filtersBase.get("workday")))
+
+                if filtersBase.get("id_business"):
+                    filters.append(GroupBusiness.business_id == filtersBase.get("id_business"))
 
                 if filters:
                     stmt = stmt.where(and_(*filters))

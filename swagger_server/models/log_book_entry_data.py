@@ -14,7 +14,7 @@ class LogBookEntryData(Model):
 
     Do not edit the class manually.
     """
-    def __init__(self, id_group_business: int=None, id_category: int=None, shipping_guide: str=None, description: str=None, quantity: float=None, id_unity: int=None, weight: float=None, workday: str=None, provider: str=None, destiny_intern: str=None, authorized_by: str=None, observations: str=None, created_by: str=None, name_user: str=None):  # noqa: E501
+    def __init__(self, id_group_business: int=None, id_category: int=None, shipping_guide: str=None, description: str=None, quantity: float=None, id_unity: int=None, truck_license: str=None, name_driver: str=None, weight: float=None, workday: str=None, provider: str=None, destiny_intern: str=None, authorized_by: str=None, observations: str=None, created_by: str=None, name_user: str=None, images: List[str]=None):  # noqa: E501
         """LogBookEntryData - a model defined in Swagger
 
         :param id_group_business: The id_group_business of this LogBookEntryData.  # noqa: E501
@@ -29,6 +29,10 @@ class LogBookEntryData(Model):
         :type quantity: float
         :param id_unity: The id_unity of this LogBookEntryData.  # noqa: E501
         :type id_unity: int
+        :param truck_license: The truck_license of this LogBookEntryData.  # noqa: E501
+        :type truck_license: str
+        :param name_driver: The name_driver of this LogBookEntryData.  # noqa: E501
+        :type name_driver: str
         :param weight: The weight of this LogBookEntryData.  # noqa: E501
         :type weight: float
         :param workday: The workday of this LogBookEntryData.  # noqa: E501
@@ -45,6 +49,8 @@ class LogBookEntryData(Model):
         :type created_by: str
         :param name_user: The name_user of this LogBookEntryData.  # noqa: E501
         :type name_user: str
+        :param images: The images of this LogBookEntryData.  # noqa: E501
+        :type images: List[str]
         """
         self.swagger_types = {
             'id_group_business': int,
@@ -53,6 +59,8 @@ class LogBookEntryData(Model):
             'description': str,
             'quantity': float,
             'id_unity': int,
+            'truck_license': str,
+            'name_driver': str,
             'weight': float,
             'workday': str,
             'provider': str,
@@ -60,7 +68,8 @@ class LogBookEntryData(Model):
             'authorized_by': str,
             'observations': str,
             'created_by': str,
-            'name_user': str
+            'name_user': str,
+            'images': List[str]
         }
 
         self.attribute_map = {
@@ -70,6 +79,8 @@ class LogBookEntryData(Model):
             'description': 'description',
             'quantity': 'quantity',
             'id_unity': 'id_unity',
+            'truck_license': 'truck_license',
+            'name_driver': 'name_driver',
             'weight': 'weight',
             'workday': 'workday',
             'provider': 'provider',
@@ -77,7 +88,8 @@ class LogBookEntryData(Model):
             'authorized_by': 'authorized_by',
             'observations': 'observations',
             'created_by': 'created_by',
-            'name_user': 'name_user'
+            'name_user': 'name_user',
+            'images': 'images'
         }
         self._id_group_business = id_group_business
         self._id_category = id_category
@@ -85,6 +97,8 @@ class LogBookEntryData(Model):
         self._description = description
         self._quantity = quantity
         self._id_unity = id_unity
+        self._truck_license = truck_license
+        self._name_driver = name_driver
         self._weight = weight
         self._workday = workday
         self._provider = provider
@@ -93,6 +107,7 @@ class LogBookEntryData(Model):
         self._observations = observations
         self._created_by = created_by
         self._name_user = name_user
+        self._images = images
 
     @classmethod
     def from_dict(cls, dikt) -> 'LogBookEntryData':
@@ -230,6 +245,48 @@ class LogBookEntryData(Model):
         """
 
         self._id_unity = id_unity
+
+    @property
+    def truck_license(self) -> str:
+        """Gets the truck_license of this LogBookEntryData.
+
+
+        :return: The truck_license of this LogBookEntryData.
+        :rtype: str
+        """
+        return self._truck_license
+
+    @truck_license.setter
+    def truck_license(self, truck_license: str):
+        """Sets the truck_license of this LogBookEntryData.
+
+
+        :param truck_license: The truck_license of this LogBookEntryData.
+        :type truck_license: str
+        """
+
+        self._truck_license = truck_license
+
+    @property
+    def name_driver(self) -> str:
+        """Gets the name_driver of this LogBookEntryData.
+
+
+        :return: The name_driver of this LogBookEntryData.
+        :rtype: str
+        """
+        return self._name_driver
+
+    @name_driver.setter
+    def name_driver(self, name_driver: str):
+        """Sets the name_driver of this LogBookEntryData.
+
+
+        :param name_driver: The name_driver of this LogBookEntryData.
+        :type name_driver: str
+        """
+
+        self._name_driver = name_driver
 
     @property
     def weight(self) -> float:
@@ -398,3 +455,24 @@ class LogBookEntryData(Model):
         """
 
         self._name_user = name_user
+
+    @property
+    def images(self) -> List[str]:
+        """Gets the images of this LogBookEntryData.
+
+
+        :return: The images of this LogBookEntryData.
+        :rtype: List[str]
+        """
+        return self._images
+
+    @images.setter
+    def images(self, images: List[str]):
+        """Sets the images of this LogBookEntryData.
+
+
+        :param images: The images of this LogBookEntryData.
+        :type images: List[str]
+        """
+
+        self._images = images
