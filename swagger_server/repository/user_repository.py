@@ -126,6 +126,7 @@ class UserRepository:
                         Users.user,
                         Users.email,
                         Users.is_active,
+                        Roles.name.label("role"),
                         func.jsonb_set(
                             func.coalesce(Users.attributes, cast("{}", JSONB)),
                             '{permissions}',
@@ -135,12 +136,14 @@ class UserRepository:
                     )
                     .join(RolePermission, RolePermission.role_id == Users.role_id)
                     .join(Permission, Permission.id_permission == RolePermission.permission_id)
+                    .join(Roles, Roles.id_rol == Users.role_id)
                     .where(Users.user == user)
                     .group_by(
                         Users.id_user,
                         Users.user,
                         Users.email,
-                        Users.attributes
+                        Users.attributes,
+                        Roles.name
                     )
                 )
 
@@ -156,6 +159,7 @@ class UserRepository:
 
                 user_autenticated = {
                     "id_user": user_found.id_user,
+                    "role": user_found.role,
                     "user": user_found.user,
                     "email": user_found.email,
                     "is_active": user_found.is_active,

@@ -17,20 +17,6 @@ class UserUseCase:
     def __init__(self, user_repository: UserRepository):
         self.user_repository = user_repository
 
-    
-    def login(self, body: RequestPostNewUser, internal, external) -> None:        
-        hashed_password = pwd_context.verify(password, password_hash)
-        
-        new_user = Users(
-            user=body.new_user.user,
-            email=body.new_user.email,
-            password=hashed_password,
-            role_id=body.new_user.role_id,
-            attributes=body.new_user.attributes,
-        )
-
-        self.user_repository.post_new_user(new_user, internal, external)
-
     def post_new_user(self, body: RequestPostNewUser, internal, external) -> None:        
         hashed_password = pwd_context.hash(body.new_user.password)
         

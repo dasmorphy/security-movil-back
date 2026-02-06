@@ -297,10 +297,12 @@ class LogbookRepository:
     def get_group_business_by_id_business(self, id_business, internal, external):
         with self.db.session_factory() as session:
             try:
-                group_business = session.execute(
-                    select(GroupBusiness)
-                    .where(GroupBusiness.business_id == id_business)
-                ).scalars().all()
+                stmt = select(GroupBusiness)
+
+                if id_business != 0:
+                    stmt = stmt.where(GroupBusiness.business_id == id_business)
+
+                group_business = session.execute(stmt).scalars().all()
 
                 groups_found = [
                     {
