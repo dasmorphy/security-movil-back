@@ -82,20 +82,19 @@ class LogbookRepository:
                 session.add(logbook_entry_body)
                 session.flush()
                 
-                if logbook_entry_body.shipping_guide == 'test daniel': #Prueba
-                    logbook_entry_id = logbook_entry_body.id_logbook_entry
+                logbook_entry_id = logbook_entry_body.id_logbook_entry
 
-                    #Guardar imágenes (máx 10)
-                    for file in images[:10]:
-                        result = self.save_image_as_webp(file)
-                        saved_files.append(result["url"])
+                #Guardar imágenes (máx 10)
+                for file in images[:10]:
+                    result = self.save_image_as_webp(file)
+                    saved_files.append(result["url"])
 
-                        image = LogbookImages(
-                            logbook_id_entry=logbook_entry_id,
-                            image_path=result["url"]
-                        )
+                    image = LogbookImages(
+                        logbook_id_entry=logbook_entry_id,
+                        image_path=result["url"]
+                    )
 
-                        session.add(image)
+                    session.add(image)
 
                 session.commit()
 
@@ -182,20 +181,19 @@ class LogbookRepository:
                 session.add(logbook_out_body)
                 session.flush()
                 
-                if logbook_out_body.shipping_guide == 'test daniel': #Prueba
-                    logbook_out_id = logbook_out_body.id_logbook_out
+                logbook_out_id = logbook_out_body.id_logbook_out
 
-                    #Guardar imágenes (máx 10)
-                    for file in images[:10]:
-                        result = self.save_image_as_webp(file)
-                        saved_files.append(result["url"])
+                #Guardar imágenes (máx 10)
+                for file in images[:10]:
+                    result = self.save_image_as_webp(file)
+                    saved_files.append(result["url"])
 
-                        image = LogbookImages(
-                            logbook_id_out=logbook_out_id,
-                            image_path=result["url"]
-                        )
+                    image = LogbookImages(
+                        logbook_id_out=logbook_out_id,
+                        image_path=result["url"]
+                    )
 
-                        session.add(image)
+                    session.add(image)
 
                 session.commit()
 
