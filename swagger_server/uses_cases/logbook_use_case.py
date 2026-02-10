@@ -16,7 +16,7 @@ from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.platypus import Spacer, Image
-from collections import defaultdict
+from collections import OrderedDict, defaultdict
 
 
 class LogbookUseCase:
@@ -390,13 +390,36 @@ class LogbookUseCase:
 
         wb.save(output_path)
 
-    def generate_pdf(self, args, datos, output_path, internal, external):
+
+    def agrupar_por_categoria(self, logbook_entry_rows):
+        agrupado = OrderedDict()
+
+        for row in logbook_entry_rows:
+            category_id = row[2]
+
+            if category_id not in agrupado:
+                # Guardamos la fila base
+                agrupado[category_id] = list(row)
+            else:
+                # Sumamos SOLO la cantidad (índice 4)
+                agrupado[category_id][4] += row[4]
+
+        # Convertimos de vuelta a tuplas
+        return [tuple(row) for row in agrupado.values()]
+
+
+
+
+
+    def generate_pdf(self, filters, output_path, internal, external):
         # '2026-01-27 00:00:00', '2026-01-28 00:00:00'
         now = datetime.now()
         date = now.strftime("%d/%m/%Y")
         time = now.strftime("%H:%M:%S")
         BASE_DIR = os.path.dirname(os.path.abspath(__file__))
         logo_path = os.path.join(BASE_DIR, "templates", "logo_report.png")
+        sectors = filters[0].get('id_sector')
+        groups_business_id = filters[0].get('groups_business_id')
 
         logo = Image(
             logo_path,
@@ -404,9 +427,20 @@ class LogbookUseCase:
             height=60    # alto en puntos
         )
 
+        filters = {
+            "sector_id": [int(x) for x in sectors.split(",")] if sectors else [],
+            "groups_business_id": [int(x) for x in groups_business_id.split(",")] if groups_business_id else [],
+            "fecha_inicio": filters[1].get('start_date'),
+            "fecha_fin": filters[1].get('end_date')
+        }
+
+        logbook_entry_rows_original = self.logbook_repository.get_logbook_resume(internal, external, LogbookEntry, filters)
+        logbook_out_rows_original = self.logbook_repository.get_logbook_resume(internal, external, LogbookOut, filters)
         
-        logbook_entry_rows = self.logbook_repository.get_logbook_resume(internal, external, LogbookEntry)
-        logbook_out_rows = self.logbook_repository.get_logbook_resume(internal, external, LogbookOut)
+        logbook_entry_rows = self.agrupar_por_categoria(logbook_entry_rows_original)
+        logbook_out_rows = self.agrupar_por_categoria(logbook_out_rows_original)
+
+        
         # business_user, name_user = self.get_user_info(datos)
 
         print(logbook_entry_rows)
@@ -417,24 +451,31 @@ class LogbookUseCase:
         for row in logbook_out_rows:
             grupo = row[1]          # GroupBusiness.name
             cat_id = row[2]         # Category.id_category
+            unidad = row[5]
+            key = (cat_id, unidad)
 
             if grupo not in resultado:
                 resultado[grupo] = {
                     "categorias": {}
                 }
 
-            resultado[grupo]["categorias"][cat_id] = {
-                "categoria": row[3],
-                "unidad": row[5],
-                "salida": row[4],
-                "entrada": 0
-            }
+            if key not in resultado[grupo]["categorias"]:
+                resultado[grupo]["categorias"][key] = {
+                    "categoria": row[3],
+                    "unidad": unidad,
+                    "salida": row[4],
+                    "entrada": 0
+                }
+            else:
+                resultado[grupo]["categorias"][key]["salida"] += row[4]
 
 
         for row in logbook_entry_rows:
             grupo = row[1]
             cat_id = row[2]
-
+            unidad = row[5]
+            key = (cat_id, unidad)
+            
             if grupo not in resultado:
                 resultado[grupo] = {
                     "categorias": {}
@@ -469,10 +510,10 @@ class LogbookUseCase:
         # elements.append(Paragraph("<b>REPORTE DIARIO</b>", styles["Title"]))
         elements.append(Paragraph(f"Fecha: {date}", styles["Normal"]))
         elements.append(Paragraph(f"Hora: {time}", styles["Normal"]))
-        elements.append(Paragraph(f"Localidad: {datos['localidad']}", styles["Normal"]))
-        elements.append(Paragraph(f"Puesto de control: {datos['puesto_control']}", styles["Normal"]))
-        elements.append(Paragraph(f"Agente: {datos['agente']}", styles["Normal"]))
-        elements.append(Paragraph(f"REP#: {datos['ref']}", styles["Normal"]))
+        elements.append(Paragraph(f"Localidad: {logbook_entry_rows[0][7]}", styles["Normal"]))
+        elements.append(Paragraph("Puesto de control: GARITA DE SEGURIDAD", styles["Normal"]))
+        elements.append(Paragraph("Agente: ", styles["Normal"]))
+        elements.append(Paragraph("REP#: RP2026-010", styles["Normal"]))
         elements.append(Spacer(1, 12))
         elements.append(Spacer(1, 12))
 
@@ -488,9 +529,9 @@ class LogbookUseCase:
         localidad_row_index = len(table_data)
         localidad_row_indexes.append(localidad_row_index)
 
-        # Fila con la LOCALIDAD (solo primera columna)
+        # Fila con la LOCALIDAD (SECTOR) (solo primera columna)
         table_data.append([
-            datos["localidad"].upper(), "", "", "", ""
+            logbook_entry_rows[0][7].upper(), "", "", "", ""
         ])
 
         for grupo, data in resultado.items():

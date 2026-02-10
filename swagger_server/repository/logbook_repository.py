@@ -532,11 +532,12 @@ class LogbookRepository:
                 
                 raise CustomAPIException("Error al obtener en la base de datos", 500)
             
-    def get_logbook_resume(self, internal, external, model: LogbookOut | LogbookEntry, fecha_inicio=None, fecha_fin=None):
+    def get_logbook_resume(self, internal, external, model: LogbookOut | LogbookEntry, filtersBase=None):
         with self.db.session_factory() as session:
-            start, end = get_date_range(fecha_inicio, fecha_fin)
+            start, end = get_date_range(filtersBase.get('start_date'), filtersBase.get('end_date'))
+
             try:
-                return (
+                query = (
                     session.query(
                         GroupBusiness.id_group_business,
                         GroupBusiness.name.label("grupo_negocio"),
@@ -544,10 +545,13 @@ class LogbookRepository:
                         Category.name_category,
                         func.sum(model.quantity).label("cantidad"),
                         UnityWeight.name.label("unidad"),
+                        Sector.id_sector,
+                        Sector.name.label("sector")
                     )
                     .join(Category, Category.id_category == model.category_id)
                     .join(UnityWeight, UnityWeight.id_unity == model.unity_id)
                     .join(GroupBusiness, GroupBusiness.id_group_business == model.group_business_id)
+                    .join(Sector, Sector.id_sector == GroupBusiness.sector_id)
                     .filter(model.created_at >= start)
                     .filter(model.created_at < end)
                     .group_by(
@@ -556,10 +560,26 @@ class LogbookRepository:
                         Category.id_category,
                         Category.name_category,
                         UnityWeight.name,
+                        Sector.id_sector,
                     )
                     .order_by(GroupBusiness.name)
-                    .all()
                 )
+
+                filters = []
+
+                if filtersBase.get('sector_id'):
+                    filters.append(Sector.id_sector.in_(filtersBase.get('sector_id')))
+
+                if filtersBase.get("groups_business_id"):
+                    filters.append(model.group_business_id.in_(filtersBase.get("groups_business_id")))
+
+                if filters:
+                    query = query.where(and_(*filters))
+
+                result = session.execute(query).all()
+
+                return result
+            
             except Exception as exception:
                 logger.error('Error: {}', str(exception), internal=internal, external=external)
                 if isinstance(exception, CustomAPIException):

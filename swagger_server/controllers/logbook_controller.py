@@ -182,7 +182,6 @@ class LogbookView(MethodView):
         status_code = 500
         try:
             if connexion.request.headers:
-                print("ID SECTOR:", id_sector)
                 start_time = default_timer()
                 internal_transaction_id = str(generate_internal_transaction_id())
                 external_transaction_id = request.headers.get('externalTransactionId')
@@ -385,47 +384,6 @@ class LogbookView(MethodView):
                 message = f"start request: {function_name}, channel: {request.headers.get('channel')}"
                 logger.info(message, internal=internal_transaction_id, external=external_transaction_id)
 
-
-                datos = {
-                    "fecha": "01/10/2026",
-                    "localidad": "TAURA (TOTAL)",
-                    "puesto_control": "GARITA DE SEGURIDAD",
-                    "agente": "Juan Perez",
-                    "ref": "RP2026-010",
-                    "hora": "19:00",
-                    "business_id": 1,
-
-                    "type_report": "REPORTE DIARIO",
-                    "status": "GENERADO",
-                    "shipping_error": None,
-                    "created_at": datetime.now(),
-                    "deadline": datetime.now(),
-                    "shipping_date": datetime.now(),
-                    "created_by": "Juan Perez",
-                    "start_date": datetime.now().replace(
-                        hour=0,
-                        minute=0,
-                        second=0,
-                        microsecond=0
-                    ),
-
-
-                    "items": [
-                        {
-                            "salida_cant": 0,
-                            "salida_unidad": "LIBRAS",
-                            "entrada_cant": 0,
-                            "entrada_unidad": "LIBRAS"
-                        },
-                        {
-                            "salida_cant": 0,
-                            "salida_unidad": "GALONES",
-                            "entrada_cant": 1980,
-                            "entrada_unidad": "GALONES"
-                        }
-                    ]
-                }
-                
                 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
                 output = os.path.join(
                     BASE_DIR,
@@ -434,7 +392,8 @@ class LogbookView(MethodView):
                 )
                 # self.logbook_use_case.generate_excel(datos, output, internal_transaction_id, external_transaction_id)
                 # self.logbook_use_case.post_report_generated(datos, internal_transaction_id, external_transaction_id)
-                self.logbook_use_case.generate_pdf(datos, output, internal_transaction_id, external_transaction_id)
+                filters = [request.headers, request.args]
+                self.logbook_use_case.generate_pdf(filters, output, internal_transaction_id, external_transaction_id)
                 
                 # response["error_code"] = 0
                 # response["message"] = "Unidades de peso obtenidas correctamente"

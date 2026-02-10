@@ -929,6 +929,12 @@ paths:
           schema:
             type: string
             example: "1,2,3"
+        - name: id_sector
+          in: header
+          required: false
+          schema:
+            type: string
+            example: "1,2,3"
         - name: start_date
           in: query
           required: false
