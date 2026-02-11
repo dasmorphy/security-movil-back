@@ -83,3 +83,4 @@ psycopg2-binary==2.9.7
 reportlab==4.4.9
 passlib==1.7.4
 argon2-cffi==25.1.0
+redis==5.0.7

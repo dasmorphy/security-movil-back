@@ -2,6 +2,7 @@
 
 from typing import List
 from unittest import result
+from flask import json
 from loguru import logger
 from sqlalchemy import and_, exists, func, insert, select
 from swagger_server.exception.custom_error_exception import CustomAPIException
@@ -16,6 +17,7 @@ from swagger_server.models.db.report_generated import ReportGenerated
 from swagger_server.models.db.sector import Sector
 from swagger_server.models.db.unity_weight import UnityWeight
 from swagger_server.resources.databases.postgresql import PostgreSQLClient
+from swagger_server.resources.databases.redis import RedisClient
 from swagger_server.utils.utils import get_date_range
 import os
 from PIL import Image
@@ -27,6 +29,7 @@ class LogbookRepository:
     
     def __init__(self):
         self.db = PostgreSQLClient("POSTGRESQL")
+        self.redis_client = RedisClient()
 
 
     def post_logbook_entry(self, logbook_entry_body: LogbookEntry, images, internal, external) -> None:
@@ -189,23 +192,39 @@ class LogbookRepository:
                 logbook_out_id = logbook_out_body.id_logbook_out
 
                 #Guardar imágenes (máx 10)
-                for file in images[:10]:
+                # for file in images[:10]:
 
-                    if logbook_out_body.shipping_guide == 'test daniel':
-                        result = self.save_image(file)
-                    else:
-                        result = self.save_image_as_webp(file)
+                #     if logbook_out_body.shipping_guide == 'test daniel':
+                #         result = self.save_image(file)
+                #     else:
+                #         result = self.save_image_as_webp(file)
 
-                    saved_files.append(result["url"])
+                #     saved_files.append(result["url"])
 
-                    image = LogbookImages(
-                        logbook_id_out=logbook_out_id,
-                        image_path=result["url"]
-                    )
+                #     image = LogbookImages(
+                #         logbook_id_out=logbook_out_id,
+                #         image_path=result["url"]
+                #     )
 
-                    session.add(image)
+                #     session.add(image)
 
                 session.commit()
+                # self.redis_client.publish(
+                #     "logbook_channel",
+                #     json.dumps({
+                #         "type": "logbook_saved",
+                #         "id": logbook_out_id
+                #     })
+                # )
+
+                self.redis_client.client.publish(
+                    "logbook_channel",
+                    json.dumps({
+                        "type": "logbook_saved",
+                        "id": logbook_out_id
+                    })
+                )
+
 
             except OSError as e:
                 if e.errno == 36:

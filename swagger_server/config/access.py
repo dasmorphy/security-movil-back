@@ -13,6 +13,10 @@ def access():
                 "PORT": os.getenv('POSTGRESQL_PORT'),
                 "DB": os.getenv('POSTGRESQL_DB')
             },
+            "REDIS": {
+                "HOST": os.getenv('REDIS_HOST'),
+                "PORT": os.getenv('REDIS_PORT'),
+            },
             "SQLALCHEMY_ENGINE_OPTIONS": {
                 "echo": False,
                 "pool_recycle": 300,
