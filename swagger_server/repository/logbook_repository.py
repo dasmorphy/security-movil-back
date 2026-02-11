@@ -576,6 +576,9 @@ class LogbookRepository:
                 if filters:
                     query = query.where(and_(*filters))
 
+                # print(str(query.statement.compile(compile_kwargs={"literal_binds": True})))
+
+
                 result = session.execute(query).all()
 
                 return result
