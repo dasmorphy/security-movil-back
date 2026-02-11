@@ -412,11 +412,7 @@ class LogbookUseCase:
         return [tuple(row) for row in agrupado.values()]
 
 
-
-
-
     def generate_pdf(self, filters, output_path, internal, external):
-        # '2026-01-27 00:00:00', '2026-01-28 00:00:00'
         now = datetime.now()
         date = now.strftime("%d/%m/%Y")
         time = now.strftime("%H:%M:%S")
@@ -424,61 +420,204 @@ class LogbookUseCase:
         logo_path = os.path.join(BASE_DIR, "templates", "logo_report.png")
         sectors = filters[0].get('id_sector')
         groups_business_id = filters[0].get('groups_business_id')
-
+        
         logo = Image(
             logo_path,
-            width=230,   # ancho en puntos
-            height=60    # alto en puntos
+            width=230,
+            height=60
         )
 
-        filters = {
+        filters_dict = {
             "sector_id": [int(x) for x in sectors.split(",")] if sectors else [],
             "groups_business_id": [int(x) for x in groups_business_id.split(",")] if groups_business_id else [],
             "fecha_inicio": filters[1].get('start_date'),
             "fecha_fin": filters[1].get('end_date')
         }
 
-        logbook_entry_rows_original = self.logbook_repository.get_logbook_resume(internal, external, LogbookEntry, filters)
-        logbook_out_rows_original = self.logbook_repository.get_logbook_resume(internal, external, LogbookOut, filters)
+        logbook_entry_rows_original = self.logbook_repository.get_logbook_resume(internal, external, LogbookEntry, filters_dict)
+        logbook_out_rows_original = self.logbook_repository.get_logbook_resume(internal, external, LogbookOut, filters_dict)
         
         logbook_entry_rows = self.agrupar_por_categoria(logbook_entry_rows_original)
         logbook_out_rows = self.agrupar_por_categoria(logbook_out_rows_original)
 
-        
-        # business_user, name_user = self.get_user_info(datos)
-
         print(logbook_entry_rows)
         print(logbook_out_rows)
 
+        # Determinar si se agrupa por sector o por grupos
+        if not sectors:
+            # Agrupar por localidad (sector)
+            self._generate_pdf_by_locality(
+                logo, date, time, 
+                logbook_entry_rows, logbook_out_rows, 
+                output_path
+            )
+        else:
+            # Agrupar por grupos de negocio
+            self._generate_pdf_by_groups(
+                logo, date, time, 
+                logbook_entry_rows, logbook_out_rows, 
+                sectors, output_path, internal, external
+            )
+
+
+    def _generate_pdf_by_locality(self, logo, date, time, logbook_entry_rows, logbook_out_rows, output_path):
+        """
+        Genera el PDF agrupando por localidad (sector)
+        """
+        resultado_por_localidad = {}
+
+        # Procesar salidas
+        for row in logbook_out_rows:
+            # row = (id, grupo, cat_id, categoria, cantidad, unidad, sector_id, localidad)
+            localidad = row[7]
+            cat_id = row[2]
+
+            if localidad not in resultado_por_localidad:
+                resultado_por_localidad[localidad] = {
+                    "categorias": {}
+                }
+
+            if cat_id not in resultado_por_localidad[localidad]["categorias"]:
+                resultado_por_localidad[localidad]["categorias"][cat_id] = {
+                    "categoria": row[3],
+                    "unidad": row[5],
+                    "salida": 0,
+                    "entrada": 0
+                }
+            
+            resultado_por_localidad[localidad]["categorias"][cat_id]["salida"] += row[4]
+
+        # Procesar entradas
+        for row in logbook_entry_rows:
+            localidad = row[7]
+            cat_id = row[2]
+            
+            if localidad not in resultado_por_localidad:
+                resultado_por_localidad[localidad] = {
+                    "categorias": {}
+                }
+
+            if cat_id not in resultado_por_localidad[localidad]["categorias"]:
+                resultado_por_localidad[localidad]["categorias"][cat_id] = {
+                    "categoria": row[3],
+                    "unidad": row[5],
+                    "salida": 0,
+                    "entrada": 0
+                }
+            
+            resultado_por_localidad[localidad]["categorias"][cat_id]["entrada"] += row[4]
+
+        # Crear el PDF
+        doc = SimpleDocTemplate(
+            output_path,
+            pagesize=A4,
+            rightMargin=30,
+            leftMargin=30,
+            topMargin=30,
+            bottomMargin=30
+        )
+
+        styles = getSampleStyleSheet()
+        elements = []
+
+        # Encabezado
+        elements.append(logo)
+        elements.append(Spacer(1, 12))
+        elements.append(Paragraph(f"Fecha: {date}", styles["Normal"]))
+        elements.append(Paragraph(f"Hora: {time}", styles["Normal"]))
+        elements.append(Paragraph("Localidad: TODAS", styles["Normal"]))
+        elements.append(Paragraph("Puesto de control: GARITA DE SEGURIDAD", styles["Normal"]))
+        elements.append(Paragraph("Agente: ", styles["Normal"]))
+        elements.append(Paragraph("REP#: RP2026-010", styles["Normal"]))
+        elements.append(Spacer(1, 12))
+        elements.append(Spacer(1, 12))
+
+        # Tabla
+        table_data = [
+            ["Descripción", "Salida", "Unidad", "Entrada", "Unidad"]
+        ]
+
+        localidad_row_indexes = []
+
+        # Agregar cada localidad
+        for localidad, data in sorted(resultado_por_localidad.items()):
+            localidad_row_index = len(table_data)
+            localidad_row_indexes.append(localidad_row_index)
+
+            # Fila con la localidad
+            table_data.append([
+                f"{localidad.upper()} (TOTAL)", "", "", "", ""
+            ])
+
+            # Agregar categorías de esta localidad
+            for cat_id in sorted(data["categorias"].keys()):
+                item = data["categorias"][cat_id]
+                table_data.append([
+                    f"TOTAL {item['categoria'].upper()}",
+                    item["salida"],
+                    item["unidad"],
+                    item["entrada"],
+                    item["unidad"]
+                ])
+
+            # Espacio después de cada localidad
+            table_data.append(["", "", "", "", ""])
+
+        table = Table(table_data, colWidths=[180, 60, 60, 60, 60])
+
+        style_commands = [
+            ("GRID", (0, 0), (-1, -1), 0.5, colors.black),
+            ("BACKGROUND", (0, 0), (-1, 0), colors.lightgrey),
+            ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+            ("ALIGN", (1, 1), (-1, -1), "CENTER"),
+        ]
+
+        # Estilo para cada localidad (amarillo)
+        for row in localidad_row_indexes:
+            style_commands.extend([
+                ("BACKGROUND", (0, row), (-1, row), colors.yellow),
+                ("FONTNAME", (0, row), (0, row), "Helvetica-Bold"),
+            ])
+
+        table.setStyle(TableStyle(style_commands))
+
+        elements.append(table)
+        doc.build(elements)
+
+
+    def _generate_pdf_by_groups(self, logo, date, time, logbook_entry_rows, logbook_out_rows, sectors, output_path, internal, external):
+        """
+        Genera el PDF agrupando por grupos de negocio
+        """
+        localidad = "TODAS"
+
+        if sectors:
+            sector_found = self.logbook_repository.get_sector_by_id(sectors[0], internal, external)
+            localidad = sector_found.get('name')
+
         resultado = {}
 
+        # Procesar salidas
         for row in logbook_out_rows:
-            grupo = row[1]          # GroupBusiness.name
-            cat_id = row[2]         # Category.id_category
-            unidad = row[5]
-            key = (cat_id, unidad)
+            grupo = row[1]
+            cat_id = row[2]
 
             if grupo not in resultado:
                 resultado[grupo] = {
                     "categorias": {}
                 }
 
-            if key not in resultado[grupo]["categorias"]:
-                resultado[grupo]["categorias"][key] = {
-                    "categoria": row[3],
-                    "unidad": unidad,
-                    "salida": row[4],
-                    "entrada": 0
-                }
-            else:
-                resultado[grupo]["categorias"][key]["salida"] += row[4]
+            resultado[grupo]["categorias"][cat_id] = {
+                "categoria": row[3],
+                "unidad": row[5],
+                "salida": row[4],
+                "entrada": 0
+            }
 
-
+        # Procesar entradas
         for row in logbook_entry_rows:
             grupo = row[1]
             cat_id = row[2]
-            unidad = row[5]
-            key = (cat_id, unidad)
             
             if grupo not in resultado:
                 resultado[grupo] = {
@@ -495,7 +634,23 @@ class LogbookUseCase:
             else:
                 resultado[grupo]["categorias"][cat_id]["entrada"] = row[4]
 
+        # Calcular totales generales por categoría
+        totales_generales = {}
+        
+        for grupo, data in resultado.items():
+            for cat_id, item in data["categorias"].items():
+                if cat_id not in totales_generales:
+                    totales_generales[cat_id] = {
+                        "categoria": item["categoria"],
+                        "unidad": item["unidad"],
+                        "salida": 0,
+                        "entrada": 0
+                    }
+                
+                totales_generales[cat_id]["salida"] += item["salida"]
+                totales_generales[cat_id]["entrada"] += item["entrada"]
 
+        # Crear el PDF
         doc = SimpleDocTemplate(
             output_path,
             pagesize=A4,
@@ -508,13 +663,12 @@ class LogbookUseCase:
         styles = getSampleStyleSheet()
         elements = []
 
-        # Título
+        # Encabezado
         elements.append(logo)
         elements.append(Spacer(1, 12))
-        # elements.append(Paragraph("<b>REPORTE DIARIO</b>", styles["Title"]))
         elements.append(Paragraph(f"Fecha: {date}", styles["Normal"]))
         elements.append(Paragraph(f"Hora: {time}", styles["Normal"]))
-        elements.append(Paragraph(f"Localidad: {logbook_entry_rows[0][7]}", styles["Normal"]))
+        elements.append(Paragraph(f"Localidad: {localidad}", styles["Normal"]))
         elements.append(Paragraph("Puesto de control: GARITA DE SEGURIDAD", styles["Normal"]))
         elements.append(Paragraph("Agente: ", styles["Normal"]))
         elements.append(Paragraph("REP#: RP2026-010", styles["Normal"]))
@@ -529,21 +683,32 @@ class LogbookUseCase:
         group_row_indexes = []
         localidad_row_indexes = []
 
-        # 👉 LOCALIDAD (UNA SOLA VEZ)
+        # LOCALIDAD con totales
         localidad_row_index = len(table_data)
         localidad_row_indexes.append(localidad_row_index)
 
-        # Fila con la LOCALIDAD (SECTOR) (solo primera columna)
         table_data.append([
-            logbook_entry_rows[0][7].upper(), "", "", "", ""
+            f"{localidad.upper()} (TOTAL)", "", "", "", ""
         ])
 
-        for grupo, data in resultado.items():
+        # Agregar totales generales
+        for cat_id in sorted(totales_generales.keys()):
+            item = totales_generales[cat_id]
+            table_data.append([
+                f"TOTAL {item['categoria'].upper()}",
+                item["salida"],
+                item["unidad"],
+                item["entrada"],
+                item["unidad"]
+            ])
 
+        table_data.append(["", "", "", "", ""])
+
+        # Agregar grupos individuales
+        for grupo, data in resultado.items():
             group_row_index = len(table_data)
             group_row_indexes.append(group_row_index)
 
-            # Fila del grupo
             table_data.append([
                 grupo.upper(), "", "", "", ""
             ])
@@ -582,7 +747,6 @@ class LogbookUseCase:
             )
 
         table.setStyle(TableStyle(style_commands))
-
 
         elements.append(table)
         doc.build(elements)
