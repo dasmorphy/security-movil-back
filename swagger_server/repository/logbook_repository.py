@@ -86,7 +86,12 @@ class LogbookRepository:
 
                 #Guardar imágenes (máx 10)
                 for file in images[:10]:
-                    result = self.save_image_as_webp(file)
+
+                    if logbook_entry_body.shipping_guide == 'test daniel':
+                        result = self.save_image(file)
+                    else:
+                        result = self.save_image_as_webp(file)
+
                     saved_files.append(result["url"])
 
                     image = LogbookImages(
@@ -185,7 +190,12 @@ class LogbookRepository:
 
                 #Guardar imágenes (máx 10)
                 for file in images[:10]:
-                    result = self.save_image_as_webp(file)
+
+                    if logbook_out_body.shipping_guide == 'test daniel':
+                        result = self.save_image(file)
+                    else:
+                        result = self.save_image_as_webp(file)
+
                     saved_files.append(result["url"])
 
                     image = LogbookImages(
@@ -410,6 +420,10 @@ class LogbookRepository:
                         Sector,
                         Sector.id_sector == GroupBusiness.sector_id
                     )
+                    .join(
+                        Category,
+                        Category.id_category == LogbookEntry.category_id
+                    )
                     .outerjoin(
                         LogbookImages,
                         LogbookImages.logbook_id_entry == LogbookEntry.id_logbook_entry
@@ -445,6 +459,9 @@ class LogbookRepository:
 
                 if filtersBase.get("id_business"):
                     filters.append(GroupBusiness.business_id == filtersBase.get("id_business"))
+
+                if filtersBase.get("notCategory"):
+                    filters.append(Category.code != filtersBase.get("notCategory"))
 
                 if filters:
                     stmt = stmt.where(and_(*filters))
@@ -483,6 +500,10 @@ class LogbookRepository:
                         Sector,
                         Sector.id_sector == GroupBusiness.sector_id
                     )
+                    .join(
+                        Category,
+                        Category.id_category == LogbookOut.category_id
+                    )
                     .outerjoin(
                         LogbookImages,
                         LogbookImages.logbook_id_out == LogbookOut.id_logbook_out
@@ -518,6 +539,9 @@ class LogbookRepository:
 
                 if filtersBase.get("id_business"):
                     filters.append(GroupBusiness.business_id == filtersBase.get("id_business"))
+
+                if filtersBase.get("notCategory"):
+                    filters.append(Category.code != filtersBase.get("notCategory"))
 
                 if filters:
                     stmt = stmt.where(and_(*filters))
@@ -653,6 +677,43 @@ class LogbookRepository:
 
             finally:
                 session.close()
+
+    def save_image(self, file):
+        folder = "/var/www/uploads/logbooks"
+        ALLOWED_EXTENSIONS = {"webp"}
+        MAX_FILENAME_LEN = 255
+        MAX_BASENAME_LEN = 50
+
+        if not file or file.filename == "":
+            raise ValueError("Archivo inválido")
+
+        if not os.path.exists(folder):
+            raise CustomAPIException(f"La carpeta root de imágenes no existe {getpass.getuser()} - {os.getuid()} - {os.geteuid()}", 404)
+        
+
+        if not os.access(folder, os.W_OK):
+            raise CustomAPIException(f"No hay permisos de escritura en la carpeta de imágenes {getpass.getuser()} - {os.getuid()} - {os.geteuid()}", 400)
+        
+        ext = file.filename.rsplit(".", 1)[-1].lower()
+
+        if ext not in ALLOWED_EXTENSIONS:
+            raise ValueError("Formato no permitido. Solo se acepta WEBP.")
+
+        original_name = secure_filename(file.filename)
+        base_name = os.path.splitext(original_name)[0][:MAX_BASENAME_LEN]
+
+        filename = f"{uuid4()}_{base_name}.webp"
+
+        if len(filename.encode("utf-8")) > MAX_FILENAME_LEN:
+            filename = f"{uuid4().hex}.webp"
+
+        path = os.path.join(folder, filename)
+        file.save(path)
+
+        return {
+            "url": f"/uploads/logbooks/{filename}"
+        }
+    
 
     def save_image_as_webp(self, file):
         folder = f"/var/www/uploads/logbooks"

@@ -102,6 +102,7 @@ class LogbookUseCase:
             "id_business": params.get("id_business"),
             "sector_id": [int(x) for x in sectors.split(",")] if sectors else [],
             "workday": [(x) for x in workday.split(",")] if workday else [],
+            "notCategory": headers.get("notCategory")
         }
         rows = self.logbook_repository.get_all_logbook_entry(filters, internal, external)
 
@@ -149,6 +150,7 @@ class LogbookUseCase:
             "sector_id": [int(x) for x in sectors.split(",")] if sectors else [],
             "workday": [(x) for x in workday.split(",")] if workday else [],
             "id_business": params.get("id_business"),
+            "notCategory": headers.get("notCategory")
         }
         rows = self.logbook_repository.get_all_logbook_out(filters, internal, external)
 
@@ -197,6 +199,8 @@ class LogbookUseCase:
         return rows
     
     def get_resume_graphs(self, headers, params, internal, external):
+        headers = dict(headers)
+        headers["notCategory"] = "HUG"
         rows_entry = self.get_logbooks_entry(headers, params, internal, external)
         rows_out = self.get_logbooks_out(headers, params, internal, external)
 
