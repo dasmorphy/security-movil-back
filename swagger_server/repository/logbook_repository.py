@@ -114,13 +114,13 @@ class LogbookRepository:
                 logbook_entry_dict["name_category"] = category.name_category
                 logbook_entry_dict["group_name"] = group_business_exists.name
 
-                # self.redis_client.client.publish(
-                #     "logbook_channel",
-                #     json.dumps({
-                #         "type": "logbook_saved",
-                #         "logbook": logbook_entry_dict
-                #     })
-                # )
+                self.redis_client.client.publish(
+                    "logbook_channel",
+                    json.dumps({
+                        "type": "logbook_saved",
+                        "logbook": logbook_entry_dict
+                    })
+                )
 
             except Exception as exception:
                 session.rollback()
@@ -234,13 +234,13 @@ class LogbookRepository:
                 logbook_out_dict["name_category"] = category.name_category
                 logbook_out_dict["group_name"] = group_business_exists.name
 
-                # self.redis_client.client.publish(
-                #     "logbook_channel",
-                #     json.dumps({
-                #         "type": "logbook_saved",
-                #         "logbook": logbook_out_dict
-                #     })
-                # )
+                self.redis_client.client.publish(
+                    "logbook_channel",
+                    json.dumps({
+                        "type": "logbook_saved",
+                        "logbook": logbook_out_dict
+                    })
+                )
 
 
             except OSError as e:

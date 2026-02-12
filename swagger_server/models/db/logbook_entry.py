@@ -67,3 +67,6 @@ class LogbookEntry(Base):
 
     created_by = Column(Text, nullable=False)
     updated_by = Column(Text, nullable=False)
+
+    def to_dict(self):
+        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
