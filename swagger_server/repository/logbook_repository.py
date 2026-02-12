@@ -57,12 +57,16 @@ class LogbookRepository:
                 ).scalar()
 
                 group_business_exists = session.execute(
-                    select(
-                        exists().where(
-                            GroupBusiness.id_group_business == logbook_entry_body.group_business_id
-                        )
+                    select(GroupBusiness).where(
+                        GroupBusiness.id_group_business == logbook_entry_body.group_business_id
                     )
-                ).scalar()
+                ).scalar_one_or_none()
+
+                category = session.execute(
+                    select(Category).where(
+                        Category.id_category == logbook_entry_body.category_id
+                    )
+                ).scalar_one_or_none()
 
                 if not category_exists:
                     raise CustomAPIException(
@@ -106,6 +110,18 @@ class LogbookRepository:
 
                 session.commit()
 
+                logbook_entry_dict = logbook_entry_body.to_dict()
+                logbook_entry_dict["name_category"] = category.name_category
+                logbook_entry_dict["group_name"] = group_business_exists.name
+
+                self.redis_client.client.publish(
+                    "logbook_channel",
+                    json.dumps({
+                        "type": "logbook_saved",
+                        "logbook": logbook_entry_dict
+                    })
+                )
+
             except Exception as exception:
                 session.rollback()
                 logger.error('Error: {}', str(exception), internal=internal, external=external)
@@ -136,12 +152,16 @@ class LogbookRepository:
                 ).scalar()
 
                 group_business_exists = session.execute(
-                    select(
-                        exists().where(
-                            GroupBusiness.id_group_business == logbook_out_body.group_business_id
-                        )
+                    select(GroupBusiness).where(
+                        GroupBusiness.id_group_business == logbook_out_body.group_business_id
                     )
-                ).scalar()
+                ).scalar_one_or_none()
+
+                category = session.execute(
+                    select(Category).where(
+                        Category.id_category == logbook_out_body.category_id
+                    )
+                ).scalar_one_or_none()
 
                 #Si no viene unity_id, buscar la unidad por defecto (LB)
                 if not logbook_out_body.unity_id:
@@ -209,21 +229,18 @@ class LogbookRepository:
                     session.add(image)
 
                 session.commit()
-                # self.redis_client.publish(
-                #     "logbook_channel",
-                #     json.dumps({
-                #         "type": "logbook_saved",
-                #         "id": logbook_out_id
-                #     })
-                # )
 
-                # self.redis_client.client.publish(
-                #     "logbook_channel",
-                #     json.dumps({
-                #         "type": "logbook_saved",
-                #         "logbook": logbook_out_body.to_dict()
-                #     })
-                # )
+                logbook_out_dict = logbook_out_body.to_dict()
+                logbook_out_dict["name_category"] = category.name_category
+                logbook_out_dict["group_name"] = group_business_exists.name
+
+                self.redis_client.client.publish(
+                    "logbook_channel",
+                    json.dumps({
+                        "type": "logbook_saved",
+                        "logbook": logbook_out_dict
+                    })
+                )
 
 
             except OSError as e:
