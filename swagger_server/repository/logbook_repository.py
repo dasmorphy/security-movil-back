@@ -191,22 +191,22 @@ class LogbookRepository:
                 
                 logbook_out_id = logbook_out_body.id_logbook_out
 
-                #Guardar imágenes (máx 10)
-                # for file in images[:10]:
+                # Guardar imágenes (máx 10)
+                for file in images[:10]:
 
-                #     if logbook_out_body.shipping_guide == 'test daniel':
-                #         result = self.save_image(file)
-                #     else:
-                #         result = self.save_image_as_webp(file)
+                    if logbook_out_body.shipping_guide == 'test daniel':
+                        result = self.save_image(file)
+                    else:
+                        result = self.save_image_as_webp(file)
 
-                #     saved_files.append(result["url"])
+                    saved_files.append(result["url"])
 
-                #     image = LogbookImages(
-                #         logbook_id_out=logbook_out_id,
-                #         image_path=result["url"]
-                #     )
+                    image = LogbookImages(
+                        logbook_id_out=logbook_out_id,
+                        image_path=result["url"]
+                    )
 
-                #     session.add(image)
+                    session.add(image)
 
                 session.commit()
                 # self.redis_client.publish(
@@ -217,13 +217,13 @@ class LogbookRepository:
                 #     })
                 # )
 
-                self.redis_client.client.publish(
-                    "logbook_channel",
-                    json.dumps({
-                        "type": "logbook_saved",
-                        "id": logbook_out_id
-                    })
-                )
+                # self.redis_client.client.publish(
+                #     "logbook_channel",
+                #     json.dumps({
+                #         "type": "logbook_saved",
+                #         "logbook": logbook_out_body.to_dict()
+                #     })
+                # )
 
 
             except OSError as e:
@@ -425,6 +425,7 @@ class LogbookRepository:
                         GroupBusiness.name.label("group_name"),
                         Sector.id_sector.label("id_sector"),
                         Sector.name.label("name_sector"),
+                        Category.name_category,
                         func.coalesce(
                             func.array_agg(LogbookImages.image_path)
                                 .filter(LogbookImages.image_path.isnot(None)),
@@ -453,7 +454,8 @@ class LogbookRepository:
                     LogbookEntry.id_logbook_entry,
                     GroupBusiness.name,
                     Sector.id_sector,
-                    Sector.name
+                    Sector.name,
+                    Category.id_category
                 )
 
                 filters = []
@@ -505,6 +507,7 @@ class LogbookRepository:
                         GroupBusiness.name.label("group_name"),
                         Sector.id_sector.label("id_sector"),
                         Sector.name.label("name_sector"),
+                        Category.name_category,
                         func.coalesce(
                             func.array_agg(LogbookImages.image_path)
                                 .filter(LogbookImages.image_path.isnot(None)),
@@ -533,7 +536,8 @@ class LogbookRepository:
                     LogbookOut.id_logbook_out,
                     GroupBusiness.name,
                     Sector.id_sector,
-                    Sector.name
+                    Sector.name,
+                    Category.id_category
                 )
 
                 filters = []
