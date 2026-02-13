@@ -14,7 +14,7 @@ class LogBookOutData(Model):
 
     Do not edit the class manually.
     """
-    def __init__(self, id_group_business: int=None, id_category: int=None, id_unity: int=None, shipping_guide: str=None, quantity: float=None, weight: float=None, truck_license: str=None, name_driver: str=None, person_withdraws: str=None, workday: str=None, destiny: str=None, authorized_by: str=None, observations: str=None, created_by: str=None, name_user: str=None, images: List[str]=None):  # noqa: E501
+    def __init__(self, id_group_business: int=None, id_category: int=None, id_unity: int=None, shipping_guide: str=None, quantity: float=None, weight: float=None, truck_license: str=None, name_driver: str=None, lat: str=None, long: str=None, person_withdraws: str=None, workday: str=None, destiny: str=None, authorized_by: str=None, observations: str=None, created_by: str=None, name_user: str=None, images: List[str]=None):  # noqa: E501
         """LogBookOutData - a model defined in Swagger
 
         :param id_group_business: The id_group_business of this LogBookOutData.  # noqa: E501
@@ -33,6 +33,10 @@ class LogBookOutData(Model):
         :type truck_license: str
         :param name_driver: The name_driver of this LogBookOutData.  # noqa: E501
         :type name_driver: str
+        :param lat: The lat of this LogBookOutData.  # noqa: E501
+        :type lat: str
+        :param long: The long of this LogBookOutData.  # noqa: E501
+        :type long: str
         :param person_withdraws: The person_withdraws of this LogBookOutData.  # noqa: E501
         :type person_withdraws: str
         :param workday: The workday of this LogBookOutData.  # noqa: E501
@@ -59,6 +63,8 @@ class LogBookOutData(Model):
             'weight': float,
             'truck_license': str,
             'name_driver': str,
+            'lat': str,
+            'long': str,
             'person_withdraws': str,
             'workday': str,
             'destiny': str,
@@ -78,6 +84,8 @@ class LogBookOutData(Model):
             'weight': 'weight',
             'truck_license': 'truck_license',
             'name_driver': 'name_driver',
+            'lat': 'lat',
+            'long': 'long',
             'person_withdraws': 'person_withdraws',
             'workday': 'workday',
             'destiny': 'destiny',
@@ -95,6 +103,8 @@ class LogBookOutData(Model):
         self._weight = weight
         self._truck_license = truck_license
         self._name_driver = name_driver
+        self._lat = lat
+        self._long = long
         self._person_withdraws = person_withdraws
         self._workday = workday
         self._destiny = destiny
@@ -282,6 +292,48 @@ class LogBookOutData(Model):
         """
 
         self._name_driver = name_driver
+
+    @property
+    def lat(self) -> str:
+        """Gets the lat of this LogBookOutData.
+
+
+        :return: The lat of this LogBookOutData.
+        :rtype: str
+        """
+        return self._lat
+
+    @lat.setter
+    def lat(self, lat: str):
+        """Sets the lat of this LogBookOutData.
+
+
+        :param lat: The lat of this LogBookOutData.
+        :type lat: str
+        """
+
+        self._lat = lat
+
+    @property
+    def long(self) -> str:
+        """Gets the long of this LogBookOutData.
+
+
+        :return: The long of this LogBookOutData.
+        :rtype: str
+        """
+        return self._long
+
+    @long.setter
+    def long(self, long: str):
+        """Sets the long of this LogBookOutData.
+
+
+        :param long: The long of this LogBookOutData.
+        :type long: str
+        """
+
+        self._long = long
 
     @property
     def person_withdraws(self) -> str:

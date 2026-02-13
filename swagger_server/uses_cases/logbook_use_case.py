@@ -42,7 +42,9 @@ class LogbookUseCase:
             created_by=body['created_by'],
             updated_by=body['created_by'],
             name_user=body['name_user'],
-            workday=body['workday']
+            workday=body['workday'],
+            lat=body.get('lat'),
+            long=body.get('long')
         )
 
         self.logbook_repository.post_logbook_entry(logbook_entry, images, internal, external)
@@ -64,7 +66,9 @@ class LogbookUseCase:
             created_by=body['created_by'],
             updated_by=body['created_by'],
             name_user=body['name_user'],
-            workday=body['workday']
+            workday=body['workday'],
+            lat=body.get('lat'),
+            long=body.get('long')
         )
 
         self.logbook_repository.post_logbook_out(logbook_out, images, internal, external)
@@ -118,6 +122,8 @@ class LogbookUseCase:
                 "description": c.description,
                 "quantity": c.quantity,
                 "weight": c.weight,
+                "lat": c.lat,
+                "long": c.long,
                 "provider": c.provider,
                 "destiny_intern": c.destiny_intern,
                 "authorized_by": c.authorized_by,
@@ -168,6 +174,8 @@ class LogbookUseCase:
                 "weight": c.weight,
                 "truck_license": c.truck_license,
                 "name_driver": c.name_driver,
+                "lat": c.lat,
+                "long": c.long,
                 "person_withdraws": c.person_withdraws,
                 "destiny": c.destiny,
                 "authorized_by": c.authorized_by,

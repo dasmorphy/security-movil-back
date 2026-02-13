@@ -1191,6 +1191,12 @@ components:
         workday:
           type: string
           example: Diurna
+        lat:
+          type: string
+          example: -0.1865936
+        long:
+          type: string
+          example: -78.5953478
         provider:
           type: string
           example: Camaronera
@@ -1261,6 +1267,12 @@ components:
         name_driver:
           type: string
           example: Jaime
+        lat:
+          type: string
+          example: -0.1865936
+        long:
+          type: string
+          example: -78.5953478
         person_withdraws:
           type: string
           example: Juan
