@@ -360,6 +360,36 @@ class LogbookRepository:
                 
                 raise CustomAPIException("Error al obtener en la base de datos", 500)
             
+    def get_categories_by_name(self, names_categories, internal, external):
+        with self.db.session_factory() as session:
+            try:
+                stmt = select(Category).where(
+                    Category.name_category.in_(names_categories),
+                    GroupBusiness.is_active == True
+                )
+
+                rows_categories = session.execute(stmt).scalars().all()
+
+                categories = [
+                    {
+                        "id_category": c.id_category,
+                        "name_category": c.name_category,
+                        "code": c.code,
+                        "created_at": c.created_at,
+                        "updated_at": c.updated_at
+                    }
+                    for c in rows_categories
+                ]
+
+                return categories
+
+            except Exception as exception:
+                logger.error('Error: {}', str(exception), internal=internal, external=external)
+                if isinstance(exception, CustomAPIException):
+                    raise exception
+                
+                raise CustomAPIException("Error al obtener en la base de datos", 500)
+            
     def get_group_business_by_id_business(self, id_business, internal, external):
         with self.db.session_factory() as session:
             try:
@@ -477,6 +507,9 @@ class LogbookRepository:
 
                 filters = []
 
+                if filtersBase.get("category_ids"):
+                    filters.append(Category.id_category.in_(filtersBase.get("category_ids")))
+
                 if filtersBase.get("sector_id"):
                     filters.append(Sector.id_sector.in_(filtersBase.get("sector_id")))
 
@@ -558,6 +591,9 @@ class LogbookRepository:
                 )
 
                 filters = []
+
+                if filtersBase.get("category_ids"):
+                    filters.append(Category.id_category.in_(filtersBase.get("category_ids")))
 
                 if filtersBase.get("sector_id"):
                     filters.append(Sector.id_sector.in_(filtersBase.get("sector_id")))

@@ -98,6 +98,7 @@ class LogbookUseCase:
         groups = headers.get("groups_business_id")
         sectors = headers.get("sectors")
         workday = headers.get("workday")
+        name_categories = headers.get("name_categories")
         filters = {
             "user": headers.get("user"),
             "groups_business_id": [int(x) for x in groups.split(",")] if groups else [],
@@ -105,9 +106,15 @@ class LogbookUseCase:
             "end_date": params.get("end_date"),
             "id_business": params.get("id_business"),
             "sector_id": [int(x) for x in sectors.split(",")] if sectors else [],
+            "name_categories": [str(x) for x in name_categories.split(",")] if name_categories else [],
             "workday": [(x) for x in workday.split(",")] if workday else [],
             "notCategory": headers.get("notCategory")
         }
+
+        if name_categories:
+            categories = self.logbook_repository.get_categories_by_name(filters.get('name_categories'), internal, external)
+            filters["category_ids"] = [cat['id_category'] for cat in categories]
+
         rows = self.logbook_repository.get_all_logbook_entry(filters, internal, external)
 
         results = [
@@ -149,16 +156,23 @@ class LogbookUseCase:
         groups = headers.get("groups_business_id")
         sectors = headers.get("sectors")
         workday = headers.get("workday")
+        name_categories = headers.get("name_categories")
         filters = {
             "user": headers.get("user"),
             "groups_business_id": [int(x) for x in groups.split(",")] if groups else [],
             "start_date": params.get("start_date"),
             "end_date": params.get("end_date"),
             "sector_id": [int(x) for x in sectors.split(",")] if sectors else [],
+            "name_categories": [str(x) for x in name_categories.split(",")] if name_categories else [],
             "workday": [(x) for x in workday.split(",")] if workday else [],
             "id_business": params.get("id_business"),
             "notCategory": headers.get("notCategory")
         }
+
+        if name_categories:
+            categories = self.logbook_repository.get_categories_by_name(filters.get('name_categories'), internal, external)
+            filters["category_ids"] = [cat['id_category'] for cat in categories]
+
         rows = self.logbook_repository.get_all_logbook_out(filters, internal, external)
 
         results = [
