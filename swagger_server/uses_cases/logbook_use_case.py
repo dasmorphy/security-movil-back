@@ -2,6 +2,7 @@
 
 import os
 from typing import Counter
+from loguru import logger
 from openpyxl import load_workbook
 from datetime import datetime
 from swagger_server.models.db.logbook_entry import LogbookEntry
@@ -111,6 +112,10 @@ class LogbookUseCase:
             "notCategory": headers.get("notCategory")
         }
 
+        logger.info(f"category_ids entry {str(category_ids)}", internal=internal, external=external)
+        # logger.info(f"filters entry: {filters}", internal=internal, external=external)
+
+
         rows = self.logbook_repository.get_all_logbook_entry(filters, internal, external)
 
         results = [
@@ -164,6 +169,10 @@ class LogbookUseCase:
             "id_business": params.get("id_business"),
             "notCategory": headers.get("notCategory")
         }
+
+        logger.info(f"category_ids out {str(category_ids)}", internal=internal, external=external)
+        # logger.info(f"filters out: {filters}", internal=internal, external=external)
+
 
 
         rows = self.logbook_repository.get_all_logbook_out(filters, internal, external)
