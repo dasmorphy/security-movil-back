@@ -481,7 +481,8 @@ class LogbookView(MethodView):
                 response["external_transaction_id"] = external_transaction_id
                 message = f"start request: {function_name}, channel: {request.headers.get('channel')}"
                 logger.info(message, internal=internal_transaction_id, external=external_transaction_id)
-                result = self.logbook_use_case.get_history_logbooks(request.headers, request.args, internal_transaction_id, external_transaction_id)
+                headers = {k.lower(): v for k, v in request.headers.items()}
+                result = self.logbook_use_case.get_history_logbooks(headers, request.args, internal_transaction_id, external_transaction_id)
                 response["error_code"] = 0
                 response["message"] = "Historial de bitacoras obtenido correctamente"
                 response["data"] = result
@@ -509,7 +510,8 @@ class LogbookView(MethodView):
                 response["external_transaction_id"] = external_transaction_id
                 message = f"start request: {function_name}, channel: {request.headers.get('channel')}"
                 logger.info(message, internal=internal_transaction_id, external=external_transaction_id)
-                result = self.logbook_use_case.get_resume_graphs(request.headers, request.args, internal_transaction_id, external_transaction_id)
+                headers = {k.lower(): v for k, v in request.headers.items()}
+                result = self.logbook_use_case.get_resume_graphs(headers, request.args, internal_transaction_id, external_transaction_id)
                 response["error_code"] = 0
                 response["message"] = "Datos obtenidos correctamente"
                 response["data"] = result
