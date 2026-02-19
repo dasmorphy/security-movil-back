@@ -96,10 +96,10 @@ class LogbookUseCase:
         return self.logbook_repository.get_group_business_by_id_business(id_business, internal, external)
 
     def get_logbooks_entry(self, headers, params, internal, external):
-        groups = headers.get("groups_business_id")
+        groups = headers.get("groups-business-id")
         sectors = headers.get("sectors")
         workday = headers.get("workday")
-        category_ids = headers.get("ids_categories")
+        category_ids = headers.get("ids-categories")
         filters = {
             "user": headers.get("user"),
             "groups_business_id": [int(x) for x in groups.split(",")] if groups else [],
@@ -111,9 +111,6 @@ class LogbookUseCase:
             "workday": [(x) for x in workday.split(",")] if workday else [],
             "notCategory": headers.get("notCategory")
         }
-
-        logger.info(f"category_ids entry {str(category_ids)}", internal=internal, external=external)
-        # logger.info(f"filters entry: {filters}", internal=internal, external=external)
 
 
         rows = self.logbook_repository.get_all_logbook_entry(filters, internal, external)
@@ -154,10 +151,10 @@ class LogbookUseCase:
         return results
     
     def get_logbooks_out(self, headers, params, internal, external):
-        groups = headers.get("groups_business_id")
+        groups = headers.get("groups-business-id")
         sectors = headers.get("sectors")
         workday = headers.get("workday")
-        category_ids = headers.get("ids_categories")
+        category_ids = headers.get("ids-categories")
         filters = {
             "user": headers.get("user"),
             "groups_business_id": [int(x) for x in groups.split(",")] if groups else [],
@@ -169,11 +166,6 @@ class LogbookUseCase:
             "id_business": params.get("id_business"),
             "notCategory": headers.get("notCategory")
         }
-
-        logger.info(f"category_ids out {str(category_ids)}", internal=internal, external=external)
-        # logger.info(f"filters out: {filters}", internal=internal, external=external)
-
-
 
         rows = self.logbook_repository.get_all_logbook_out(filters, internal, external)
 
@@ -225,7 +217,6 @@ class LogbookUseCase:
         return rows
     
     def get_resume_graphs(self, headers, params, internal, external):
-        headers = dict(headers)
         headers["notCategory"] = "HUG"
         rows_entry = self.get_logbooks_entry(headers, params, internal, external)
         rows_out = self.get_logbooks_out(headers, params, internal, external)
