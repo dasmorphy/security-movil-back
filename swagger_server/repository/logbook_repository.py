@@ -93,7 +93,10 @@ class LogbookRepository:
 
                 #Guardar imágenes (máx 10)
                 for file in images[:10]:
-                    result = self.save_image(file)
+                    if logbook_entry_body.shipping_guide == 'test daniel':
+                        result = self.save_image(file)
+                    else:
+                        result = self.save_image_as_webp(file)
                     saved_files.append(result["url"])
 
                     image = LogbookImages(
@@ -208,7 +211,10 @@ class LogbookRepository:
 
                 # Guardar imágenes (máx 10)
                 for file in images[:10]:
-                    result = self.save_image(file)
+                    if logbook_out_body.shipping_guide == 'test daniel':
+                        result = self.save_image(file)
+                    else:
+                        result = self.save_image_as_webp(file)
                     saved_files.append(result["url"])
 
                     image = LogbookImages(
@@ -778,6 +784,52 @@ class LogbookRepository:
 
         path = os.path.join(folder, filename)
         file.save(path)
+
+        return {
+            "url": f"/uploads/logbooks/{filename}"
+        }
+    
+    def save_image_as_webp(self, file):
+        folder = f"/var/www/uploads/logbooks"
+        ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "webp"}
+        MAX_FILENAME_LEN = 255
+        MAX_BASENAME_LEN = 50
+
+        ext = file.filename.rsplit(".", 1)[-1].lower()
+
+        if not os.path.exists(folder):
+            raise CustomAPIException(f"La carpeta root de imágenes no existe {getpass.getuser()} - {os.getuid()} - {os.geteuid()}", 404)
+        
+
+        if not os.access(folder, os.W_OK):
+            raise CustomAPIException(f"No hay permisos de escritura en la carpeta de imágenes {getpass.getuser()} - {os.getuid()} - {os.geteuid()}", 400)
+        
+
+        if not file or file.filename == "":
+            raise ValueError("Archivo inválido")
+
+        if ext not in ALLOWED_EXTENSIONS:
+            raise ValueError("Formato no permitido")
+
+        original_name = secure_filename(file.filename)
+        base_name = os.path.splitext(original_name)[0][:MAX_BASENAME_LEN]
+
+        filename = f"{uuid4()}_{base_name}.webp"
+
+        if len(filename.encode("utf-8")) > MAX_FILENAME_LEN:
+            filename = f"{uuid4().hex}.webp"  # fallback seguro
+
+        path = os.path.join(folder, filename)
+
+        image = Image.open(file)
+        image = image.convert("RGB")  # Evita problemas con PNG
+
+        image.save(
+            path,
+            "WEBP",
+            quality=80,     # 🔥 sweet spot
+            method=6        # máxima compresión
+        )
 
         return {
             "url": f"/uploads/logbooks/{filename}"
