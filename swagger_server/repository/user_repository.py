@@ -11,11 +11,14 @@ from swagger_server.models.db.users import Users
 from swagger_server.resources.databases.postgresql import PostgreSQLClient
 from sqlalchemy.dialects.postgresql import JSONB
 
+from swagger_server.resources.databases.redis import RedisClient
+
 
 class UserRepository:
     
     def __init__(self):
         self.db = PostgreSQLClient("POSTGRESQL")
+        self.redis_client = RedisClient()
 
 
     def post_new_user(self, new_user_body: Users, internal, external) -> None:
@@ -158,7 +161,7 @@ class UserRepository:
                 
 
                 user_autenticated = {
-                    "id_user": user_found.id_user,
+                    "id_user": str(user_found.id_user),
                     "role": user_found.role,
                     "user": user_found.user,
                     "email": user_found.email,
@@ -179,3 +182,15 @@ class UserRepository:
 
             finally:
                 session.close()
+
+    def save_token(self, token: str, internal, external):
+        try:
+            self.redis_client.client.set(
+                f"token: {token}",
+                1234,
+                ex=3600
+            )
+                        
+        except Exception as exception:
+            logger.error('Error: {}', str(exception), internal=internal, external=external)                
+            raise CustomAPIException("Error al guardar el token del usuario", 500)

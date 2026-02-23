@@ -1,5 +1,9 @@
 
 
+from datetime import datetime, timedelta
+
+import jwt
+
 from swagger_server.exception.custom_error_exception import CustomAPIException
 from swagger_server.models.db.users import Users
 from swagger_server.models.request_login import RequestLogin
@@ -37,6 +41,24 @@ class UserUseCase:
         if not pass_verify:
             raise CustomAPIException(message="Credenciales incorrectas", status_code=401)
         
-        return self.user_repository.get_user(body.login.user, internal, external)
+        user_autenticated = self.user_repository.get_user(body.login.user, internal, external)
+        token = self.generate_jwt(user_autenticated)
+
+        self.user_repository.save_token(token, internal, external)
+
+        return token
+    
+
+    def generate_jwt(self, user_data, expires_minutes=60) -> str:
+        user_data['sub'] = user_data['id_user']
+        user_data['iat'] = datetime.now()
+        user_data['exp'] = datetime.now() + timedelta(minutes=expires_minutes)
+        
+        with open("private.pem", "r") as f:
+            private_key = f.read()
+        
+        token = jwt.encode(user_data, private_key, algorithm="RS256")
+
+        return token
 
 

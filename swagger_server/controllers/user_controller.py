@@ -83,10 +83,10 @@ class UserView(MethodView):
                 response["external_transaction_id"] = external_transaction_id
                 message = f"start request: {function_name}, channel: {body.channel}"
                 logger.info(message, internal=internal_transaction_id, external=external_transaction_id)
-                user = self.user_use_case.login(body, internal_transaction_id, external_transaction_id)
+                user_token = self.user_use_case.login(body, internal_transaction_id, external_transaction_id)
                 response["error_code"] = 0
                 response["message"] = "Login correcto",
-                response["data"] = user
+                response["access_token"] = user_token
                 end_time = default_timer()
                 logger.info(f"Fin de la transacción, procesada en : {end_time - start_time} milisegundos",
                             internal=internal_transaction_id, external=body.external_transaction_id)
