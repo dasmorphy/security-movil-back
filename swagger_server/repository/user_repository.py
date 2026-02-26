@@ -183,14 +183,24 @@ class UserRepository:
             finally:
                 session.close()
 
-    def save_token(self, token: str, internal, external):
+    def save_token(self, token: str, usr_id: str, internal, external):
         try:
             self.redis_client.client.set(
                 f"token: {token}",
-                1234,
+                usr_id,
                 ex=3600
             )
+            self.redis_client.client.set(f"user_session:{usr_id}", token, ex=3600)
                         
         except Exception as exception:
             logger.error('Error: {}', str(exception), internal=internal, external=external)                
             raise CustomAPIException("Error al guardar el token del usuario", 500)
+        
+        
+    def search_user_session(self, id_user: str, internal, external):
+        try:
+            session_active = self.redis_client.client.get(f"user_session:{id_user}")
+            return True if session_active else False
+        except Exception as exception:
+            logger.error('Error: {}', str(exception), internal=internal, external=external)
+            raise CustomAPIException("No se encontro la sesion del usuario", 401)

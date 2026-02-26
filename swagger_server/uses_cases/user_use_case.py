@@ -42,9 +42,13 @@ class UserUseCase:
             raise CustomAPIException(message="Credenciales incorrectas", status_code=401)
         
         user_autenticated = self.user_repository.get_user(body.login.user, internal, external)
-        token = self.generate_jwt(user_autenticated)
+        verify_user_session = self.user_repository.search_user_session(user_autenticated['id_user'], internal, external)
 
-        self.user_repository.save_token(token, internal, external)
+        if verify_user_session:
+            raise CustomAPIException(message="El usuario ya tiene una sesión activa", status_code=401)
+
+        token = self.generate_jwt(user_autenticated)
+        self.user_repository.save_token(token, user_autenticated['id_user'], internal, external)
 
         return token
     

@@ -102,6 +102,50 @@ paths:
               schema:
                 $ref: "#/components/schemas/ResponseError"
       x-openapi-router-controller: swagger_server.controllers.user_controller.UserView
+  /post/logout:
+    post:
+      tags:
+      - Users
+      summary: Autentica e inicia sesión.
+      description: Inicio de sesion
+      operationId: logout
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RequestLogout"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenericResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+        "503":
+          description: Service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+      x-openapi-router-controller: swagger_server.controllers.user_controller.UserView
   /post/new-user:
     post:
       tags:
@@ -1089,6 +1133,26 @@ components:
       properties:
         login:
           $ref: "#/components/schemas/LoginData"
+        channel:
+          type: string
+          example: ZENTINEL
+        externalTransactionId:
+          type: string
+          example: fcea920f7412b5da7be0cf42b8c93759
+    RequestLogout:
+      properties:
+        logout:
+          type: object
+          properties:
+            user:
+              type: string
+              example: "fcea920f7412b5da7be0cf42b8c93759"
+            token:
+              type: string
+              example: "fcea920f7412b5da7be0cf42b8c93759"
+          example:
+            user: ""
+            token: ""
         channel:
           type: string
           example: ZENTINEL
