@@ -1,10 +1,13 @@
 
 
+from io import BytesIO
 import os
+import pandas as pd
 from typing import Counter
 from loguru import logger
 from openpyxl import load_workbook
 from datetime import datetime
+from swagger_server.exception.custom_error_exception import CustomAPIException
 from swagger_server.models.db.logbook_entry import LogbookEntry
 from swagger_server.models.db.logbook_out import LogbookOut
 from swagger_server.models.request_post_logbook_entry import RequestPostLogbookEntry
@@ -305,6 +308,54 @@ class LogbookUseCase:
     def post_report_generated(self, datos, internal, external) -> None:
         self.logbook_repository.post_report_generated(datos, internal, external)
 
+
+    def get_report_history(self, headers, params, internal, external):      
+        history_data = self.get_history_logbooks(headers, params, internal, external)
+        
+        if len(history_data) == 0:
+            raise CustomAPIException("No se han encontrado resultados", 404)
+
+        # Construir la respuesta
+        columns = [
+           "Fecha", "Guia / Documento", "Categoría", "Nombre conductor", "Placa", "Jornada"
+        ]
+        
+        df = pd.DataFrame(history_data)
+
+        df = df.rename(columns={
+            "created_at": "Fecha",
+            "shipping_guide": "Guia / Documento",
+            "name_category": "Categoría",
+            "name_driver": "Nombre conductor",
+            "truck_license": "Placa",
+            "workdday": "Jornada"
+        })
+
+        df = df[
+            ["Fecha", "Guia / Documento", "Categoría",
+            "Nombre conductor", "Placa", "Jornada"]
+        ]
+
+        # Formato de fecha
+        df["Fecha"] = pd.to_datetime(df["Fecha"], errors="coerce")\
+            .dt.strftime("%Y-%m-%d %H:%M:%S")
+                
+        
+        # Escrbir el buffer
+        output = BytesIO()
+        with pd.ExcelWriter(output, engine="openpyxl") as writer:
+            df.to_excel(writer, index=False, sheet_name="Historial")
+
+        output.seek(0)
+
+        filename = f"reporte_historial_bitacoras_{datetime.now().date().isoformat()}.xlsx"
+
+        return {
+            "filename": filename,
+            "content": output.read(),
+            "mimetype": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        }
+    
 
     def generate_excel(self, datos, output_path, internal, external):
         # '2026-01-27 00:00:00', '2026-01-28 00:00:00'
