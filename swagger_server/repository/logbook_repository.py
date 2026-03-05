@@ -769,10 +769,10 @@ class LogbookRepository:
         if not os.access(folder, os.W_OK):
             raise CustomAPIException(f"No hay permisos de escritura en la carpeta de imágenes {getpass.getuser()} - {os.getuid()} - {os.geteuid()}", 400)
         
-        ext = file.filename.rsplit(".", 1)[-1].lower()
+        # ext = file.filename.rsplit(".", 1)[-1].lower()
 
-        if ext not in ALLOWED_EXTENSIONS:
-            raise ValueError("Formato no permitido. Solo se acepta WEBP.")
+        # if ext not in ALLOWED_EXTENSIONS:
+        #     raise ValueError("Formato no permitido. Solo se acepta WEBP.")
 
         original_name = secure_filename(file.filename)
         base_name = os.path.splitext(original_name)[0][:MAX_BASENAME_LEN]
