@@ -468,12 +468,14 @@ class LogbookRepository:
                     )
                     .join(GroupBusiness, Sector.id_sector == GroupBusiness.sector_id)
                     .join(Business, Business.id_business == GroupBusiness.business_id)
-                    .filter(Business.id_business == id_business)
-                    .group_by(Sector.id_sector)
                 )
 
-                result = query.all()
+                if id_business != 0:
+                    query = query.filter(Business.id_business == id_business)
 
+                query = query.group_by(Sector.id_sector)
+
+                result = query.all()
 
                 sectors_found = [
                     {
