@@ -41,8 +41,8 @@ class LogbookOut(Base):
 
     shipping_guide = Column(Text)
 
-    quantity = Column(Integer, nullable=False)
-    weight = Column(Integer, nullable=False)
+    quantity = Column(Integer)
+    weight = Column(Integer)
 
     truck_license = Column(Text)
     name_driver = Column(Text)

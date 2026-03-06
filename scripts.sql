@@ -84,7 +84,7 @@ CREATE TABLE public.logbook_entry
     shipping_guide text,
     description text,
     quantity integer NOT NULL,
-    weight integer NOT NULL,
+    weight integer,
     provider text,
     truck_license text,
     name_driver text,
@@ -141,8 +141,8 @@ CREATE TABLE public.logbook_out
     unity_id integer NOT NULL,
     category_id integer NOT NULL,
     shipping_guide text,
-    quantity integer NOT NULL,
-    weight integer NOT NULL,
+    quantity integer,
+    weight integer,
     truck_license text,
     name_driver text,
     person_withdraws text,
@@ -511,3 +511,38 @@ TABLESPACE pg_default;
 
 ALTER TABLE IF EXISTS public.role_permissions
     OWNER to nextgen;
+
+
+-----------------------------------------------------------------------------------------------
+
+
+CREATE TABLE public.authorized
+(
+    id_authorized integer NOT NULL DEFAULT 1,
+    name text NOT NULL,
+    created_at timestamp without time zone DEFAULT now(),
+    updated_at timestamp without time zone DEFAULT now(),
+    CONSTRAINT authorized_pkey PRIMARY KEY (id_authorized)
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.authorized
+    OWNER to nextgen;
+
+
+CREATE SEQUENCE public.authorized_id_seq
+    INCREMENT 1
+    START 1
+    MINVALUE 1
+    MAXVALUE 2147483647
+    CACHE 1;
+
+ALTER SEQUENCE public.authorized_id_seq
+    OWNED BY public.authorized.id_authorized;
+
+ALTER SEQUENCE public.authorized_id_seq
+    OWNER TO nextgen;
+
+ALTER TABLE IF EXISTS public.authorized
+    ALTER COLUMN id_authorized SET DEFAULT nextval('authorized_id_seq'::regclass);

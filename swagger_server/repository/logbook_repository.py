@@ -6,6 +6,7 @@ from flask import json
 from loguru import logger
 from sqlalchemy import and_, exists, func, insert, select
 from swagger_server.exception.custom_error_exception import CustomAPIException
+from swagger_server.models.db.authorized import Authorized
 from swagger_server.models.db.business import Business
 from swagger_server.models.db.business import Business
 from swagger_server.models.db.group_business import GroupBusiness
@@ -34,9 +35,6 @@ class LogbookRepository:
 
     def post_logbook_entry(self, logbook_entry_body: LogbookEntry, images, internal, external) -> None:
         saved_files = []
-
-        if len(images) > 10:
-            raise CustomAPIException("Máximo 10 imagenes", 500)
 
         with self.db.session_factory() as session:
             try:
@@ -130,10 +128,6 @@ class LogbookRepository:
 
     def post_logbook_out(self, logbook_out_body: LogbookOut, images, internal, external) -> None:
         saved_files = []
-
-        if len(images) > 10:
-            raise CustomAPIException("Máximo 10 imagenes", 500)
-
 
         with self.db.session_factory() as session:
             try:
@@ -319,6 +313,29 @@ class LogbookRepository:
                     for c in result.scalars().all()
                 ]
                 return sectors
+            except Exception as exception:
+                logger.error('Error: {}', str(exception), internal=internal, external=external)
+                if isinstance(exception, CustomAPIException):
+                    raise exception
+                
+                raise CustomAPIException("Error al obtener en la base de datos", 500)
+            
+    def get_all_authorized(self, internal, external):
+        with self.db.session_factory() as session:
+            try:
+                result = session.execute(
+                    select(Authorized)
+                )
+                authorized = [
+                    {
+                        "id_authorized": c.id_authorized,
+                        "name": c.name,
+                        "created_at": c.created_at,
+                        "updated_at": c.updated_at
+                    }
+                    for c in result.scalars().all()
+                ]
+                return authorized
             except Exception as exception:
                 logger.error('Error: {}', str(exception), internal=internal, external=external)
                 if isinstance(exception, CustomAPIException):

@@ -14,7 +14,7 @@ class LogBookEntryData(Model):
 
     Do not edit the class manually.
     """
-    def __init__(self, id_group_business: int=None, id_category: int=None, shipping_guide: str=None, description: str=None, quantity: float=None, id_unity: int=None, truck_license: str=None, name_driver: str=None, weight: float=None, workday: str=None, lat: str=None, long: str=None, provider: str=None, destiny_intern: str=None, authorized_by: str=None, observations: str=None, created_by: str=None, name_user: str=None, images: List[str]=None):  # noqa: E501
+    def __init__(self, id_group_business: int=None, id_category: int=None, shipping_guide: str=None, description: str=None, quantity: float=None, id_unity: int=None, truck_license: str=None, name_driver: str=None, weight: float=None, lat: str=None, long: str=None, provider: str=None, destiny_intern: str=None, authorized_by: str=None, observations: str=None, created_by: str=None, name_user: str=None, images: List[str]=None):  # noqa: E501
         """LogBookEntryData - a model defined in Swagger
 
         :param id_group_business: The id_group_business of this LogBookEntryData.  # noqa: E501
@@ -35,8 +35,6 @@ class LogBookEntryData(Model):
         :type name_driver: str
         :param weight: The weight of this LogBookEntryData.  # noqa: E501
         :type weight: float
-        :param workday: The workday of this LogBookEntryData.  # noqa: E501
-        :type workday: str
         :param lat: The lat of this LogBookEntryData.  # noqa: E501
         :type lat: str
         :param long: The long of this LogBookEntryData.  # noqa: E501
@@ -66,7 +64,6 @@ class LogBookEntryData(Model):
             'truck_license': str,
             'name_driver': str,
             'weight': float,
-            'workday': str,
             'lat': str,
             'long': str,
             'provider': str,
@@ -88,7 +85,6 @@ class LogBookEntryData(Model):
             'truck_license': 'truck_license',
             'name_driver': 'name_driver',
             'weight': 'weight',
-            'workday': 'workday',
             'lat': 'lat',
             'long': 'long',
             'provider': 'provider',
@@ -108,7 +104,6 @@ class LogBookEntryData(Model):
         self._truck_license = truck_license
         self._name_driver = name_driver
         self._weight = weight
-        self._workday = workday
         self._lat = lat
         self._long = long
         self._provider = provider
@@ -318,27 +313,6 @@ class LogBookEntryData(Model):
         """
 
         self._weight = weight
-
-    @property
-    def workday(self) -> str:
-        """Gets the workday of this LogBookEntryData.
-
-
-        :return: The workday of this LogBookEntryData.
-        :rtype: str
-        """
-        return self._workday
-
-    @workday.setter
-    def workday(self, workday: str):
-        """Sets the workday of this LogBookEntryData.
-
-
-        :param workday: The workday of this LogBookEntryData.
-        :type workday: str
-        """
-
-        self._workday = workday
 
     @property
     def lat(self) -> str:
