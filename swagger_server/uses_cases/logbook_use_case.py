@@ -4,7 +4,8 @@ import os
 from typing import Counter
 from loguru import logger
 from openpyxl import load_workbook
-from datetime import datetime
+from datetime import datetime, time
+from swagger_server.exception.custom_error_exception import CustomAPIException
 from swagger_server.models.db.logbook_entry import LogbookEntry
 from swagger_server.models.db.logbook_out import LogbookOut
 from swagger_server.models.request_post_logbook_entry import RequestPostLogbookEntry
@@ -19,6 +20,8 @@ from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.platypus import Spacer, Image
 from collections import OrderedDict, defaultdict
 
+from swagger_server.utils.utils import get_workday
+
 
 class LogbookUseCase:
 
@@ -26,6 +29,9 @@ class LogbookUseCase:
         self.logbook_repository = logbook_repository
 
     def post_logbook_entry(self, body, images, internal, external) -> None:
+        if len(images) > 10:
+            raise CustomAPIException("Máximo 10 imagenes", 500)
+        
         logbook_entry = LogbookEntry(
             unity_id=body['id_unity'],
             category_id=body['id_category'],
@@ -33,7 +39,7 @@ class LogbookUseCase:
             shipping_guide=body['shipping_guide'],
             description=body['description'],
             quantity=body['quantity'],
-            weight=body['weight'],
+            weight=body.get('weight'),
             provider=body['provider'],
             truck_license=body['truck_license'],
             name_driver=body['name_driver'],
@@ -43,7 +49,7 @@ class LogbookUseCase:
             created_by=body['created_by'],
             updated_by=body['created_by'],
             name_user=body['name_user'],
-            workday=body['workday'],
+            workday=get_workday(),
             lat=body.get('lat'),
             long=body.get('long')
         )
@@ -51,13 +57,17 @@ class LogbookUseCase:
         self.logbook_repository.post_logbook_entry(logbook_entry, images, internal, external)
 
     def post_logbook_out(self, body, images, internal, external) -> None:
+
+        if len(images) > 10:
+            raise CustomAPIException("Máximo 10 imagenes", 500)
+        
         logbook_out = LogbookOut(
             unity_id=body['id_unity'],
             category_id=body['id_category'],
             group_business_id=body['id_group_business'],
             shipping_guide=body['shipping_guide'],
-            quantity=body['quantity'],
-            weight=body['weight'],
+            quantity=body.get('quantity'),
+            weight=body.get('weight'),
             truck_license=body['truck_license'],
             name_driver=body['name_driver'],
             person_withdraws=body['person_withdraws'],
@@ -67,7 +77,7 @@ class LogbookUseCase:
             created_by=body['created_by'],
             updated_by=body['created_by'],
             name_user=body['name_user'],
-            workday=body['workday'],
+            workday=get_workday(),
             lat=body.get('lat'),
             long=body.get('long')
         )
@@ -82,6 +92,9 @@ class LogbookUseCase:
     
     def get_all_sector(self, internal, external):
         return self.logbook_repository.get_all_sectores(internal, external)
+    
+    def get_all_authorized(self, internal, external):
+        return self.logbook_repository.get_all_authorized(internal, external)
     
     def get_sector_by_business(self, id_business, internal, external):
         return self.logbook_repository.get_sector_by_business(id_business, internal, external)
@@ -253,10 +266,10 @@ class LogbookUseCase:
         out_quantity = defaultdict(int)
 
         for row in rows_entry:
-            entry_quantity[row["category_id"]] += row.get("quantity", 0)
+            entry_quantity[row["category_id"]] += row.get("quantity") or 0
 
         for row in rows_out:
-            out_quantity[row["category_id"]] += row.get("quantity", 0)
+            out_quantity[row["category_id"]] += row.get("quantity") or 0
 
         # Todas las categorías presentes
         all_category_ids = (
@@ -307,17 +320,12 @@ class LogbookUseCase:
 
 
     def generate_excel(self, datos, output_path, internal, external):
-        # '2026-01-27 00:00:00', '2026-01-28 00:00:00'
         now = datetime.now()
         date = now.strftime("%d/%m/%Y")
         time = now.strftime("%H:%M:%S")
 
         logbook_entry_rows = self.logbook_repository.get_logbook_resume(internal, external, LogbookEntry)
         logbook_out_rows = self.logbook_repository.get_logbook_resume(internal, external, LogbookOut)
-        # business_user, name_user = self.get_user_info(datos)
-
-        print(logbook_entry_rows)
-        print(logbook_out_rows)
 
         resultado = {}
 
@@ -456,9 +464,6 @@ class LogbookUseCase:
         
         logbook_entry_rows = self.agrupar_por_categoria(logbook_entry_rows_original)
         logbook_out_rows = self.agrupar_por_categoria(logbook_out_rows_original)
-
-        print(logbook_entry_rows)
-        print(logbook_out_rows)
 
         # Determinar si se agrupa por sector o por grupos
         if not sectors:

@@ -1,4 +1,4 @@
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, time, timedelta
 from pytz import timezone
 import re
 
@@ -74,3 +74,11 @@ def get_date_range(fecha_inicio=None, fecha_fin=None):
     end = start + timedelta(days=1)
 
     return start, end
+
+def get_workday() -> str :
+    now = datetime.now().time()
+
+    if time(7, 0) <= now < time(19, 0):
+        return "Diurna"
+    else:
+        return "Nocturna"

@@ -46,7 +46,7 @@ class LogbookEntry(Base):
     name_driver = Column(Text)
 
     quantity = Column(Integer, nullable=False)
-    weight = Column(Integer, nullable=False)
+    weight = Column(Integer)
 
     provider = Column(Text)
     destiny_intern = Column(Text)
