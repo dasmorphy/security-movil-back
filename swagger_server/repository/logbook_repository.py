@@ -9,6 +9,7 @@ from swagger_server.exception.custom_error_exception import CustomAPIException
 from swagger_server.models.db.authorized import Authorized
 from swagger_server.models.db.business import Business
 from swagger_server.models.db.business import Business
+from swagger_server.models.db.destiny_intern import DestinyIntern
 from swagger_server.models.db.group_business import GroupBusiness
 from swagger_server.models.db.logbook_entry import LogbookEntry
 from swagger_server.models.db.category import Category
@@ -336,6 +337,30 @@ class LogbookRepository:
                     for c in result.scalars().all()
                 ]
                 return authorized
+            except Exception as exception:
+                logger.error('Error: {}', str(exception), internal=internal, external=external)
+                if isinstance(exception, CustomAPIException):
+                    raise exception
+                
+                raise CustomAPIException("Error al obtener en la base de datos", 500)
+            
+
+    def get_all_destiny(self, internal, external):
+        with self.db.session_factory() as session:
+            try:
+                result = session.execute(
+                    select(DestinyIntern)
+                )
+                destiny = [
+                    {
+                        "id_destiny": c.id_destiny,
+                        "name": c.name,
+                        "created_at": c.created_at,
+                        "updated_at": c.updated_at
+                    }
+                    for c in result.scalars().all()
+                ]
+                return destiny
             except Exception as exception:
                 logger.error('Error: {}', str(exception), internal=internal, external=external)
                 if isinstance(exception, CustomAPIException):

@@ -546,3 +546,38 @@ ALTER SEQUENCE public.authorized_id_seq
 
 ALTER TABLE IF EXISTS public.authorized
     ALTER COLUMN id_authorized SET DEFAULT nextval('authorized_id_seq'::regclass);
+
+
+
+----------------------------------------------------------------------------------------------------------
+
+CREATE TABLE public.destiny_intern
+(
+    id_destiny integer NOT NULL,
+    name text,
+    created_at timestamp without time zone DEFAULT now(),
+    updated_at timestamp without time zone DEFAULT now(),
+    CONSTRAINT destiny_intern_pkey PRIMARY KEY (id_destiny)
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.destiny_intern
+    OWNER to nextgen;
+
+
+CREATE SEQUENCE public.destiny_intern_id_seq
+    INCREMENT 1
+    START 1
+    MINVALUE 1
+    MAXVALUE 2147483647
+    CACHE 1;
+
+ALTER SEQUENCE public.destiny_intern_id_seq
+    OWNED BY public.destiny_intern.id_destiny;
+
+ALTER SEQUENCE public.destiny_intern_id_seq
+    OWNER TO nextgen;
+
+ALTER TABLE IF EXISTS public.destiny_intern
+    ALTER COLUMN id_destiny SET DEFAULT nextval('destiny_intern_id_seq'::regclass);
