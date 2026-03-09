@@ -826,3 +826,140 @@ class LogbookRepository:
         return {
             "url": f"/uploads/logbooks/{filename}"
         }
+    
+    def apply_filters(self, stmt, model, filtersBase):
+        filters = []
+
+        if filtersBase.get("category_ids"):
+            filters.append(model.category_id.in_(filtersBase["category_ids"]))
+
+        if filtersBase.get("user"):
+            filters.append(model.created_by == filtersBase["user"])
+
+        if filtersBase.get("start_date"):
+            filters.append(model.created_at >= filtersBase["start_date"])
+
+        if filtersBase.get("end_date"):
+            filters.append(model.created_at <= filtersBase["end_date"])
+
+        if filtersBase.get("workday"):
+            filters.append(model.workday.in_(filtersBase["workday"]))
+
+        if filters:
+            stmt = stmt.where(and_(*filters))
+
+        return stmt
+
+    def get_logbook_out(self, filtersBase, internal, external):
+        with self.db.session_factory() as session:
+            try:
+                images_out_subq = (
+                    select(
+                        LogbookImages.logbook_id_out.label("logbook_id"),
+                        func.array_agg(LogbookImages.image_path).label("images")
+                    )
+                    .where(LogbookImages.image_path.isnot(None))
+                    .group_by(LogbookImages.logbook_id_out)
+                    .subquery()
+                )
+
+                stmt_out = (
+                    select(
+                        LogbookOut,
+                        GroupBusiness.name.label("group_name"),
+                        Sector.id_sector.label("id_sector"),
+                        Sector.name.label("name_sector"),
+                        Category.name_category,
+                        func.coalesce(images_out_subq.c.images, []).label("images_out")
+                    )
+                    .join(GroupBusiness, GroupBusiness.id_group_business == LogbookOut.group_business_id)
+                    .join(Sector, Sector.id_sector == GroupBusiness.sector_id)
+                    .join(Category, Category.id_category == LogbookOut.category_id)
+                    .outerjoin(LogbookEntry, LogbookEntry.logbook_out_id == LogbookOut.id_logbook_out)
+                    .outerjoin(
+                        images_out_subq,
+                        images_out_subq.c.logbook_id == LogbookOut.id_logbook_out
+                    )
+                    .where(LogbookEntry.id_logbook_entry.is_(None))
+                )
+
+                stmt_out = self.apply_filters(stmt_out, LogbookOut, filtersBase)
+
+                rows_out = session.execute(stmt_out).all()
+
+                return rows_out
+
+            except Exception as exception:
+                logger.error('Error: {}', str(exception), internal=internal, external=external)
+                if isinstance(exception, CustomAPIException):
+                    raise exception
+                
+                raise CustomAPIException("Error al buscar en la base de datos", 500)
+
+            finally:
+                session.close()
+
+    
+    def get_logbook_entry(self, filtersBase, internal, external):
+        with self.db.session_factory() as session:
+            try:
+                images_entry_subq = (
+                    select(
+                        LogbookImages.logbook_id_entry.label("logbook_id"),
+                        func.array_agg(LogbookImages.image_path).label("images")
+                    )
+                    .where(LogbookImages.image_path.isnot(None))
+                    .group_by(LogbookImages.logbook_id_entry)
+                    .subquery()
+                )
+
+                images_out_subq = (
+                    select(
+                        LogbookImages.logbook_id_out.label("logbook_id"),
+                        func.array_agg(LogbookImages.image_path).label("images")
+                    )
+                    .where(LogbookImages.image_path.isnot(None))
+                    .group_by(LogbookImages.logbook_id_out)
+                    .subquery()
+                )
+
+                stmt_entry = (
+                    select(
+                        LogbookEntry,
+                        LogbookOut,
+                        GroupBusiness.name.label("group_name"),
+                        Sector.id_sector.label("id_sector"),
+                        Sector.name.label("name_sector"),
+                        Category.name_category,
+                        func.coalesce(images_entry_subq.c.images, []).label("images_entry"),
+                        func.coalesce(images_out_subq.c.images, []).label("images_out")
+                    )
+                    .join(GroupBusiness, GroupBusiness.id_group_business == LogbookEntry.group_business_id)
+                    .join(Sector, Sector.id_sector == GroupBusiness.sector_id)
+                    .join(Category, Category.id_category == LogbookEntry.category_id)
+                    .outerjoin(LogbookOut, LogbookOut.id_logbook_out == LogbookEntry.logbook_out_id)
+                    .outerjoin(
+                        images_entry_subq,
+                        images_entry_subq.c.logbook_id == LogbookEntry.id_logbook_entry
+                    )
+                    .outerjoin(
+                        images_out_subq,
+                        images_out_subq.c.logbook_id == LogbookOut.id_logbook_out
+                    )
+                )
+
+                stmt_entry = self.apply_filters(stmt_entry, LogbookEntry, filtersBase)
+
+                rows_entry = session.execute(stmt_entry).all()
+
+                return rows_entry
+
+            except Exception as exception:
+                logger.error('Error: {}', str(exception), internal=internal, external=external)
+                if isinstance(exception, CustomAPIException):
+                    raise exception
+                
+                raise CustomAPIException("Error al buscar en la base de datos", 500)
+
+            finally:
+                session.close()

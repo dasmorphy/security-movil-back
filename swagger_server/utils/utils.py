@@ -82,3 +82,53 @@ def get_workday() -> str :
         return "Diurna"
     else:
         return "Nocturna"
+
+def parse_filters(headers, params):
+    groups = headers.get("groups-business-id")
+    sectors = headers.get("sectors")
+    workday = headers.get("workday")
+    category_ids = headers.get("ids-categories")
+    return {
+        "user": headers.get("user"),
+        "groups_business_id": [int(x) for x in groups.split(",")] if groups else [],
+        "start_date": params.get("start_date"),
+        "end_date": params.get("end_date"),
+        "sector_id": [int(x) for x in sectors.split(",")] if sectors else [],
+        "category_ids": [int(x) for x in category_ids.split(",")] if category_ids else [],
+        "workday": [x for x in workday.split(",")] if workday else [],
+        "id_business": params.get("id_business"),
+        "notCategory": headers.get("notCategory")
+    }
+
+
+def serialize_out(out, group_name, id_sector, name_sector, name_category, images_out):
+    if out is None:
+        return None
+    return {
+        "id_logbook_out": out.id_logbook_out,
+        "unity_id": out.unity_id,
+        "category_id": out.category_id,
+        "name_user": out.name_user,
+        "group_name": group_name,
+        "group_business_id": out.group_business_id,
+        "shipping_guide": out.shipping_guide,
+        "quantity": out.quantity,
+        "weight": out.weight,
+        "truck_license": out.truck_license,
+        "name_driver": out.name_driver,
+        "lat": out.lat,
+        "long": out.long,
+        "person_withdraws": out.person_withdraws,
+        "destiny": out.destiny,
+        "authorized_by": out.authorized_by,
+        "observations": out.observations,
+        "created_at": out.created_at,
+        "updated_at": out.updated_at,
+        "created_by": out.created_by,
+        "updated_by": out.updated_by,
+        "workday": out.workday,
+        "id_sector": id_sector,
+        "name_sector": name_sector,
+        "name_category": name_category,
+        "images_out": images_out or [],
+    }

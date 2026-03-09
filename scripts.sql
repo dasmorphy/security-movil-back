@@ -81,6 +81,7 @@ CREATE TABLE public.logbook_entry
     id_logbook_entry integer NOT NULL DEFAULT 1,
     unity_id integer NOT NULL,
     category_id integer NOT NULL,
+    logbook_out_id integer,
     shipping_guide text,
     description text,
     quantity integer NOT NULL,
@@ -106,6 +107,10 @@ CREATE TABLE public.logbook_entry
         ON DELETE NO ACTION,
     CONSTRAINT logbook_entry_category_id_fkey FOREIGN KEY (category_id)
         REFERENCES public.category (id_category) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION,
+    CONSTRAINT logbook_entry_out_id_fkey FOREIGN KEY (logbook_out_id)
+        REFERENCES public.logbook_out (id_logbook_out) MATCH SIMPLE
         ON UPDATE NO ACTION
         ON DELETE NO ACTION
 )

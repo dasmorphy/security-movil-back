@@ -39,6 +39,11 @@ class LogbookEntry(Base):
         nullable=False
     )
 
+    logbook_out_id = Column(
+        Integer,
+        ForeignKey('public.logbook_out.id_logbook_out', onupdate='NO ACTION', ondelete='NO ACTION')
+    )
+
     shipping_guide = Column(Text)
     name_user = Column(Text)
     description = Column(Text)

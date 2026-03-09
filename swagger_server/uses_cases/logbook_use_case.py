@@ -22,7 +22,7 @@ from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.platypus import Spacer, Image
 from collections import OrderedDict, defaultdict
 
-from swagger_server.utils.utils import get_workday
+from swagger_server.utils.utils import get_workday, parse_filters, serialize_out
 
 
 class LogbookUseCase:
@@ -233,6 +233,68 @@ class LogbookUseCase:
         )
 
         return rows
+    
+    def get_all_logbooks(self, headers, params, internal, external):
+        rows_out = self.get_logbooks_out_new(headers, params, internal, external)
+        rows_entry = self.get_logbooks_entry_new(headers, params, internal, external)
+
+        rows = rows_entry + rows_out
+
+        rows.sort(
+            key=lambda x: x["created_at"],
+            reverse=True
+        )
+
+        return rows
+    
+
+    def get_logbooks_out_new(self, headers, params, internal, external):
+        filters = parse_filters(headers, params)
+        rows = self.logbook_repository.get_logbook_out(filters, internal, external)
+
+        return [
+            serialize_out(c, group_name, id_sector, name_sector, name_category, images_out)
+            for c, group_name, id_sector, name_sector, name_category, images_out in rows
+        ]
+
+    def get_logbooks_entry_new(self, headers, params, internal, external):
+        filters = parse_filters(headers, params)
+        rows = self.logbook_repository.get_logbook_entry(filters, internal, external)
+
+        return [
+            {
+                "out": serialize_out(out, group_name, id_sector, name_sector, name_category, images_out),
+                "id_logbook_entry": c.id_logbook_entry,
+                "unity_id": c.unity_id,
+                "group_name": group_name,
+                "name_user": c.name_user,
+                "category_id": c.category_id,
+                "group_business_id": c.group_business_id,
+                "shipping_guide": c.shipping_guide,
+                "description": c.description,
+                "quantity": c.quantity,
+                "weight": c.weight,
+                "lat": c.lat,
+                "long": c.long,
+                "provider": c.provider,
+                "destiny_intern": c.destiny_intern,
+                "authorized_by": c.authorized_by,
+                "truck_license": c.truck_license,
+                "name_driver": c.name_driver,
+                "observations": c.observations,
+                "created_at": c.created_at,
+                "updated_at": c.updated_at,
+                "created_by": c.created_by,
+                "updated_by": c.updated_by,
+                "workday": c.workday,
+                "id_sector": id_sector,
+                "name_sector": name_sector,
+                "name_category": name_category,
+                "images_entry": images_entry or [],
+                "status": "Finalizado" if out is not None else "Completado"
+            }
+            for c, out, group_name, id_sector, name_sector, name_category, images_entry, images_out in rows
+        ]
     
     def get_resume_graphs(self, headers, params, internal, external):
         headers["notCategory"] = "HUG"
