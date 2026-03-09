@@ -291,7 +291,7 @@ class LogbookUseCase:
                 "name_sector": name_sector,
                 "name_category": name_category,
                 "images_entry": images_entry or [],
-                "status": "Finalizado" if out is not None else "Completado"
+                "status": "Finalizado" if out is not None else "Pendiente Salida"
             }
             for c, out, group_name, id_sector, name_sector, name_category, images_entry, images_out in rows
         ]

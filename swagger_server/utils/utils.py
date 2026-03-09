@@ -131,4 +131,5 @@ def serialize_out(out, group_name, id_sector, name_sector, name_category, images
         "name_sector": name_sector,
         "name_category": name_category,
         "images_out": images_out or [],
+        "status": "Finalizado"
     }
