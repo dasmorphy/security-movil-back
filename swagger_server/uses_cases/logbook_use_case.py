@@ -10,6 +10,7 @@ from datetime import datetime
 from swagger_server.exception.custom_error_exception import CustomAPIException
 from swagger_server.models.db.logbook_entry import LogbookEntry
 from swagger_server.models.db.logbook_out import LogbookOut
+from swagger_server.models.db.request_idempotency import RequestIdempotency
 from swagger_server.models.request_post_logbook_entry import RequestPostLogbookEntry
 from swagger_server.models.request_post_logbook_out import RequestPostLogbookOut
 from swagger_server.repository.logbook_repository import LogbookRepository
@@ -84,7 +85,7 @@ class LogbookUseCase:
             long=body.get('long')
         )
 
-        self.logbook_repository.post_logbook_out(logbook_out, images, internal, external)
+        self.logbook_repository.post_logbook_out(logbook_out, images, body.get('id_logbook_entry'), internal, external)
 
     def get_all_categories(self, internal, external):
         return self.logbook_repository.get_all_categories(internal, external)

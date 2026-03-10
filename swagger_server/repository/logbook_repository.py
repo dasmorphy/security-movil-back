@@ -16,6 +16,7 @@ from swagger_server.models.db.category import Category
 from swagger_server.models.db.logbook_images import LogbookImages
 from swagger_server.models.db.logbook_out import LogbookOut
 from swagger_server.models.db.report_generated import ReportGenerated
+from swagger_server.models.db.request_idempotency import RequestIdempotency
 from swagger_server.models.db.sector import Sector
 from swagger_server.models.db.unity_weight import UnityWeight
 from swagger_server.resources.databases.postgresql import PostgreSQLClient
@@ -39,6 +40,13 @@ class LogbookRepository:
 
         with self.db.session_factory() as session:
             try:
+                data_request = RequestIdempotency(
+                    uuid=external,
+                    endpoint="/rest/zent-logbook-api/v1.0/post/logbook-entry"
+                )
+                
+                self.request_idempotency(data_request, internal, external)
+
                 category_exists = session.execute(
                     select(
                         exists().where(
@@ -91,16 +99,16 @@ class LogbookRepository:
                 logbook_entry_id = logbook_entry_body.id_logbook_entry
 
                 #Guardar imágenes (máx 10)
-                for file in images[:10]:
-                    result = self.save_image(file)
-                    saved_files.append(result["url"])
+                # for file in images[:10]:
+                #     result = self.save_image(file)
+                #     saved_files.append(result["url"])
 
-                    image = LogbookImages(
-                        logbook_id_entry=logbook_entry_id,
-                        image_path=result["url"]
-                    )
+                #     image = LogbookImages(
+                #         logbook_id_entry=logbook_entry_id,
+                #         image_path=result["url"]
+                #     )
 
-                    session.add(image)
+                #     session.add(image)
 
                 session.commit()
 
@@ -108,13 +116,17 @@ class LogbookRepository:
                 logbook_entry_dict["name_category"] = category.name_category
                 logbook_entry_dict["group_name"] = group_business_exists.name
 
-                self.redis_client.client.publish(
-                    "logbook_channel",
-                    json.dumps({
-                        "type": "logbook_saved",
-                        "logbook": logbook_entry_dict
-                    })
-                )
+                # self.redis_client.client.publish(
+                #     "logbook_channel",
+                #     json.dumps({
+                #         "type": "logbook_saved",
+                #         "logbook": logbook_entry_dict
+                #     })
+                # )
+
+            except OSError as e:
+                if e.errno == 36:
+                    raise CustomAPIException("Nombre de archivo demasiado largo", 400)
 
             except Exception as exception:
                 session.rollback()
@@ -127,11 +139,18 @@ class LogbookRepository:
             finally:
                 session.close()
 
-    def post_logbook_out(self, logbook_out_body: LogbookOut, images, internal, external) -> None:
+    def post_logbook_out(self, logbook_out_body: LogbookOut, images, id_logbook_entry, internal, external) -> None:
         saved_files = []
 
         with self.db.session_factory() as session:
             try:
+                data_request = RequestIdempotency(
+                    uuid=external,
+                    endpoint="/rest/zent-logbook-api/v1.0/post/logbook-out"
+                )
+                
+                self.request_idempotency(data_request, internal, external)
+
                 unity_weight_exists = True
                 category_exists = session.execute(
                     select(
@@ -201,17 +220,28 @@ class LogbookRepository:
                 
                 logbook_out_id = logbook_out_body.id_logbook_out
 
+                if id_logbook_entry: 
+                    logbook_entry = session.get(LogbookEntry, id_logbook_entry)
+                    
+                    if not logbook_entry:
+                        raise CustomAPIException(
+                            message="No existe el id de la bitacora de ingreso relacionado",
+                            status_code=404
+                        )
+                    
+                    logbook_entry.logbook_out_id = logbook_out_id
+
                 # Guardar imágenes (máx 10)
-                for file in images[:10]:
-                    result = self.save_image(file)
-                    saved_files.append(result["url"])
+                # for file in images[:10]:
+                #     result = self.save_image(file)
+                #     saved_files.append(result["url"])
 
-                    image = LogbookImages(
-                        logbook_id_out=logbook_out_id,
-                        image_path=result["url"]
-                    )
+                #     image = LogbookImages(
+                #         logbook_id_out=logbook_out_id,
+                #         image_path=result["url"]
+                #     )
 
-                    session.add(image)
+                #     session.add(image)
 
                 session.commit()
 
@@ -219,13 +249,13 @@ class LogbookRepository:
                 logbook_out_dict["name_category"] = category.name_category
                 logbook_out_dict["group_name"] = group_business_exists.name
 
-                self.redis_client.client.publish(
-                    "logbook_channel",
-                    json.dumps({
-                        "type": "logbook_saved",
-                        "logbook": logbook_out_dict
-                    })
-                )
+                # self.redis_client.client.publish(
+                #     "logbook_channel",
+                #     json.dumps({
+                #         "type": "logbook_saved",
+                #         "logbook": logbook_out_dict
+                #     })
+                # )
 
 
             except OSError as e:
@@ -890,6 +920,39 @@ class LogbookRepository:
                 return rows_out
 
             except Exception as exception:
+                logger.error('Error: {}', str(exception), internal=internal, external=external)
+                if isinstance(exception, CustomAPIException):
+                    raise exception
+                
+                raise CustomAPIException("Error al buscar en la base de datos", 500)
+
+            finally:
+                session.close()
+
+
+    def request_idempotency(self, data: RequestIdempotency, internal, external):
+        with self.db.session_factory() as session:
+            try:
+                
+                uuid_request_exist = session.execute(
+                    select(
+                        exists().where(
+                            RequestIdempotency.uuid == data.uuid
+                        )
+                    )
+                ).scalar()
+
+                if uuid_request_exist:
+                    raise CustomAPIException(
+                        message="Duplicación de registro, el external transaction ya existe",
+                        status_code=409
+                    )
+
+                session.add(data)
+                session.commit()
+
+            except Exception as exception:
+                session.rollback()
                 logger.error('Error: {}', str(exception), internal=internal, external=external)
                 if isinstance(exception, CustomAPIException):
                     raise exception

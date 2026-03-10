@@ -586,3 +586,36 @@ ALTER SEQUENCE public.destiny_intern_id_seq
 
 ALTER TABLE IF EXISTS public.destiny_intern
     ALTER COLUMN id_destiny SET DEFAULT nextval('destiny_intern_id_seq'::regclass);
+
+
+----------------------------------------------------------------------------------------------------
+
+CREATE TABLE public.request_idempotency
+(
+    id_request integer NOT NULL,
+    uuid uuid NOT NULL UNIQUE,
+    endpoint text,
+    created_at timestamp without time zone DEFAULT now(),
+    CONSTRAINT request_idempotency_pkey PRIMARY KEY (id_request)
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.request_idempotency
+    OWNER to nextgen;
+
+CREATE SEQUENCE public.request_idempotency_id_seq
+    INCREMENT 1
+    START 1
+    MINVALUE 1
+    MAXVALUE 2147483647
+    CACHE 1;
+
+ALTER SEQUENCE public.request_idempotency_id_seq
+    OWNED BY public.request_idempotency.id_request;
+
+ALTER SEQUENCE public.request_idempotency_id_seq
+    OWNER TO nextgen;
+
+ALTER TABLE IF EXISTS public.request_idempotency
+    ALTER COLUMN id_request SET DEFAULT nextval('request_idempotency_id_seq'::regclass);
