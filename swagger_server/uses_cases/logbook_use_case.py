@@ -54,7 +54,8 @@ class LogbookUseCase:
             name_user=body['name_user'],
             workday=get_workday(),
             lat=body.get('lat'),
-            long=body.get('long')
+            long=body.get('long'),
+            created_at=body.get('created_at')
         )
 
         self.logbook_repository.post_logbook_entry(logbook_entry, images, internal, external)
@@ -82,7 +83,8 @@ class LogbookUseCase:
             name_user=body['name_user'],
             workday=get_workday(),
             lat=body.get('lat'),
-            long=body.get('long')
+            long=body.get('long'),
+            created_at=body.get('created_at')
         )
 
         self.logbook_repository.post_logbook_out(logbook_out, images, body.get('id_logbook_entry'), internal, external)

@@ -1,5 +1,6 @@
 
 
+from datetime import datetime
 from typing import List
 from unittest import result
 from flask import json
@@ -230,6 +231,8 @@ class LogbookRepository:
                         )
                     
                     logbook_entry.logbook_out_id = logbook_out_id
+                    logbook_entry.updated_by = logbook_out_body.created_by
+                    logbook_entry.updated_at = datetime.now()
 
                 # Guardar imágenes (máx 10)
                 # for file in images[:10]:
