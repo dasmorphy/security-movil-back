@@ -7,6 +7,7 @@ from swagger_server.models.db.permissions import Permission
 from swagger_server.models.db.role_permissions import RolePermission
 from swagger_server.models.db.roles import Roles
 from swagger_server.models.db.unity_weight import UnityWeight
+from swagger_server.models.db.user_sessions import UserSessions
 from swagger_server.models.db.users import Users
 from swagger_server.resources.databases.postgresql import PostgreSQLClient
 from sqlalchemy.dialects.postgresql import JSONB
@@ -183,14 +184,33 @@ class UserRepository:
             finally:
                 session.close()
 
-    def save_token(self, token: str, usr_id: str, internal, external):
+
+    def save_session(self, data: UserSessions, internal, external):
+        with self.db.session_factory() as session:
+            try:
+                self.save_token_cache(data.token_session, str(data.user_id), internal, external)
+                session.add(data)
+                session.commit()
+            except Exception as exception:
+                session.rollback()
+                logger.error('Error: {}', str(exception), internal=internal, external=external)
+                if isinstance(exception, CustomAPIException):
+                    raise exception
+                
+                raise CustomAPIException("Error al obtener en la base de datos", 500)
+
+            finally:
+                session.close()
+
+    def save_token_cache(self, token: str, usr_id: str, internal, external):
         try:
+            ttl = 60 * 60 * 24  # 24 horas
             self.redis_client.client.set(
-                f"token: {token}",
+                f"token:{token}",
                 usr_id,
-                ex=3600
+                ex=ttl
             )
-            self.redis_client.client.set(f"user_session:{usr_id}", token, ex=3600)
+            self.redis_client.client.set(f"user_session:{usr_id}", token, ex=ttl)
                         
         except Exception as exception:
             logger.error('Error: {}', str(exception), internal=internal, external=external)                

@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 import jwt
 
 from swagger_server.exception.custom_error_exception import CustomAPIException
+from swagger_server.models.db.user_sessions import UserSessions
 from swagger_server.models.db.users import Users
 from swagger_server.models.request_login import RequestLogin
 from swagger_server.models.request_post_new_user import RequestPostNewUser
@@ -20,6 +21,8 @@ class UserUseCase:
 
     def __init__(self, user_repository: UserRepository):
         self.user_repository = user_repository
+        with open("private.pem", "r") as f:
+            self.private_key = f.read()
 
     def post_new_user(self, body: RequestPostNewUser, internal, external) -> None:        
         hashed_password = pwd_context.hash(body.new_user.password)
@@ -48,20 +51,28 @@ class UserUseCase:
             raise CustomAPIException(message="El usuario ya tiene una sesión activa", status_code=401)
 
         token = self.generate_jwt(user_autenticated)
-        self.user_repository.save_token(token, user_autenticated['id_user'], internal, external)
 
-        return token
+        return {
+            "token": token,
+            "user_id": user_autenticated['id_user']
+        }
+    
+    def save_session(self, authenticated_user, ip_user, internal, external):
+        session = UserSessions(
+            token_session=authenticated_user["token"],
+            user_id=authenticated_user["user_id"],
+            ip_user= ip_user
+        )
+        self.user_repository.save_session(session, internal, external)
+        
     
 
     def generate_jwt(self, user_data, expires_minutes=60) -> str:
         user_data['sub'] = user_data['id_user']
         user_data['iat'] = datetime.now()
-        user_data['exp'] = datetime.now() + timedelta(minutes=expires_minutes)
+        # user_data['exp'] = datetime.now() + timedelta(minutes=expires_minutes)
         
-        with open("private.pem", "r") as f:
-            private_key = f.read()
-        
-        token = jwt.encode(user_data, private_key, algorithm="RS256")
+        token = jwt.encode(user_data, self.private_key, algorithm="RS256")
 
         return token
 
