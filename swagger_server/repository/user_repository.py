@@ -185,6 +185,36 @@ class UserRepository:
                 session.close()
 
 
+    def logout(self, token: str, internal: str, external: str):
+        with self.db.session_factory() as session:
+            try:
+                session_user = session.execute(
+                    select(UserSessions).where(UserSessions.token_session == token)
+                ).scalar_one_or_none()
+
+                if not session_user:
+                    raise CustomAPIException("Sesión no encontrada", 404)
+
+                self.delete_session_redis(token)
+                session.delete(session_user)
+                session.commit()
+            except Exception as exception:
+                session.rollback()
+                logger.error('Error: {}', str(exception), internal=internal, external=external)
+                if isinstance(exception, CustomAPIException):
+                    raise exception
+                raise CustomAPIException("Error al obtener en la base de datos", 500)
+            finally:
+                session.close()
+
+    def delete_session_redis(self, token):
+        user_id = self.redis_client.client.get(f"token:{token}")
+        if user_id:
+            self.redis_client.client.delete(
+                f"token:{token}",
+            )
+
+
     def save_session(self, data: UserSessions, internal, external):
         with self.db.session_factory() as session:
             try:
@@ -210,7 +240,6 @@ class UserRepository:
                 usr_id,
                 ex=ttl
             )
-            self.redis_client.client.set(f"user_session:{usr_id}", token, ex=ttl)
                         
         except Exception as exception:
             logger.error('Error: {}', str(exception), internal=internal, external=external)                
@@ -218,9 +247,13 @@ class UserRepository:
         
         
     def search_user_session(self, id_user: str, internal, external):
-        try:
-            session_active = self.redis_client.client.get(f"user_session:{id_user}")
-            return True if session_active else False
-        except Exception as exception:
-            logger.error('Error: {}', str(exception), internal=internal, external=external)
-            raise CustomAPIException("No se encontro la sesion del usuario", 401)
+        with self.db.session_factory() as session:
+            try:
+                session_user = session.execute(
+                    select(UserSessions).where(UserSessions.user_id == id_user)
+                ).scalar_one_or_none()
+
+                return True if session_user else False
+            except Exception as exception:
+                logger.error('Error: {}', str(exception), internal=internal, external=external)
+                raise CustomAPIException("No se encontro la sesion del usuario", 401)
