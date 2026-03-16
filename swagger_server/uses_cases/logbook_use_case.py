@@ -266,7 +266,7 @@ class LogbookUseCase:
 
         return [
             {
-                "out": serialize_out(out, group_name, id_sector, name_sector, name_category, images_out),
+                "out": serialize_out(out, group_name, id_sector, name_sector, name_category_out, images_out),
                 "id_logbook_entry": c.id_logbook_entry,
                 "unity_id": c.unity_id,
                 "group_name": group_name,
@@ -292,11 +292,11 @@ class LogbookUseCase:
                 "workday": c.workday,
                 "id_sector": id_sector,
                 "name_sector": name_sector,
-                "name_category": name_category,
+                "name_category": name_category_entry,
                 "images_entry": images_entry or [],
                 "status": "Finalizado" if out is not None else "Pendiente Salida"
             }
-            for c, out, group_name, id_sector, name_sector, name_category, images_entry, images_out in rows
+            for c, out, group_name, id_sector, name_sector, name_category_entry, name_category_out, images_entry, images_out in rows
         ]
     
     def get_resume_graphs(self, headers, params, internal, external):

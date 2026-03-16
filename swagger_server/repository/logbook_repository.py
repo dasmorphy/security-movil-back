@@ -6,6 +6,7 @@ from unittest import result
 from flask import json
 from loguru import logger
 from sqlalchemy import and_, exists, func, insert, select
+from sqlalchemy.orm import aliased
 from swagger_server.exception.custom_error_exception import CustomAPIException
 from swagger_server.models.db.authorized import Authorized
 from swagger_server.models.db.business import Business
@@ -46,7 +47,7 @@ class LogbookRepository:
                     endpoint="/rest/zent-logbook-api/v1.0/post/logbook-entry"
                 )
                 
-                self.request_idempotency(data_request, internal, external)
+                self.request_idempotency(session, data_request, internal, external)
 
                 category_exists = session.execute(
                     select(
@@ -150,7 +151,7 @@ class LogbookRepository:
                     endpoint="/rest/zent-logbook-api/v1.0/post/logbook-out"
                 )
                 
-                self.request_idempotency(data_request, internal, external)
+                self.request_idempotency(session, data_request, internal, external)
 
                 unity_weight_exists = True
                 category_exists = session.execute(
@@ -933,42 +934,38 @@ class LogbookRepository:
                 session.close()
 
 
-    def request_idempotency(self, data: RequestIdempotency, internal, external):
-        with self.db.session_factory() as session:
-            try:
-                
-                uuid_request_exist = session.execute(
-                    select(
-                        exists().where(
-                            RequestIdempotency.uuid == data.uuid
-                        )
+    def request_idempotency(self, session, data: RequestIdempotency, internal, external):
+        try:
+            
+            uuid_request_exist = session.execute(
+                select(
+                    exists().where(
+                        RequestIdempotency.uuid == data.uuid
                     )
-                ).scalar()
+                )
+            ).scalar()
 
-                if uuid_request_exist:
-                    raise CustomAPIException(
-                        message="Duplicación de registro, el external transaction ya existe",
-                        status_code=409
-                    )
+            if uuid_request_exist:
+                raise CustomAPIException(
+                    message="Duplicación de registro, el external transaction ya existe",
+                    status_code=409
+                )
 
-                session.add(data)
-                session.commit()
+            session.add(data)
+            # session.commit()
 
-            except Exception as exception:
-                session.rollback()
-                logger.error('Error: {}', str(exception), internal=internal, external=external)
-                if isinstance(exception, CustomAPIException):
-                    raise exception
-                
-                raise CustomAPIException("Error al buscar en la base de datos", 500)
-
-            finally:
-                session.close()
+        except Exception as exception:
+            logger.error('Error: {}', str(exception), internal=internal, external=external)
+            if isinstance(exception, CustomAPIException):
+                raise exception
+            
+            raise CustomAPIException("Error al buscar en la base de datos", 500)
 
     
     def get_logbook_entry(self, filtersBase, internal, external):
         with self.db.session_factory() as session:
             try:
+                CategoryOut = aliased(Category)
                 images_entry_subq = (
                     select(
                         LogbookImages.logbook_id_entry.label("logbook_id"),
@@ -996,7 +993,8 @@ class LogbookRepository:
                         GroupBusiness.name.label("group_name"),
                         Sector.id_sector.label("id_sector"),
                         Sector.name.label("name_sector"),
-                        Category.name_category,
+                        Category.name_category.label("name_category_entry"),
+                        CategoryOut.name_category.label("name_category_out"),
                         func.coalesce(images_entry_subq.c.images, []).label("images_entry"),
                         func.coalesce(images_out_subq.c.images, []).label("images_out")
                     )
@@ -1004,6 +1002,7 @@ class LogbookRepository:
                     .join(Sector, Sector.id_sector == GroupBusiness.sector_id)
                     .join(Category, Category.id_category == LogbookEntry.category_id)
                     .outerjoin(LogbookOut, LogbookOut.id_logbook_out == LogbookEntry.logbook_out_id)
+                    .outerjoin(CategoryOut, CategoryOut.id_category == LogbookOut.category_id)
                     .outerjoin(
                         images_entry_subq,
                         images_entry_subq.c.logbook_id == LogbookEntry.id_logbook_entry
