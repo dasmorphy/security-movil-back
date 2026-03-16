@@ -100,16 +100,16 @@ class LogbookRepository:
                 logbook_entry_id = logbook_entry_body.id_logbook_entry
 
                 #Guardar imágenes (máx 10)
-                # for file in images[:10]:
-                #     result = self.save_image(file)
-                #     saved_files.append(result["url"])
+                for file in images[:10]:
+                    result = self.save_image(file)
+                    saved_files.append(result["url"])
 
-                #     image = LogbookImages(
-                #         logbook_id_entry=logbook_entry_id,
-                #         image_path=result["url"]
-                #     )
+                    image = LogbookImages(
+                        logbook_id_entry=logbook_entry_id,
+                        image_path=result["url"]
+                    )
 
-                #     session.add(image)
+                    session.add(image)
 
                 session.commit()
 
@@ -117,13 +117,13 @@ class LogbookRepository:
                 logbook_entry_dict["name_category"] = category.name_category
                 logbook_entry_dict["group_name"] = group_business_exists.name
 
-                # self.redis_client.client.publish(
-                #     "logbook_channel",
-                #     json.dumps({
-                #         "type": "logbook_saved",
-                #         "logbook": logbook_entry_dict
-                #     })
-                # )
+                self.redis_client.client.publish(
+                    "logbook_channel",
+                    json.dumps({
+                        "type": "logbook_saved",
+                        "logbook": logbook_entry_dict
+                    })
+                )
 
             except OSError as e:
                 if e.errno == 36:
@@ -235,16 +235,16 @@ class LogbookRepository:
                     logbook_entry.updated_at = datetime.now()
 
                 # Guardar imágenes (máx 10)
-                # for file in images[:10]:
-                #     result = self.save_image(file)
-                #     saved_files.append(result["url"])
+                for file in images[:10]:
+                    result = self.save_image(file)
+                    saved_files.append(result["url"])
 
-                #     image = LogbookImages(
-                #         logbook_id_out=logbook_out_id,
-                #         image_path=result["url"]
-                #     )
+                    image = LogbookImages(
+                        logbook_id_out=logbook_out_id,
+                        image_path=result["url"]
+                    )
 
-                #     session.add(image)
+                    session.add(image)
 
                 session.commit()
 
@@ -252,13 +252,13 @@ class LogbookRepository:
                 logbook_out_dict["name_category"] = category.name_category
                 logbook_out_dict["group_name"] = group_business_exists.name
 
-                # self.redis_client.client.publish(
-                #     "logbook_channel",
-                #     json.dumps({
-                #         "type": "logbook_saved",
-                #         "logbook": logbook_out_dict
-                #     })
-                # )
+                self.redis_client.client.publish(
+                    "logbook_channel",
+                    json.dumps({
+                        "type": "logbook_saved",
+                        "logbook": logbook_out_dict
+                    })
+                )
 
 
             except OSError as e:
