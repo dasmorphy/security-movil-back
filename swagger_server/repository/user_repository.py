@@ -250,10 +250,26 @@ class UserRepository:
         with self.db.session_factory() as session:
             try:
                 session_user = session.execute(
-                    select(UserSessions).where(UserSessions.user_id == id_user)
+                    select(UserSessions)
+                    .where(UserSessions.user_id == id_user)
+                    .limit(1)
                 ).scalar_one_or_none()
 
-                return True if session_user else False
+                if not session_user:
+                    return False
+
+                session_redis = self.redis_client.client.get(
+                    f"token:{session_user.token_session}"
+                )
+
+                # Redis expiró → limpiar sesión de postgres
+                if not session_redis:
+                    session.delete(session_user)
+                    session.commit()
+                    return False
+
+                return True
+            
             except Exception as exception:
                 logger.error('Error: {}', str(exception), internal=internal, external=external)
                 raise CustomAPIException("No se encontro la sesion del usuario", 401)
