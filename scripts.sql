@@ -96,6 +96,7 @@ CREATE TABLE public.logbook_entry
     observations text,
     name_user text,
     workday text,
+    status text,
     created_at timestamp without time zone DEFAULT now(),
     updated_at timestamp without time zone DEFAULT now(),
     created_by text NOT NULL,

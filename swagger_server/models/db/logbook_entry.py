@@ -58,6 +58,7 @@ class LogbookEntry(Base):
     authorized_by = Column(Text)
     observations = Column(Text)
     workday = Column(Text)
+    status = Column(Text)
     lat = Column(Text)
     long = Column(Text)
     

@@ -55,7 +55,8 @@ class LogbookUseCase:
             workday=get_workday(),
             lat=body.get('lat'),
             long=body.get('long'),
-            created_at=body.get('created_at')
+            created_at=body.get('created_at'),
+            status="Pendiente Salida"
         )
 
         self.logbook_repository.post_logbook_entry(logbook_entry, images, internal, external)
@@ -294,7 +295,7 @@ class LogbookUseCase:
                 "name_sector": name_sector,
                 "name_category": name_category_entry,
                 "images_entry": images_entry or [],
-                "status": "Finalizado" if out is not None else "Pendiente Salida"
+                "status": c.status
             }
             for c, out, group_name, id_sector, name_sector, name_category_entry, name_category_out, images_entry, images_out in rows
         ]

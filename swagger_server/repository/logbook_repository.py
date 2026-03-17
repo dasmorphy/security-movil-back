@@ -234,6 +234,7 @@ class LogbookRepository:
                     logbook_entry.logbook_out_id = logbook_out_id
                     logbook_entry.updated_by = logbook_out_body.created_by
                     logbook_entry.updated_at = datetime.now()
+                    logbook_entry.status = "Finalizado"
 
                 # Guardar imágenes (máx 10)
                 for file in images[:10]:
