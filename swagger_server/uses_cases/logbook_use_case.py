@@ -165,7 +165,7 @@ class LogbookUseCase:
                 "id_sector": id_sector,
                 "name_sector": name_sector,
                 "name_category": name_category,
-                "images": images or []
+                "images_entry": images or []
             }
             for c, group_name, id_sector, name_sector, name_category, images in rows
         ]
@@ -218,7 +218,7 @@ class LogbookUseCase:
                 "id_sector": id_sector,
                 "name_sector": name_sector,
                 "name_category": name_category,
-                "images": images or []
+                "images_out": images or []
             }
             for c, group_name, id_sector, name_sector, name_category, images in rows
         ]
