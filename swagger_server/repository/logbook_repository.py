@@ -862,7 +862,7 @@ class LogbookRepository:
             "url": f"/uploads/logbooks/{filename}"
         }
     
-    def apply_filters(self, stmt, model, filtersBase):
+    def apply_filters(self, stmt, model: LogbookEntry | LogbookOut, filtersBase):
         filters = []
 
         if filtersBase.get("category_ids"):
@@ -879,6 +879,18 @@ class LogbookRepository:
 
         if filtersBase.get("workday"):
             filters.append(model.workday.in_(filtersBase["workday"]))
+
+        if filtersBase.get("sector_id"):
+            filters.append(Sector.id_sector.in_(filtersBase.get("sector_id")))
+
+        if filtersBase.get("groups_business_id"):
+            filters.append(model.group_business_id.in_(filtersBase.get("groups_business_id")))
+
+        if filtersBase.get("id_business"):
+            filters.append(GroupBusiness.business_id == filtersBase.get("id_business"))
+
+        if filtersBase.get("notCategory"):
+            filters.append(Category.code != filtersBase.get("notCategory"))
 
         if filters:
             stmt = stmt.where(and_(*filters))
