@@ -100,6 +100,27 @@ def parse_filters(headers, params):
         "notCategory": headers.get("notCategory")
     }
 
+def diference_time(logbook_entry, logbook_out):
+
+    try:
+        date_entry = logbook_entry.created_at
+        date_out = logbook_out.created_at
+
+        # Diferencia
+        difference = date_out - date_entry
+
+        total_seconds = int(difference.total_seconds())
+
+        days = total_seconds // 86400
+        hours = (total_seconds % 86400) // 3600
+        minutes = (total_seconds % 3600) // 60
+
+        return f"{days}d {hours}h {minutes}m"
+    
+    except Exception as exp:
+        print(exp)
+        return None
+
 
 def serialize_out(out, group_name, id_sector, name_sector, name_category, images_out):
     if out is None:

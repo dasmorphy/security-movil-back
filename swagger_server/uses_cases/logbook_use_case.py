@@ -23,7 +23,7 @@ from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.platypus import Spacer, Image
 from collections import OrderedDict, defaultdict
 
-from swagger_server.utils.utils import get_workday, parse_filters, serialize_out
+from swagger_server.utils.utils import diference_time, get_workday, parse_filters, serialize_out
 
 
 class LogbookUseCase:
@@ -295,7 +295,8 @@ class LogbookUseCase:
                 "name_sector": name_sector,
                 "name_category": name_category_entry,
                 "images_entry": images_entry or [],
-                "status": c.status
+                "status": c.status,
+                # "permanence_time": diference_time(c, out) if out else None
             }
             for c, out, group_name, id_sector, name_sector, name_category_entry, name_category_out, images_entry, images_out in rows
         ]
