@@ -285,6 +285,104 @@ class LogbookRepository:
             finally:
                 session.close()
 
+    def delete_logbook(self, params, internal, external):
+        id_logbook_delete = params.get('id-logbook')
+        type_logbook_delete = params.get('type-logbook')
+
+        with self.db.session_factory() as session:
+            try:
+
+                if type_logbook_delete == 'entrada':
+
+                    # 🔹 Obtener entrada real
+                    logbook_entry = session.execute(
+                        select(LogbookEntry).where(
+                            LogbookEntry.id_logbook_entry == id_logbook_delete
+                        )
+                    ).scalar_one_or_none()
+
+                    if not logbook_entry:
+                        raise CustomAPIException(
+                            message="No existe la bitacora de entrada",
+                            status_code=404
+                        )
+
+                    # 🔥 Si tiene salida asociada → desvincular primero
+                    if logbook_entry.logbook_out_id:
+
+                        logbook_out_id = logbook_entry.logbook_out_id
+
+                        # ✅ Romper la FK
+                        logbook_entry.logbook_out_id = None
+                        session.flush()  # 🔥 CLAVE
+
+                        # Eliminar imágenes de salida
+                        session.query(LogbookImages).filter(
+                            LogbookImages.logbook_id_out == logbook_out_id
+                        ).delete(synchronize_session=False)
+
+                        # Eliminar salida
+                        session.query(LogbookOut).filter(
+                            LogbookOut.id_logbook_out == logbook_out_id
+                        ).delete(synchronize_session=False)
+
+                    # Eliminar imágenes de entrada
+                    session.query(LogbookImages).filter(
+                        LogbookImages.logbook_id_entry == id_logbook_delete
+                    ).delete(synchronize_session=False)
+
+                    # Eliminar entrada
+                    session.delete(logbook_entry)
+
+                    session.commit()
+
+                elif type_logbook_delete == 'salida':
+
+                    # 🔹 Obtener salida real
+                    logbook_out = session.execute(
+                        select(LogbookOut).where(
+                            LogbookOut.id_logbook_out == id_logbook_delete
+                        )
+                    ).scalar_one_or_none()
+
+                    if not logbook_out:
+                        raise CustomAPIException(
+                            message="No existe la bitacora de salida",
+                            status_code=404
+                        )
+
+                    # 🔥 Desvincular entradas que apunten a esta salida
+                    session.query(LogbookEntry).filter(
+                        LogbookEntry.logbook_out_id == id_logbook_delete
+                    ).update({
+                        "logbook_out_id": None
+                    })
+
+                    # Eliminar imágenes de salida
+                    session.query(LogbookImages).filter(
+                        LogbookImages.logbook_id_out == id_logbook_delete
+                    ).delete()
+
+                    # Eliminar salida
+                    session.delete(logbook_out)
+
+                    session.commit()
+
+                else:
+                    raise CustomAPIException(
+                        message="Tipo de bitacora no existe",
+                        status_code=404
+                    )
+
+            except Exception as exception:
+                session.rollback()
+                logger.error('Error: {}', str(exception), internal=internal, external=external)
+
+                if isinstance(exception, CustomAPIException):
+                    raise exception
+
+                raise CustomAPIException("Error en la base de datos", 500)
+
     def get_all_categories(self, internal, external):
         with self.db.session_factory() as session:
             try:

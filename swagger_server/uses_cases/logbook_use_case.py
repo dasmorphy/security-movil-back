@@ -238,6 +238,11 @@ class LogbookUseCase:
 
         return rows
     
+    def delete_logbook(self, params, internal_process: tuple):
+        internal, external = internal_process
+        self.logbook_repository.delete_logbook(params, internal, external)
+
+    
     def get_all_logbooks(self, headers, params, internal, external):
         rows_out = self.get_logbooks_out_new(headers, params, internal, external)
         rows_entry = self.get_logbooks_entry_new(headers, params, internal, external)
