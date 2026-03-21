@@ -101,7 +101,14 @@ class LogbookView(MethodView):
                 logbook_raw = logbook_file.read().decode("utf-8")
                 logbook_dict = json.loads(logbook_raw)
                 print(logbook_dict)
-                external_transaction_id = logbook_dict['external_transaction_id']
+
+                # Flujo en caso que no venga external
+                external_transaction_id = logbook_dict.get('external_transaction_id')
+                if not external_transaction_id:
+                    external_transaction_id = str(generate_internal_transaction_id())
+                    logger.info("UUID GENERADO DESDE BACK", internal=internal_transaction_id, external=external_transaction_id)
+
+
                 internal_process = (internal_transaction_id, external_transaction_id)
                 response["internal_transaction_id"] = internal_transaction_id
                 response["external_transaction_id"] = external_transaction_id
