@@ -550,13 +550,17 @@ class LogbookUseCase:
 
         for row in logbook_entry_rows:
             category_id = row[2]
+            cantidad = row[4] or 0
 
             if category_id not in agrupado:
                 # Guardamos la fila base
-                agrupado[category_id] = list(row)
+                nueva_fila = list(row)
+                nueva_fila[4] = cantidad  # asegurar que no sea None
+                agrupado[category_id] = nueva_fila
             else:
                 # Sumamos SOLO la cantidad (índice 4)
-                agrupado[category_id][4] += row[4]
+                acumulado = agrupado[category_id][4] or 0
+                agrupado[category_id][4] = acumulado + cantidad
 
         # Convertimos de vuelta a tuplas
         return [tuple(row) for row in agrupado.values()]
