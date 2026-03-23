@@ -474,26 +474,6 @@ TABLESPACE pg_default;
 ALTER TABLE IF EXISTS public.permissions
     OWNER to nextgen;
 
----------------------------------------------------------------------------------------------------------------
-
-CREATE TABLE public.role_permissions
-(
-    role_id uuid NOT NULL,
-    permission_id uuid NOT NULL,
-    created_at timestamp without time zone DEFAULT now(),
-    CONSTRAINT permission_id_pk PRIMARY KEY (role_id, permission_id),
-    CONSTRAINT permission_id_fkey FOREIGN KEY (permission_id, role_id)
-        REFERENCES public.permissions (id_permission, id_rol) MATCH SIMPLE
-        ON UPDATE NO ACTION
-        ON DELETE NO ACTION
-)
-
-TABLESPACE pg_default;
-
-ALTER TABLE IF EXISTS public.role_permissions
-    OWNER to nextgen;
-
-
 ---------------------------------------------------------------------------------------------
 
 CREATE TABLE public.role_permissions

@@ -120,7 +120,7 @@ class LogbookView(MethodView):
                 response["message"] = "Bitácora de salida creada correctamente"
                 end_time = default_timer()
                 logger.info(f"Fin de la transacción, procesada en : {end_time - start_time} milisegundos",
-                            internal=internal_transaction_id, external=logbook_dict['external_transaction_id'])
+                            internal=internal_transaction_id, external=external_transaction_id)
                 status_code = 200
         except Exception as ex:
             response, status_code = CustomAPIException.check_exception(ex, function_name, internal_process)
