@@ -600,3 +600,255 @@ ALTER SEQUENCE public.request_idempotency_id_seq
 
 ALTER TABLE IF EXISTS public.request_idempotency
     ALTER COLUMN id_request SET DEFAULT nextval('request_idempotency_id_seq'::regclass);
+
+
+--------------------------------------------------------------------------------------------------
+
+CREATE TABLE public.dispatch_status
+(
+    id_status integer NOT NULL,
+    name text NOT NULL,
+    created_at timestamp without time zone DEFAULT now(),
+    CONSTRAINT dispatch_status_pkey PRIMARY KEY (id_status)
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.dispatch_status
+    OWNER to nextgen;
+
+
+CREATE SEQUENCE public.dispatch_status_id_seq
+    INCREMENT 1
+    START 1
+    MINVALUE 1
+    MAXVALUE 2147483647
+    CACHE 1;
+
+ALTER SEQUENCE public.dispatch_status_id_seq
+    OWNED BY public.dispatch_status.id_status;
+
+ALTER SEQUENCE public.dispatch_status_id_seq
+    OWNER TO nextgen;
+
+ALTER TABLE IF EXISTS public.dispatch_status
+    ALTER COLUMN id_status SET DEFAULT nextval('dispatch_status_id_seq'::regclass);
+
+
+--------------------------------------------------------------------------------------------------------------------------
+
+
+CREATE TABLE public.dispatch_skus
+(
+    id_sku integer NOT NULL,
+    type_sku text,
+    code_sku text,
+    created_at timestamp without time zone DEFAULT now(),
+    updated_at timestamp without time zone DEFAULT now(),
+    created_by text,
+    updated_by text,
+    CONSTRAINT dispatch_skus_pkey PRIMARY KEY (id_sku)
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.dispatch_skus
+    OWNER to nextgen;
+
+
+CREATE SEQUENCE public.dispatch_skus_id_seq
+    INCREMENT 1
+    START 1
+    MINVALUE 1
+    MAXVALUE 2147483647
+    CACHE 1;
+
+ALTER SEQUENCE public.dispatch_skus_id_seq
+    OWNED BY public.dispatch_skus.id_sku;
+
+ALTER SEQUENCE public.dispatch_skus_id_seq
+    OWNER TO nextgen;
+
+ALTER TABLE IF EXISTS public.dispatch_skus
+    ALTER COLUMN id_sku SET DEFAULT nextval('dispatch_skus_id_seq'::regclass);
+
+
+-------------------------------------------------------------------------------------------------------------------------
+
+
+CREATE TABLE public.dispatch_products
+(
+    id_product integer NOT NULL,
+    name text,
+    price numeric,
+    stock integer,
+    presentation_type text,
+    created_at timestamp without time zone DEFAULT now(),
+    updated_at timestamp without time zone DEFAULT now(),
+    created_by text,
+    updated_by text,
+    CONSTRAINT dispatch_products_pkey PRIMARY KEY (id_product)
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.dispatch_products
+    OWNER to nextgen;
+
+
+CREATE SEQUENCE public.dispatch_products_id_seq
+    INCREMENT 1
+    START 1
+    MINVALUE 1
+    MAXVALUE 2147483647
+    CACHE 1;
+
+ALTER SEQUENCE public.dispatch_products_id_seq
+    OWNED BY public.dispatch_products.id_product;
+
+ALTER SEQUENCE public.dispatch_products_id_seq
+    OWNER TO nextgen;
+
+ALTER TABLE IF EXISTS public.dispatch_products
+    ALTER COLUMN id_product SET DEFAULT nextval('dispatch_products_id_seq'::regclass);
+
+
+---------------------------------------------------------------------------------------------------------
+
+
+CREATE TABLE public.products_sku
+(
+    id_product_sku integer NOT NULL,
+    product_id integer,
+    sku_id integer,
+    quantity integer,
+    created_at timestamp without time zone DEFAULT now(),
+    CONSTRAINT products_sku_pkey PRIMARY KEY (id_product_sku),
+    CONSTRAINT products_sku_product_id_fkey FOREIGN KEY (product_id)
+        REFERENCES public.dispatch_products (id_product) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION,
+    CONSTRAINT products_sku_sku_id_fkey FOREIGN KEY (sku_id)
+        REFERENCES public.dispatch_skus (id_sku) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+)
+
+TABLESPACE pg_default;
+
+
+ALTER TABLE IF EXISTS public.products_sku
+    OWNER to nextgen;
+
+
+CREATE SEQUENCE public.products_sku_id_seq
+    INCREMENT 1
+    START 1
+    MINVALUE 1
+    MAXVALUE 2147483647
+    CACHE 1;
+
+ALTER SEQUENCE public.products_sku_id_seq
+    OWNED BY public.products_sku.id_product_sku;
+
+ALTER SEQUENCE public.products_sku_id_seq
+    OWNER TO nextgen;
+
+ALTER TABLE IF EXISTS public.products_sku
+    ALTER COLUMN id_product_sku SET DEFAULT nextval('products_sku_id_seq'::regclass);
+
+
+
+-------------------------------------------------------------------------------------------------------------
+
+CREATE TABLE public.vehicle_type
+(
+    id_vehicle_type integer NOT NULL,
+    name text,
+    created_at timestamp without time zone DEFAULT now(),
+    updated_at timestamp without time zone DEFAULT now(),
+    created_by text,
+    updated_by text,
+    CONSTRAINT vehicle_type_pkey PRIMARY KEY (id_vehicle_type)
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.vehicle_type
+    OWNER to nextgen;
+
+
+CREATE SEQUENCE public.vehicle_type_id_seq
+    INCREMENT 1
+    START 1
+    MINVALUE 1
+    MAXVALUE 2147483647
+    CACHE 1;
+
+ALTER SEQUENCE public.vehicle_type_id_seq
+    OWNED BY public.vehicle_type.id_vehicle_type;
+
+ALTER SEQUENCE public.vehicle_type_id_seq
+    OWNER TO nextgen;
+
+ALTER TABLE IF EXISTS public.vehicle_type
+    ALTER COLUMN id_vehicle_type SET DEFAULT nextval('vehicle_type_id_seq'::regclass);
+
+
+---------------------------------------------------------------------------------------------------------------------------
+
+CREATE TABLE public.dispatch
+(
+    id_dispatch integer NOT NULL,
+    destiny_id integer,
+    vehicle_type_id integer,
+    sku_id integer,
+    driver text,
+    observations text,
+    status_id integer,
+    truck_license text,
+    weight integer,
+    created_at timestamp without time zone DEFAULT now(),
+    updated_at timestamp without time zone DEFAULT now(),
+    created_by text,
+    updated_by text,
+    CONSTRAINT dispatch_pkey PRIMARY KEY (id_dispatch),
+    CONSTRAINT dispatch_status_id_fkey FOREIGN KEY (status_id)
+        REFERENCES public.dispatch_status (id_status) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION,
+    CONSTRAINT dispatch_destiny_id_fkey FOREIGN KEY (destiny_id)
+        REFERENCES public.destiny_intern (id_destiny) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION,
+    CONSTRAINT dispatch_vehicle_type_id_fkey FOREIGN KEY (vehicle_type_id)
+        REFERENCES public.vehicle_type (id_vehicle_type) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+    CONSTRAINT dispatch_sku_id_fkey FOREIGN KEY (sku_id)
+        REFERENCES public.dispatch_skus (id_sku) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.dispatch
+    OWNER to nextgen;
+
+
+CREATE SEQUENCE public.dispatch_id_seq
+    INCREMENT 1
+    START 1
+    MINVALUE 1
+    MAXVALUE 2147483647
+    CACHE 1;
+
+ALTER SEQUENCE public.dispatch_id_seq
+    OWNED BY public.dispatch.id_dispatch;
+
+ALTER SEQUENCE public.dispatch_id_seq
+    OWNER TO nextgen;
+
+ALTER TABLE IF EXISTS public.dispatch
+    ALTER COLUMN id_dispatch SET DEFAULT nextval('dispatch_id_seq'::regclass);
