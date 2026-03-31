@@ -1,6 +1,7 @@
 import uuid
 from sqlalchemy import (
     Column,
+    Integer,
     Text,
     Boolean,
     DateTime,
@@ -21,6 +22,12 @@ class Permission(Base):
         UUID(as_uuid=True),
         primary_key=True,
         default=uuid.uuid4,
+        nullable=False
+    )
+
+    module_id = Column(
+        Integer,
+        ForeignKey('public.modules.id_module', onupdate='NO ACTION', ondelete='NO ACTION'),
         nullable=False
     )
 

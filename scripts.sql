@@ -859,13 +859,17 @@ ALTER TABLE IF EXISTS public.dispatch
 
 CREATE TABLE public.company_modules
 (
-    id_module integer NOT NULL,
+    id_company_module integer NOT NULL,
     business_id integer NOT NULL,
-    module_name text,
+    module_id integer,
     created_at timestamp without time zone DEFAULT now(),
-    CONSTRAINT module_pkey PRIMARY KEY (id_module),
-    CONSTRAINT business_id_fkey FOREIGN KEY (business_id)
+    CONSTRAINT module_pkey PRIMARY KEY (id_company_module),
+    CONSTRAINT company_modules_business_id_fkey FOREIGN KEY (business_id)
         REFERENCES public.business (id_business) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION,
+    CONSTRAINT company_modules_modules_id_fkey FOREIGN KEY (module_id)
+        REFERENCES public.modules (id_module) MATCH SIMPLE
         ON UPDATE NO ACTION
         ON DELETE NO ACTION
 )
@@ -884,10 +888,56 @@ CREATE SEQUENCE public.company_modules_id_seq
     CACHE 1;
 
 ALTER SEQUENCE public.company_modules_id_seq
-    OWNED BY public.company_modules.id_module;
+    OWNED BY public.company_modules.id_company_module;
 
 ALTER SEQUENCE public.company_modules_id_seq
     OWNER TO nextgen;
 
 ALTER TABLE IF EXISTS public.company_modules
-    ALTER COLUMN id_module SET DEFAULT nextval('company_modules_id_seq'::regclass);
+    ALTER COLUMN id_company_module SET DEFAULT nextval('company_modules_id_seq'::regclass);
+
+
+---------------------------------------------------------------------------------------------
+
+CREATE TABLE public.modules
+(
+    id_module integer NOT NULL,
+    name text,
+    created_at timestamp without time zone DEFAULT now(),
+    CONSTRAINT module_pkey PRIMARY KEY (id_module)
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.modules
+    OWNER to nextgen;
+
+
+CREATE SEQUENCE public.modules_id_seq
+    INCREMENT 1
+    START 1
+    MINVALUE 1
+    MAXVALUE 2147483647
+    CACHE 1;
+
+ALTER SEQUENCE public.modules_id_seq
+    OWNED BY public.modules.id_module;
+
+ALTER SEQUENCE public.modules_id_seq
+    OWNER TO nextgen;
+
+ALTER TABLE IF EXISTS public.modules
+    ALTER COLUMN id_module SET DEFAULT nextval('modules_id_seq'::regclass);
+
+
+--------------------------------------------------------------------------------------------------------
+
+ALTER TABLE IF EXISTS public.permissions
+    ADD COLUMN module_id integer;
+ALTER TABLE IF EXISTS public.permissions
+    ADD CONSTRAINT permission_module_id_fkey FOREIGN KEY (module_id)
+    REFERENCES public.modules (id_module) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE NO ACTION;
+CREATE INDEX IF NOT EXISTS fki_permission_module_id_fkey
+    ON public.permissions(module_id);

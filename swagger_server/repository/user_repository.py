@@ -1,8 +1,10 @@
 from loguru import logger
-from sqlalchemy import cast, exists, func, select
+from sqlalchemy import Integer, and_, cast, exists, func, select
 from swagger_server.exception.custom_error_exception import CustomAPIException
 from swagger_server.models.db.business import Business
+from swagger_server.models.db.company_modules import CompanyModules
 from swagger_server.models.db.group_business import GroupBusiness
+from swagger_server.models.db.modules import Modules
 from swagger_server.models.db.permissions import Permission
 from swagger_server.models.db.role_permissions import RolePermission
 from swagger_server.models.db.roles import Roles
@@ -134,9 +136,20 @@ class UserRepository:
                             True
                         ).label("attributes")
                     )
-                    .join(RolePermission, RolePermission.role_id == Users.role_id)
-                    .join(Permission, Permission.id_permission == RolePermission.permission_id)
                     .join(Roles, Roles.id_rol == Users.role_id)
+                    .join(RolePermission, RolePermission.role_id == Roles.id_rol)
+                    .join(Permission, Permission.id_permission == RolePermission.permission_id)
+                    .join(Modules, Modules.id_module == Permission.module_id)
+                    .join(
+                        CompanyModules,
+                        and_(
+                            CompanyModules.module_id == Modules.id_module,
+                            CompanyModules.business_id == cast(
+                                Users.attributes["id_business"].astext,
+                                Integer
+                            )
+                        )
+                    )
                     .where(Users.user == user)
                     .group_by(
                         Users.id_user,
