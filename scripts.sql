@@ -852,3 +852,42 @@ ALTER SEQUENCE public.dispatch_id_seq
 
 ALTER TABLE IF EXISTS public.dispatch
     ALTER COLUMN id_dispatch SET DEFAULT nextval('dispatch_id_seq'::regclass);
+
+
+------------------------------------------------------------------------------------------------
+
+
+CREATE TABLE public.company_modules
+(
+    id_module integer NOT NULL,
+    business_id integer NOT NULL,
+    module_name text,
+    created_at timestamp without time zone DEFAULT now(),
+    CONSTRAINT module_pkey PRIMARY KEY (id_module),
+    CONSTRAINT business_id_fkey FOREIGN KEY (business_id)
+        REFERENCES public.business (id_business) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.company_modules
+    OWNER to nextgen;
+
+
+CREATE SEQUENCE public.company_modules_id_seq
+    INCREMENT 1
+    START 1
+    MINVALUE 1
+    MAXVALUE 2147483647
+    CACHE 1;
+
+ALTER SEQUENCE public.company_modules_id_seq
+    OWNED BY public.company_modules.id_module;
+
+ALTER SEQUENCE public.company_modules_id_seq
+    OWNER TO nextgen;
+
+ALTER TABLE IF EXISTS public.company_modules
+    ALTER COLUMN id_module SET DEFAULT nextval('company_modules_id_seq'::regclass);

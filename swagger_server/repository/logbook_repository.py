@@ -1,6 +1,6 @@
 
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import List
 from unittest import result
 from flask import json
@@ -132,6 +132,13 @@ class LogbookRepository:
 
             except Exception as exception:
                 session.rollback()
+
+                #limpia archivos guardados si falla DB
+                for path in saved_files:
+                    full_path = os.path.join("/var/www", path.lstrip("/"))
+                    if os.path.exists(full_path):
+                        os.remove(full_path)
+
                 logger.error('Error: {}', str(exception), internal=internal, external=external)
                 if isinstance(exception, CustomAPIException):
                     raise exception
@@ -674,6 +681,11 @@ class LogbookRepository:
 
                 filters = []
 
+                last_30_days = datetime.now() - timedelta(days=30)
+
+                if not filtersBase.get("start_date") and not filtersBase.get("end_date"):
+                    filters.append(LogbookEntry.created_at >= last_30_days)
+
                 if filtersBase.get("category_ids"):
                     filters.append(Category.id_category.in_(filtersBase.get("category_ids")))
 
@@ -758,6 +770,11 @@ class LogbookRepository:
                 )
 
                 filters = []
+
+                last_30_days = datetime.now() - timedelta(days=30)
+
+                if not filtersBase.get("start_date") and not filtersBase.get("end_date"):
+                    filters.append(LogbookOut.created_at >= last_30_days)
 
                 if filtersBase.get("category_ids"):
                     filters.append(Category.id_category.in_(filtersBase.get("category_ids")))
@@ -962,6 +979,10 @@ class LogbookRepository:
     
     def apply_filters(self, stmt, model: LogbookEntry | LogbookOut, filtersBase):
         filters = []
+        last_30_days = datetime.now() - timedelta(days=30)
+
+        if not filtersBase.get("start_date") and not filtersBase.get("end_date"):
+            filters.append(model.created_at >= last_30_days)
 
         if filtersBase.get("category_ids"):
             filters.append(model.category_id.in_(filtersBase["category_ids"]))
