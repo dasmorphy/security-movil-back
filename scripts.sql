@@ -941,3 +941,167 @@ ALTER TABLE IF EXISTS public.permissions
     ON DELETE NO ACTION;
 CREATE INDEX IF NOT EXISTS fki_permission_module_id_fkey
     ON public.permissions(module_id);
+
+------------------------------------------------------------------------------------------------------------
+
+CREATE TABLE public.history_dispatch_status
+(
+    id_history_status integer NOT NULL,
+    dispatch_id integer,
+    previous_status_id integer,
+    status_id integer,
+    created_at timestamp without time zone DEFAULT now(),
+    created_by text,
+    CONSTRAINT history_dispatch_status_pkey PRIMARY KEY (id_history_status),
+    CONSTRAINT history_dispatch_status_id_fkey FOREIGN KEY (status_id)
+        REFERENCES public.dispatch_status (id_status) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION,
+    CONSTRAINT history_dispatch_dispatch_id_fkey FOREIGN KEY (dispatch_id)
+        REFERENCES public.dispatch (id_dispatch) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION,
+    CONSTRAINT history_dispatch_previous_status_id_fkey FOREIGN KEY (previous_status_id)
+        REFERENCES public.dispatch_status (id_status) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.history_dispatch_status
+    OWNER to nextgen;
+
+
+CREATE SEQUENCE public.history_dispatch_status_id_seq
+    INCREMENT 1
+    START 1
+    MINVALUE 1
+    MAXVALUE 2147483647
+    CACHE 1;
+
+ALTER SEQUENCE public.history_dispatch_status_id_seq
+    OWNED BY public.history_dispatch_status.id_history_status;
+
+ALTER SEQUENCE public.history_dispatch_status_id_seq
+    OWNER TO nextgen;
+
+ALTER TABLE IF EXISTS public.history_dispatch_status
+    ALTER COLUMN id_history_status SET DEFAULT nextval('history_dispatch_status_id_seq'::regclass);
+
+
+-- Trigger y funcion para registrar el historial de cambios de los estados del despacho
+
+CREATE OR REPLACE FUNCTION fn_log_dispatch_status()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP = 'INSERT' THEN
+        INSERT INTO public.history_dispatch_status 
+            (dispatch_id, previous_status_id, status_id, created_by)
+        VALUES 
+            (NEW.id_dispatch, NEW.status_id, NEW.status_id, NEW.created_by);
+
+    ELSIF TG_OP = 'UPDATE' THEN
+        IF OLD.status_id IS DISTINCT FROM NEW.status_id THEN
+            INSERT INTO public.history_dispatch_status 
+                (dispatch_id, previous_status_id, status_id, created_by)
+            VALUES 
+                (NEW.id_dispatch, OLD.status_id, NEW.status_id, NEW.updated_by);
+        END IF;
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+
+CREATE TRIGGER trg_dispatch_status_history
+AFTER INSERT OR UPDATE ON public.dispatch
+FOR EACH ROW
+EXECUTE FUNCTION fn_log_dispatch_status();
+
+--------------------------------------------------------------------------------------------------------------------
+
+
+CREATE TABLE public.dispatch_reception
+(
+    id_reception integer NOT NULL,
+    dispatch_id integer NOT NULL,
+    is_correct boolean NOT NULL,
+    observations text,
+    created_by text,
+    created_at timestamp without time zone DEFAULT now(),
+    CONSTRAINT dispatch_reception_pkey PRIMARY KEY (id_reception),
+    CONSTRAINT dispatch_reception_dispatch_id_fkey FOREIGN KEY (dispatch_id)
+        REFERENCES public.dispatch (id_dispatch) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.dispatch_reception
+    OWNER to nextgen;
+
+
+CREATE SEQUENCE public.dispatch_reception_id_seq
+    INCREMENT 1
+    START 1
+    MINVALUE 1
+    MAXVALUE 2147483647
+    CACHE 1;
+
+ALTER SEQUENCE public.dispatch_reception_id_seq
+    OWNED BY public.dispatch_reception.id_reception;
+
+ALTER SEQUENCE public.dispatch_reception_id_seq
+    OWNER TO nextgen;
+
+ALTER TABLE IF EXISTS public.dispatch_reception
+    ALTER COLUMN id_reception SET DEFAULT nextval('dispatch_reception_id_seq'::regclass);
+
+
+------------------------------------------------------------------------------------------------------------------
+
+
+CREATE TABLE public.dispatch_reception_detail
+(
+    id_reception_detail integer NOT NULL,
+    reception_id integer,
+    product_id integer,
+    expected_quantity integer,
+    received_quantity integer,
+    observations text,
+    created_at timestamp without time zone DEFAULT now(),
+    CONSTRAINT reception_detail_pkey PRIMARY KEY (id_reception_detail),
+    CONSTRAINT reception_detail_fkey FOREIGN KEY (reception_id)
+        REFERENCES public.dispatch_reception (id_reception) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION,
+    CONSTRAINT reception_detail_product_fkey FOREIGN KEY (product_id)
+        REFERENCES public.dispatch_products(id_product) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.dispatch_reception_detail
+    OWNER to nextgen;
+
+
+CREATE SEQUENCE public.dispatch_reception_detail_id_seq
+    INCREMENT 1
+    START 1
+    MINVALUE 1
+    MAXVALUE 2147483647
+    CACHE 1;
+
+ALTER SEQUENCE public.dispatch_reception_detail_id_seq
+    OWNED BY public.dispatch_reception_detail.id_reception_detail;
+
+ALTER SEQUENCE public.dispatch_reception_detail_id_seq
+    OWNER TO nextgen;
+
+ALTER TABLE IF EXISTS public.dispatch_reception_detail
+    ALTER COLUMN id_reception_detail SET DEFAULT nextval('dispatch_reception_detail_id_seq'::regclass);
