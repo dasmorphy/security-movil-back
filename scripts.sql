@@ -1114,6 +1114,7 @@ CREATE TABLE public.biomar_entry_report
     id_entry_report integer NOT NULL,
     dni text,
     names_visit text,
+    status text DEFAULT 'Pendiente Salida';
     reason_visit text,
     area_visit_id integer,
     person_charge_id integer,
