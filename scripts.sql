@@ -1105,3 +1105,43 @@ ALTER SEQUENCE public.dispatch_reception_detail_id_seq
 
 ALTER TABLE IF EXISTS public.dispatch_reception_detail
     ALTER COLUMN id_reception_detail SET DEFAULT nextval('dispatch_reception_detail_id_seq'::regclass);
+
+
+-------------------------------------------------------------------------------------------------------
+
+CREATE TABLE public.biomar_entry_report
+(
+    id_entry_report integer NOT NULL,
+    dni text,
+    names_visit text,
+    reason_visit text,
+    area_visit_id integer,
+    person_charge_id integer,
+    material_entry integer,
+    observations text,
+    created_by text,
+    created_at timestamp without time zone DEFAULT now(),
+    CONSTRAINT entry_report_pkey PRIMARY KEY (id_entry_report)
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.biomar_entry_report
+    OWNER to nextgen;
+
+
+CREATE SEQUENCE public.biomar_entry_report_id_seq
+    INCREMENT 1
+    START 1
+    MINVALUE 1
+    MAXVALUE 2147483647
+    CACHE 1;
+
+ALTER SEQUENCE public.biomar_entry_report_id_seq
+    OWNED BY public.biomar_entry_report.id_entry_report;
+
+ALTER SEQUENCE public.biomar_entry_report_id_seq
+    OWNER TO nextgen;
+
+ALTER TABLE IF EXISTS public.biomar_entry_report
+    ALTER COLUMN id_entry_report SET DEFAULT nextval('biomar_entry_report_id_seq'::regclass);
