@@ -1107,42 +1107,276 @@ ALTER TABLE IF EXISTS public.dispatch_reception_detail
     ALTER COLUMN id_reception_detail SET DEFAULT nextval('dispatch_reception_detail_id_seq'::regclass);
 
 
--------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------
 
-CREATE TABLE public.biomar_entry_report
+CREATE TABLE public.dispatch_images
 (
-    id_entry_report integer NOT NULL,
-    dni text,
-    names_visit text,
-    status text DEFAULT 'Pendiente Salida';
-    reason_visit text,
-    area_visit_id integer,
-    person_charge_id integer,
-    material_entry integer,
-    observations text,
-    created_by text,
+    id_image integer NOT NULL,
+    dispatch_id integer NOT NULL,
+    process text,
     created_at timestamp without time zone DEFAULT now(),
-    CONSTRAINT entry_report_pkey PRIMARY KEY (id_entry_report)
+    CONSTRAINT dispatch_image_pkey PRIMARY KEY (id_image),
+    CONSTRAINT dispatch_image_dispatch_id_fkey FOREIGN KEY (dispatch_id)
+        REFERENCES public.dispatch (id_dispatch) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
 )
 
 TABLESPACE pg_default;
 
-ALTER TABLE IF EXISTS public.biomar_entry_report
+ALTER TABLE IF EXISTS public.dispatch_images
     OWNER to nextgen;
 
 
-CREATE SEQUENCE public.biomar_entry_report_id_seq
+CREATE SEQUENCE public.dispatch_images_id_seq
     INCREMENT 1
     START 1
     MINVALUE 1
     MAXVALUE 2147483647
     CACHE 1;
 
-ALTER SEQUENCE public.biomar_entry_report_id_seq
-    OWNED BY public.biomar_entry_report.id_entry_report;
+ALTER SEQUENCE public.dispatch_images_id_seq
+    OWNED BY public.dispatch_images.id_image;
 
-ALTER SEQUENCE public.biomar_entry_report_id_seq
+ALTER SEQUENCE public.dispatch_images_id_seq
     OWNER TO nextgen;
 
-ALTER TABLE IF EXISTS public.biomar_entry_report
-    ALTER COLUMN id_entry_report SET DEFAULT nextval('biomar_entry_report_id_seq'::regclass);
+ALTER TABLE IF EXISTS public.dispatch_images
+    ALTER COLUMN id_image SET DEFAULT nextval('dispatch_images_id_seq'::regclass);
+
+
+-------------------------------------------------------------------------------------------------------
+
+CREATE TABLE public.biomar_access_control
+(
+    id_access_control integer NOT NULL,
+    dni text,
+    names_visit text,
+    status text DEFAULT 'Pendiente Salida';
+    reason_visit text,
+    area_visit_id integer,
+    staff_charge_id integer,
+    observations text,
+    created_by text,
+    updated_by text,
+    created_at timestamp without time zone DEFAULT now(),
+    updated_at timestamp without time zone DEFAULT now(),
+    CONSTRAINT access_control_pkey PRIMARY KEY (id_access_control)
+    CONSTRAINT access_control_staff_id_fkey FOREIGN KEY (staff_charge_id)
+        REFERENCES public.staff_charge (id_staff) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION,
+    CONSTRAINT access_control_area_id_fkey FOREIGN KEY (area_visit_id)
+        REFERENCES public.area_visit (id_area) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.biomar_access_control
+    OWNER to nextgen;
+
+
+CREATE SEQUENCE public.biomar_access_control_id_seq
+    INCREMENT 1
+    START 1
+    MINVALUE 1
+    MAXVALUE 2147483647
+    CACHE 1;
+
+ALTER SEQUENCE public.biomar_access_control_id_seq
+    OWNED BY public.biomar_access_control.id_access_control;
+
+ALTER SEQUENCE public.biomar_access_control_id_seq
+    OWNER TO nextgen;
+
+ALTER TABLE IF EXISTS public.biomar_access_control
+    ALTER COLUMN id_access_control SET DEFAULT nextval('biomar_access_control_id_seq'::regclass);
+
+
+
+--------------------------------------------------------------------------------------
+
+CREATE TABLE public.area_visit
+(
+    id_area integer NOT NULL,
+    name text,
+    created_at timestamp without time zone DEFAULT now(),
+    CONSTRAINT area_visit_pkey PRIMARY KEY (id_area)
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.area_visit
+    OWNER to nextgen;
+
+
+CREATE SEQUENCE public.area_visit_id_seq
+    INCREMENT 1
+    START 1
+    MINVALUE 1
+    MAXVALUE 2147483647
+    CACHE 1;
+
+ALTER SEQUENCE public.area_visit_id_seq
+    OWNED BY public.area_visit.id_area;
+
+ALTER SEQUENCE public.area_visit_id_seq
+    OWNER TO nextgen;
+
+ALTER TABLE IF EXISTS public.area_visit
+    ALTER COLUMN id_area SET DEFAULT nextval('area_visit_id_seq'::regclass);
+
+
+-------------------------------------------------------------------------------------
+
+
+CREATE TABLE public.staff_charge
+(
+    id_staff integer NOT NULL,
+    name text,
+    created_at timestamp without time zone DEFAULT now(),
+    CONSTRAINT staff_charge_pkey PRIMARY KEY (id_staff)
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.staff_charge
+    OWNER to nextgen;
+
+
+CREATE SEQUENCE public.staff_charge_id_seq
+    INCREMENT 1
+    START 1
+    MINVALUE 1
+    MAXVALUE 2147483647
+    CACHE 1;
+
+ALTER SEQUENCE public.staff_charge_id_seq
+    OWNED BY public.staff_charge.id_staff;
+
+ALTER SEQUENCE public.staff_charge_id_seq
+    OWNER TO nextgen;
+
+ALTER TABLE IF EXISTS public.staff_charge
+    ALTER COLUMN id_staff SET DEFAULT nextval('staff_charge_id_seq'::regclass);
+
+
+---------------------------------------------------------------------------------------
+
+CREATE TABLE public.biomar_access_images
+(
+    id_image integer NOT NULL,
+    access_control_id integer NOT NULL,
+    image_path text,
+    type_process text,
+    created_at timestamp without time zone,
+    CONSTRAINT biomar_access_images_pkey PRIMARY KEY (id_image),
+    CONSTRAINT images_access_control_id_fkey FOREIGN KEY (access_control_id)
+        REFERENCES public.biomar_access_control (id_access_control) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.biomar_access_images
+    OWNER to nextgen;
+
+CREATE SEQUENCE public.biomar_access_images_id_seq
+    INCREMENT 1
+    START 1
+    MINVALUE 1
+    MAXVALUE 2147483647
+    CACHE 1;
+
+ALTER SEQUENCE public.biomar_access_images_id_seq
+    OWNED BY public.biomar_access_images.id_image;
+
+ALTER SEQUENCE public.biomar_access_images_id_seq
+    OWNER TO nextgen;
+
+ALTER TABLE IF EXISTS public.biomar_access_images
+    ALTER COLUMN id_image SET DEFAULT nextval('biomar_access_images_id_seq'::regclass);
+
+-------------------------------------------------------------------------------------
+
+CREATE TABLE public.biomar_materials_access
+(
+    id_material integer NOT NULL,
+    name text,
+    created_at timestamp without time zone DEFAULT now(),
+    CONSTRAINT biomar_material_pkey PRIMARY KEY (id_material)
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.biomar_materials_access
+    OWNER to nextgen;
+
+CREATE SEQUENCE public.biomar_materials_access_id_seq
+    INCREMENT 1
+    START 1
+    MINVALUE 1
+    MAXVALUE 2147483647
+    CACHE 1;
+
+ALTER SEQUENCE public.biomar_materials_access_id_seq
+    OWNED BY public.biomar_materials_access.id_material;
+
+ALTER SEQUENCE public.biomar_materials_access_id_seq
+    OWNER TO nextgen;
+
+ALTER TABLE IF EXISTS public.biomar_materials_access
+    ALTER COLUMN id_material SET DEFAULT nextval('biomar_materials_access_id_seq'::regclass);
+
+
+--------------------------------------------------------------------------------------------------------------
+
+
+CREATE TABLE public.access_control_materials
+(
+    id_material_control integer NOT NULL,
+    access_control_id integer,
+    material_id integer,
+    quantity integer,
+    created_at timestamp without time zone DEFAULT now(),
+    CONSTRAINT access_control_materials_pkey PRIMARY KEY (id_material_control),
+    CONSTRAINT control_materials_control_id_fkey FOREIGN KEY (access_control_id)
+        REFERENCES public.biomar_access_control (id_access_control) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION,
+    CONSTRAINT control_materials_material_id_fkey FOREIGN KEY (material_id)
+        REFERENCES public.biomar_materials_access (id_material) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.access_control_materials
+    OWNER to nextgen;
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.access_control_materials
+    OWNER to nextgen;
+
+
+
+CREATE SEQUENCE public.access_control_materials_id_seq
+    INCREMENT 1
+    START 1
+    MINVALUE 1
+    MAXVALUE 2147483647
+    CACHE 1;
+
+ALTER SEQUENCE public.access_control_materials_id_seq
+    OWNED BY public.access_control_materials.id_material_control;
+
+ALTER SEQUENCE public.access_control_materials_id_seq
+    OWNER TO nextgen;
+
+ALTER TABLE IF EXISTS public.access_control_materials
+    ALTER COLUMN id_material_control SET DEFAULT nextval('access_control_materials_id_seq'::regclass);
