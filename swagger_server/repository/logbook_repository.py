@@ -567,7 +567,13 @@ class LogbookRepository:
             try:
                 stmt = select(GroupBusiness)
 
-                if id_business != 0:
+                business_exist = session.get(Business, id_business)
+
+                if not business_exist:
+                    raise CustomAPIException("Empresa no existe", 404)
+                
+
+                if business_exist.name != "Telearseg":
                     stmt = stmt.where(
                         GroupBusiness.business_id == id_business,
                         GroupBusiness.is_active == True
@@ -599,6 +605,11 @@ class LogbookRepository:
     def get_sector_by_business(self, id_business, internal, external):
         with self.db.session_factory() as session:
             try:
+                business_exist = session.get(Business, id_business)
+
+                if not business_exist:
+                    raise CustomAPIException("Empresa no existe", 404)
+
                 query = (
                     session.query(
                         Sector.id_sector,
@@ -610,7 +621,7 @@ class LogbookRepository:
                     .join(Business, Business.id_business == GroupBusiness.business_id)
                 )
 
-                if id_business != 0:
+                if business_exist.name != "Telearseg":
                     query = query.filter(Business.id_business == id_business)
 
                 query = query.group_by(Sector.id_sector)

@@ -642,12 +642,17 @@ CREATE TABLE public.dispatch_skus
 (
     id_sku integer NOT NULL,
     type_sku text,
+    dispatch_id integer,
     code_sku text,
     created_at timestamp without time zone DEFAULT now(),
     updated_at timestamp without time zone DEFAULT now(),
     created_by text,
     updated_by text,
-    CONSTRAINT dispatch_skus_pkey PRIMARY KEY (id_sku)
+    CONSTRAINT dispatch_skus_pkey PRIMARY KEY (id_sku),
+    CONSTRAINT dipatch_sku_dispatch_id_fkey FOREIGN KEY (dispatch_id)
+        REFERENCES public.dispatch (id_dispatch) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
 )
 
 TABLESPACE pg_default;
@@ -802,7 +807,6 @@ CREATE TABLE public.dispatch
     id_dispatch integer NOT NULL,
     destiny_id integer,
     vehicle_type_id integer,
-    sku_id integer,
     driver text,
     observations text,
     status_id integer,
@@ -823,10 +827,6 @@ CREATE TABLE public.dispatch
         ON DELETE NO ACTION,
     CONSTRAINT dispatch_vehicle_type_id_fkey FOREIGN KEY (vehicle_type_id)
         REFERENCES public.vehicle_type (id_vehicle_type) MATCH SIMPLE
-        ON UPDATE NO ACTION
-        ON DELETE NO ACTION
-    CONSTRAINT dispatch_sku_id_fkey FOREIGN KEY (sku_id)
-        REFERENCES public.dispatch_skus (id_sku) MATCH SIMPLE
         ON UPDATE NO ACTION
         ON DELETE NO ACTION
 )
@@ -1271,7 +1271,7 @@ CREATE TABLE public.biomar_access_images
     access_control_id integer NOT NULL,
     image_path text,
     type_process text,
-    created_at timestamp without time zone,
+    created_at timestamp without time zone DEFAULT now(),
     CONSTRAINT biomar_access_images_pkey PRIMARY KEY (id_image),
     CONSTRAINT images_access_control_id_fkey FOREIGN KEY (access_control_id)
         REFERENCES public.biomar_access_control (id_access_control) MATCH SIMPLE
