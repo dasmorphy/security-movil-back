@@ -253,7 +253,7 @@ class LogbookView(MethodView):
                 response["external_transaction_id"] = external_transaction_id
                 message = f"start request: {function_name}, channel: {request.headers.get('channel')}"
                 logger.info(message, internal=internal_transaction_id, external=external_transaction_id)
-                results = self.logbook_use_case.get_all_destiny(request.headers.get('business_id'), internal_transaction_id, external_transaction_id)
+                results = self.logbook_use_case.get_all_destiny(request.headers.get('business-id'), internal_transaction_id, external_transaction_id)
                 response["error_code"] = 0
                 response["message"] = "Registros obtenidos correctamente"
                 response["data"] = results

@@ -317,8 +317,9 @@ paths:
       description: Devuelve todos los destinos internos de la base
       operationId: get_all_destiny
       parameters:
-        - name: business_id
+        - name: business-id
           in: header
+          required: false
           schema:
             type: integer
             example: 1
