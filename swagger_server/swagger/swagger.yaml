@@ -320,7 +320,7 @@ paths:
         - name: business_id
           in: header
           schema:
-            type: integer
+            type: string
             example: 1
         - name: externalTransactionId
           in: header
