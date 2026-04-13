@@ -5,7 +5,7 @@ from typing import List
 from unittest import result
 from flask import json
 from loguru import logger
-from sqlalchemy import and_, exists, func, insert, select
+from sqlalchemy import ARRAY, String, and_, cast, exists, func, insert, select
 from sqlalchemy.orm import aliased
 from swagger_server.exception.custom_error_exception import CustomAPIException
 from swagger_server.models.db.authorized import Authorized
@@ -21,6 +21,7 @@ from swagger_server.models.db.report_generated import ReportGenerated
 from swagger_server.models.db.request_idempotency import RequestIdempotency
 from swagger_server.models.db.sector import Sector
 from swagger_server.models.db.unity_weight import UnityWeight
+from swagger_server.resources.databases import postgresql
 from swagger_server.resources.databases.postgresql import PostgreSQLClient
 from swagger_server.resources.databases.redis import RedisClient
 from swagger_server.utils.utils import get_date_range
@@ -29,6 +30,7 @@ from PIL import Image
 from uuid import uuid4
 from werkzeug.utils import secure_filename
 import getpass
+from sqlalchemy.dialects import postgresql
 
 class LogbookRepository:
     
@@ -1163,6 +1165,15 @@ class LogbookRepository:
                         CategoryOut.name_category.label("name_category_out"),
                         func.coalesce(images_entry_subq.c.images, []).label("images_entry"),
                         func.coalesce(images_out_subq.c.images, []).label("images_out")
+
+                        # func.coalesce(
+                        #     images_entry_subq.c.images,
+                        #     cast([], ARRAY(String))  # 👈 ARRAY[]::varchar[] en lugar de []
+                        # ).label("images_entry"),
+                        # func.coalesce(
+                        #     images_out_subq.c.images,
+                        #     cast([], ARRAY(String))  # 👈
+                        # ).label("images_out")
                     )
                     .join(GroupBusiness, GroupBusiness.id_group_business == LogbookEntry.group_business_id)
                     .join(Sector, Sector.id_sector == GroupBusiness.sector_id)
@@ -1180,7 +1191,6 @@ class LogbookRepository:
                 )
 
                 stmt_entry = self.apply_filters(stmt_entry, LogbookEntry, filtersBase)
-
                 rows_entry = session.execute(stmt_entry).all()
 
                 return rows_entry
@@ -1194,3 +1204,28 @@ class LogbookRepository:
 
             finally:
                 session.close()
+
+    def print_query(self, stmt):
+        try:
+            compiled = stmt.compile(
+                dialect=postgresql.dialect(),
+                compile_kwargs={"literal_binds": True}
+            )
+            print("\n" + "=" * 80)
+            print(str(compiled))
+            print("=" * 80 + "\n")
+        except Exception:
+            compiled = stmt.compile(dialect=postgresql.dialect())
+            params = compiled.params
+            query_str = str(compiled)
+            # Sustituye manualmente los parámetros
+            for key, value in params.items():
+                if isinstance(value, str):
+                    query_str = query_str.replace(f"%({key})s", f"'{value}'")
+                elif value is None:
+                    query_str = query_str.replace(f"%({key})s", "NULL")
+                else:
+                    query_str = query_str.replace(f"%({key})s", str(value))
+            print("\n" + "=" * 80)
+            print(query_str)
+            print("=" * 80 + "\n")
