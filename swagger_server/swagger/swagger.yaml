@@ -317,6 +317,11 @@ paths:
       description: Devuelve todos los destinos internos de la base
       operationId: get_all_destiny
       parameters:
+        - name: business_id
+          in: header
+          schema:
+            type: integer
+            example: 1
         - name: externalTransactionId
           in: header
           required: true

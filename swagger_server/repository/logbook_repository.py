@@ -485,22 +485,45 @@ class LogbookRepository:
                 raise CustomAPIException("Error al obtener en la base de datos", 500)
             
 
-    def get_all_destiny(self, internal, external):
+    def get_all_destiny(self, business, internal, external):
         with self.db.session_factory() as session:
             try:
-                result = session.execute(
-                    select(DestinyIntern)
-                )
+                stmt = select(DestinyIntern)
+
+                # Caso 1: no viene business → default = 1
+                if not business:
+                    stmt = stmt.where(DestinyIntern.business_id == 1)
+
+                # Caso 2: viene business distinto de Telearseg → filtrar
+                elif business != '3':
+                    business_id = session.execute(
+                        select(Business.id_business)
+                        .where(Business.id_business == business)
+                    ).scalar_one_or_none()
+
+                    if not business_id:
+                        raise CustomAPIException("La empresa no existe", 404)
+
+                    stmt = stmt.where(DestinyIntern.business_id == business_id)
+
+                # Caso 3: business == 'Telearseg'
+                # 👉 NO se aplica ningún filtro (trae todos)
+
+                result = session.execute(stmt)
+
                 destiny = [
                     {
                         "id_destiny": c.id_destiny,
                         "name": c.name,
                         "created_at": c.created_at,
-                        "updated_at": c.updated_at
+                        "updated_at": c.updated_at,
+                        "business_id": c.business_id
                     }
                     for c in result.scalars().all()
                 ]
+
                 return destiny
+
             except Exception as exception:
                 logger.error('Error: {}', str(exception), internal=internal, external=external)
                 if isinstance(exception, CustomAPIException):

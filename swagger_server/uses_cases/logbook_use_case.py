@@ -102,8 +102,8 @@ class LogbookUseCase:
     def get_all_authorized(self, internal, external):
         return self.logbook_repository.get_all_authorized(internal, external)
     
-    def get_all_destiny(self, internal, external):
-        return self.logbook_repository.get_all_destiny(internal, external)
+    def get_all_destiny(self, business, internal, external):
+        return self.logbook_repository.get_all_destiny(business, internal, external)
     
     def get_sector_by_business(self, id_business, internal, external):
         return self.logbook_repository.get_sector_by_business(id_business, internal, external)

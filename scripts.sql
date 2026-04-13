@@ -1380,3 +1380,26 @@ ALTER SEQUENCE public.access_control_materials_id_seq
 
 ALTER TABLE IF EXISTS public.access_control_materials
     ALTER COLUMN id_material_control SET DEFAULT nextval('access_control_materials_id_seq'::regclass);
+
+
+---------------------------------------------------------------------------------------------------------------
+
+ALTER TABLE IF EXISTS public.destiny_intern
+    ADD COLUMN business_id integer;
+ALTER TABLE IF EXISTS public.destiny_intern
+    ADD CONSTRAINT destiny_intern_business_id_fkey FOREIGN KEY (business_id)
+    REFERENCES public.business (id_business) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE NO ACTION;
+CREATE INDEX IF NOT EXISTS fki_destiny_intern_business_id_fkey
+    ON public.destiny_intern(business_id);
+
+
+-------------------------------------------------------------------------------------------------------------------
+
+
+
+
+
+
+

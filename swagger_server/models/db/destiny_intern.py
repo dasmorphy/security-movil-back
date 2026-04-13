@@ -24,6 +24,12 @@ class DestinyIntern(Base):
     )
 
     name = Column(Text)
+
+    business_id = Column(
+        Integer,
+        ForeignKey('public.business.id_business', onupdate='NO ACTION', ondelete='NO ACTION'),
+        nullable=False
+    )
     
     created_at = Column(
         DateTime,
