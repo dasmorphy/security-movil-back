@@ -490,29 +490,56 @@ class LogbookRepository:
     def get_all_destiny(self, business, internal, external):
         with self.db.session_factory() as session:
             try:
+                logger.info('get_all_destiny | business recibido: {} | type: {}', 
+                        repr(business), type(business).__name__, 
+                        internal=internal, external=external)
+
                 stmt = select(DestinyIntern)
 
                 # Caso 1: no viene business → default = 1
                 if not business:
+                    logger.info('get_all_destiny | CASO 1: business vacío, filtrando por business_id=1',
+                            internal=internal, external=external)
                     stmt = stmt.where(DestinyIntern.business_id == 1)
 
                 # Caso 2: viene business distinto de Telearseg → filtrar
                 elif business != '3':
+                    logger.info('get_all_destiny | CASO 2: business={}, buscando en BD',
+                            repr(business), internal=internal, external=external)
+                    
                     business_id = session.execute(
                         select(Business.id_business)
                         .where(Business.id_business == business)
                     ).scalar_one_or_none()
+
+                    logger.info('get_all_destiny | business_id encontrado: {}',
+                            repr(business_id), internal=internal, external=external)
 
                     if not business_id:
                         raise CustomAPIException("La empresa no existe", 404)
 
                     stmt = stmt.where(DestinyIntern.business_id == business_id)
 
-                # Caso 3: business == 'Telearseg'
-                # 👉 NO se aplica ningún filtro (trae todos)
+                # Caso 3: business == '3' → sin filtro
+                else:
+                    logger.info('get_all_destiny | CASO 3: business=3 (Telearseg), sin filtro',
+                            internal=internal, external=external)
+
+                # Imprimir query final
+                try:
+                    compiled = stmt.compile(
+                        dialect=postgresql.dialect(),
+                        compile_kwargs={"literal_binds": True}
+                    )
+                    logger.info('get_all_destiny | QUERY: {}', str(compiled),
+                            internal=internal, external=external)
+                except Exception as qe:
+                    compiled = stmt.compile(dialect=postgresql.dialect())
+                    logger.info('get_all_destiny | QUERY: {} | PARAMS: {}',
+                            str(compiled), compiled.params,
+                            internal=internal, external=external)
 
                 result = session.execute(stmt)
-
                 destiny = [
                     {
                         "id_destiny": c.id_destiny,
@@ -524,13 +551,16 @@ class LogbookRepository:
                     for c in result.scalars().all()
                 ]
 
+                logger.info('get_all_destiny | registros retornados: {}',
+                        len(destiny), internal=internal, external=external)
+
                 return destiny
 
             except Exception as exception:
-                logger.error('Error: {}', str(exception), internal=internal, external=external)
+                logger.error('get_all_destiny | Error: {}', str(exception), 
+                            internal=internal, external=external)
                 if isinstance(exception, CustomAPIException):
                     raise exception
-                
                 raise CustomAPIException("Error al obtener en la base de datos", 500)
 
     def get_sector_by_id(self, id_sector, internal, external):
