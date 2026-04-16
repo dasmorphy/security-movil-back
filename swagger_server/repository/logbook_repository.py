@@ -1053,7 +1053,7 @@ class LogbookRepository:
         if filtersBase.get("category_ids"):
             filters.append(model.category_id.in_(filtersBase["category_ids"]))
 
-        if filtersBase.get("user") != 'cod_monitoreo' : #TEMPORAL
+        if filtersBase.get("user") and filtersBase.get("user") != 'cod_monitoreo' : #TEMPORAL
             filters.append(model.created_by == filtersBase["user"])
 
         if filtersBase.get("start_date"):
