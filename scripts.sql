@@ -1397,7 +1397,17 @@ CREATE INDEX IF NOT EXISTS fki_destiny_intern_business_id_fkey
 
 -------------------------------------------------------------------------------------------------------------------
 
+ALTER TABLE IF EXISTS public.dispatch_reception_detail
+    RENAME product_id TO product_sku_id;
+ALTER TABLE IF EXISTS public.dispatch_reception_detail DROP CONSTRAINT IF EXISTS reception_detail_product_id_fkey;
 
+ALTER TABLE IF EXISTS public.dispatch_reception_detail
+    ADD CONSTRAINT reception_detail_product_sku_id_fkey FOREIGN KEY (product_sku_id)
+    REFERENCES public.products_sku (id_product_sku) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE NO ACTION;
+CREATE INDEX IF NOT EXISTS fki_reception_detail_product_sku_id_fkey
+    ON public.dispatch_reception_detail(product_sku_id);
 
 
 
