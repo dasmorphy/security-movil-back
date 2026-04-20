@@ -5,7 +5,7 @@ from typing import List
 from unittest import result
 from flask import json
 from loguru import logger
-from sqlalchemy import ARRAY, String, and_, cast, exists, func, insert, select
+from sqlalchemy import ARRAY, Integer, String, Text, and_, cast, exists, func, insert, literal, select, true, union_all
 from sqlalchemy.orm import aliased
 from swagger_server.exception.custom_error_exception import CustomAPIException
 from swagger_server.models.db.authorized import Authorized
@@ -24,7 +24,7 @@ from swagger_server.models.db.unity_weight import UnityWeight
 from swagger_server.resources.databases import postgresql
 from swagger_server.resources.databases.postgresql import PostgreSQLClient
 from swagger_server.resources.databases.redis import RedisClient
-from swagger_server.utils.utils import get_date_range
+from swagger_server.utils.utils import SEARCH_COLUMNS_ENTRY, SEARCH_COLUMNS_OUT, apply_search, get_date_range, parse_filters
 import os
 from PIL import Image
 from uuid import uuid4
@@ -1081,6 +1081,48 @@ class LogbookRepository:
             stmt = stmt.where(and_(*filters))
 
         return stmt
+    
+
+    def apply_filters_union_all(self, model: LogbookEntry | LogbookOut, filtersBase):
+        filters = []
+        last_30_days = datetime.now() - timedelta(days=30)
+
+        if not filtersBase.get("start_date") and not filtersBase.get("end_date"):
+            filters.append(model.created_at >= last_30_days)
+
+        if filtersBase.get("category_ids"):
+            filters.append(model.category_id.in_(filtersBase["category_ids"]))
+
+        if filtersBase.get("user") and filtersBase.get("user") != 'cod_monitoreo' : #TEMPORAL
+            filters.append(model.created_by == filtersBase["user"])
+
+        if filtersBase.get("start_date"):
+            filters.append(model.created_at >= filtersBase["start_date"])
+
+        if filtersBase.get("end_date"):
+            filters.append(model.created_at <= filtersBase["end_date"])
+
+        if filtersBase.get("workday"):
+            filters.append(model.workday.in_(filtersBase["workday"]))
+
+        if filtersBase.get("sector_id"):
+            filters.append(Sector.id_sector.in_(filtersBase.get("sector_id")))
+
+        if filtersBase.get("groups_business_id"):
+            filters.append(model.group_business_id.in_(filtersBase.get("groups_business_id")))
+
+        if filtersBase.get("id_business"):
+            filters.append(GroupBusiness.business_id == filtersBase.get("id_business"))
+
+        if filtersBase.get("notCategory"):
+            filters.append(Category.code != filtersBase.get("notCategory"))
+
+        column_search = SEARCH_COLUMNS_OUT if model is LogbookOut else SEARCH_COLUMNS_ENTRY
+        apply_search(filters, filtersBase.get("search"), column_search)
+
+        return filters if filters else [true()]
+
+        return stmt
 
     def get_logbook_out(self, filtersBase, internal, external):
         with self.db.session_factory() as session:
@@ -1159,7 +1201,7 @@ class LogbookRepository:
             
             raise CustomAPIException("Error al buscar en la base de datos", 500)
 
-    
+
     def get_logbook_entry(self, filtersBase, internal, external):
         with self.db.session_factory() as session:
             try:
@@ -1259,3 +1301,148 @@ class LogbookRepository:
             print("\n" + "=" * 80)
             print(query_str)
             print("=" * 80 + "\n")
+
+
+    def get_all_logbooks_paginated(self, filtersBase, pagination, internal, external):
+        with self.db.session_factory() as session:
+            try:
+                # ── Subquery de imágenes OUT ──────────────────────────────────
+                images_out_subq = (
+                    select(
+                        LogbookImages.logbook_id_out.label("logbook_id"),
+                        func.array_agg(LogbookImages.image_path)
+                            .filter(LogbookImages.image_path.isnot(None))
+                            .label("images")
+                    )
+                    .group_by(LogbookImages.logbook_id_out)
+                    .subquery()
+                )
+
+                # ── Subquery de imágenes ENTRY ────────────────────────────────
+                images_entry_subq = (
+                    select(
+                        LogbookImages.logbook_id_entry.label("logbook_id"),
+                        func.array_agg(LogbookImages.image_path)
+                            .filter(LogbookImages.image_path.isnot(None))
+                            .label("images")
+                    )
+                    .group_by(LogbookImages.logbook_id_entry)
+                    .subquery()
+                )
+
+                # ── Rama OUT ──────────────────────────────────────────────────
+                out_filters = self.apply_filters_union_all(LogbookOut, filtersBase)
+
+                stmt_out = (
+                    select(
+                        literal("out").label("record_type"),
+                        LogbookOut.id_logbook_out.label("record_id"),
+                        cast(None, Integer).label("logbook_out_id"),   # entry relacionado: N/A
+                        LogbookOut.unity_id,
+                        LogbookOut.category_id,
+                        LogbookOut.group_business_id,
+                        GroupBusiness.name.label("group_name"),
+                        Sector.id_sector,
+                        Sector.name.label("name_sector"),
+                        Category.name_category,
+                        LogbookOut.name_user,
+                        LogbookOut.shipping_guide,
+                        LogbookOut.quantity,
+                        LogbookOut.weight,
+                        LogbookOut.truck_license,
+                        LogbookOut.name_driver,
+                        LogbookOut.authorized_by,
+                        LogbookOut.observations,
+                        LogbookOut.workday,
+                        LogbookOut.lat,
+                        LogbookOut.long,
+                        LogbookOut.destiny.label("destiny"),           # campo unificado
+                        LogbookOut.person_withdraws,
+                        cast(None, Text).label("description"),         # exclusivo entry
+                        cast(None, Text).label("provider"),
+                        cast(None, Text).label("status"),
+                        func.coalesce(images_out_subq.c.images, cast([], ARRAY(Text))).label("images"),
+                        LogbookOut.created_at,
+                        LogbookOut.updated_at,
+                        LogbookOut.created_by,
+                        LogbookOut.updated_by,
+                    )
+                    .join(GroupBusiness, GroupBusiness.id_group_business == LogbookOut.group_business_id)
+                    .join(Sector, Sector.id_sector == GroupBusiness.sector_id)
+                    .join(Category, Category.id_category == LogbookOut.category_id)
+                    .outerjoin(images_out_subq, images_out_subq.c.logbook_id == LogbookOut.id_logbook_out)
+                    # Solo out sin entry asociado
+                    .outerjoin(LogbookEntry, LogbookEntry.logbook_out_id == LogbookOut.id_logbook_out)
+                    .where(LogbookEntry.id_logbook_entry.is_(None))
+                    .where(and_(*out_filters))
+                )
+
+                # ── Rama ENTRY ────────────────────────────────────────────────
+                entry_filters = self.apply_filters_union_all(LogbookEntry, filtersBase)
+
+                stmt_entry = (
+                    select(
+                        literal("entry").label("record_type"),
+                        LogbookEntry.id_logbook_entry.label("record_id"),
+                        LogbookEntry.logbook_out_id,               # referencia al out relacionado
+                        LogbookEntry.unity_id,
+                        LogbookEntry.category_id,
+                        LogbookEntry.group_business_id,
+                        GroupBusiness.name.label("group_name"),
+                        Sector.id_sector,
+                        Sector.name.label("name_sector"),
+                        Category.name_category,
+                        LogbookEntry.name_user,
+                        LogbookEntry.shipping_guide,
+                        LogbookEntry.quantity,
+                        LogbookEntry.weight,
+                        LogbookEntry.truck_license,
+                        LogbookEntry.name_driver,
+                        LogbookEntry.authorized_by,
+                        LogbookEntry.observations,
+                        LogbookEntry.workday,
+                        LogbookEntry.lat,
+                        LogbookEntry.long,
+                        LogbookEntry.destiny_intern.label("destiny"),  # campo unificado
+                        cast(None, Text).label("person_withdraws"),    # exclusivo out
+                        LogbookEntry.description,
+                        LogbookEntry.provider,
+                        LogbookEntry.status,
+                        func.coalesce(images_entry_subq.c.images, cast([], ARRAY(Text))).label("images"),
+                        LogbookEntry.created_at,
+                        LogbookEntry.updated_at,
+                        LogbookEntry.created_by,
+                        LogbookEntry.updated_by,
+                    )
+                    .join(GroupBusiness, GroupBusiness.id_group_business == LogbookEntry.group_business_id)
+                    .join(Sector, Sector.id_sector == GroupBusiness.sector_id)
+                    .join(Category, Category.id_category == LogbookEntry.category_id)
+                    .outerjoin(images_entry_subq, images_entry_subq.c.logbook_id == LogbookEntry.id_logbook_entry)
+                    .where(and_(*entry_filters))
+                )
+
+                # ── UNION ALL + orden + paginación ────────────────────────────
+                union_subq = union_all(stmt_out, stmt_entry).subquery()
+
+
+                total_stmt = select(func.count()).select_from(union_subq)
+                total = session.execute(total_stmt).scalar()
+
+                final_stmt = (
+                    select(union_subq)
+                    .order_by(union_subq.c.created_at.desc())
+                    .offset(pagination.offset)
+                    .limit(pagination.page_size)
+                )
+                
+                rows = session.execute(final_stmt).mappings().all()
+
+                return rows, total
+
+            except Exception as exception:
+                logger.error('Error: {}', str(exception), internal=internal, external=external)
+                if isinstance(exception, CustomAPIException):
+                    raise exception
+                raise CustomAPIException("Error al buscar en la base de datos", 500)
+            finally:
+                session.close()

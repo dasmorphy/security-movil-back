@@ -1,5 +1,6 @@
 
 
+from dataclasses import dataclass
 from io import BytesIO
 import os
 import pandas as pd
@@ -25,6 +26,14 @@ from collections import OrderedDict, defaultdict
 
 from swagger_server.utils.utils import diference_time, get_workday, parse_filters, serialize_out
 
+@dataclass
+class PaginationParams:
+    page: int = 1
+    page_size: int = 20
+
+    @property
+    def offset(self):
+        return (self.page - 1) * self.page_size
 
 class LogbookUseCase:
 
@@ -901,3 +910,34 @@ class LogbookUseCase:
 
         elements.append(table)
         doc.build(elements)
+
+    def parse_pagination(self, params: dict) -> PaginationParams:
+        try:
+            page = max(1, int(params.get("first", 1)))
+            page_size = min(100, max(1, int(params.get("rows", 20))))  # máximo 100
+            return PaginationParams(page=page, page_size=page_size)
+        except (ValueError, TypeError):
+            return PaginationParams()
+        
+
+    def get_all_logbooks_new(self, headers, params, internal, external):
+        filters = parse_filters(headers, params)
+        pagination = self.parse_pagination(params)
+
+        rows, total = self.logbook_repository.get_all_logbooks_paginated(
+            filters, pagination, internal, external
+        )
+
+        data = [dict(row) for row in rows]
+
+        return {
+            "data": data,
+            "pagination": {
+                "page": pagination.page,
+                "page_size": pagination.page_size,
+                "total": total,
+                "total_pages": -(-total // pagination.page_size),
+                "has_next": (pagination.offset + pagination.page_size) < total,
+                "has_prev": pagination.page > 1,
+            }
+        }

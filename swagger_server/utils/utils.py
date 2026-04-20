@@ -2,9 +2,34 @@ from datetime import date, datetime, time, timedelta
 from pytz import timezone
 import re
 
+from sqlalchemy import or_
+
+from swagger_server.models.db.logbook_entry import LogbookEntry
+from swagger_server.models.db.logbook_out import LogbookOut
+
 # Funciones de utilidad para el sistema completo.
 
 DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
+
+SEARCH_COLUMNS_OUT = [
+    LogbookOut.name_user,
+    LogbookOut.name_driver,
+    LogbookOut.truck_license,
+    LogbookOut.shipping_guide,
+    LogbookOut.observations,
+    LogbookOut.authorized_by,
+    LogbookOut.destiny,
+]
+
+SEARCH_COLUMNS_ENTRY = [
+    LogbookEntry.name_user,
+    LogbookEntry.name_driver,
+    LogbookEntry.truck_license,
+    LogbookEntry.shipping_guide,
+    LogbookEntry.observations,
+    LogbookEntry.authorized_by,
+    LogbookEntry.destiny_intern,
+]
 
 
 def format_uri_connection(connection):
@@ -97,8 +122,19 @@ def parse_filters(headers, params):
         "category_ids": [int(x) for x in category_ids.split(",")] if category_ids else [],
         "workday": [x for x in workday.split(",")] if workday else [],
         "id_business": params.get("id_business"),
-        "notCategory": headers.get("notCategory")
+        "notCategory": headers.get("notCategory"),
+        "search": params.get("search", "").strip() or None,
     }
+
+def apply_search(filters: list, search: str, columns: list):
+    """Agrega un OR con ILIKE sobre todas las columnas especificadas."""
+    if not search:
+        return
+    
+    term = f"%{search}%"
+    filters.append(
+        or_(*[col.ilike(term) for col in columns])
+    )
 
 def diference_time(logbook_entry, logbook_out):
 

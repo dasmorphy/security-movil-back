@@ -1411,5 +1411,52 @@ CREATE INDEX IF NOT EXISTS fki_reception_detail_product_sku_id_fkey
 
 
 
+------------------------------------------------------------------------------------------------------------------------------------
+
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+
+-- logbook_out — columnas buscables
+CREATE INDEX idx_trgm_out_name_user     ON public.logbook_out USING gin (name_user gin_trgm_ops);
+CREATE INDEX idx_trgm_out_name_driver   ON public.logbook_out USING gin (name_driver gin_trgm_ops);
+CREATE INDEX idx_trgm_out_truck_license ON public.logbook_out USING gin (truck_license gin_trgm_ops);
+CREATE INDEX idx_trgm_out_shipping_guide ON public.logbook_out USING gin (shipping_guide gin_trgm_ops);
+CREATE INDEX idx_trgm_out_observations  ON public.logbook_out USING gin (observations gin_trgm_ops);
+
+-- logbook_entry — mismas columnas comunes
+CREATE INDEX idx_trgm_entry_name_user     ON public.logbook_entry USING gin (name_user gin_trgm_ops);
+CREATE INDEX idx_trgm_entry_name_driver   ON public.logbook_entry USING gin (name_driver gin_trgm_ops);
+CREATE INDEX idx_trgm_entry_truck_license ON public.logbook_entry USING gin (truck_license gin_trgm_ops);
+CREATE INDEX idx_trgm_entry_shipping_guide ON public.logbook_entry USING gin (shipping_guide gin_trgm_ops);
+CREATE INDEX idx_trgm_entry_observations  ON public.logbook_entry USING gin (observations gin_trgm_ops);
+
+-- Filtro por fecha + grupo (el caso más común: ver registros del mes por unidad)
+CREATE INDEX idx_logbook_out_created_group   ON public.logbook_out (created_at DESC, group_business_id);
+CREATE INDEX idx_logbook_entry_created_group ON public.logbook_entry (created_at DESC, group_business_id);
+
+-- Filtro por fecha + categoría
+CREATE INDEX idx_logbook_out_created_cat   ON public.logbook_out (created_at DESC, category_id);
+CREATE INDEX idx_logbook_entry_created_cat ON public.logbook_entry (created_at DESC, category_id);
 
 
+-- logbook_out
+CREATE INDEX idx_logbook_out_created_at       ON public.logbook_out (created_at DESC);
+--CREATE INDEX idx_logbook_out_group_business_id ON public.logbook_out (group_business_id);
+CREATE INDEX idx_logbook_out_category_id       ON public.logbook_out (category_id);
+CREATE INDEX idx_logbook_out_workday           ON public.logbook_out (workday);
+CREATE INDEX idx_logbook_out_created_by        ON public.logbook_out (created_by);
+
+-- logbook_entry
+CREATE INDEX idx_logbook_entry_created_at        ON public.logbook_entry (created_at DESC);
+--CREATE INDEX idx_logbook_entry_group_business_id  ON public.logbook_entry (group_business_id);
+CREATE INDEX idx_logbook_entry_category_id        ON public.logbook_entry (category_id);
+CREATE INDEX idx_logbook_entry_workday            ON public.logbook_entry (workday);
+CREATE INDEX idx_logbook_entry_created_by         ON public.logbook_entry (created_by);
+--CREATE INDEX idx_logbook_entry_logbook_out_id     ON public.logbook_entry (logbook_out_id); -- join y lookup del out relacionado
+
+-- logbook_images (los outerjoin de imágenes)
+CREATE INDEX idx_logbook_images_logbook_id_out   ON public.logbook_images (logbook_id_out);
+CREATE INDEX idx_logbook_images_logbook_id_entry ON public.logbook_images (logbook_id_entry);
+
+-- group_business y sector (joins frecuentes)
+CREATE INDEX idx_group_business_sector_id    ON public.group_business (sector_id);
+--CREATE INDEX idx_group_business_business_id  ON public.group_business (business_id);
