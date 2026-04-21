@@ -1389,6 +1389,7 @@ class LogbookRepository:
                         cast(None, Text).label("out_created_by"),
                         cast(None, Text).label("out_updated_by"),
                         cast(None, Text).label("out_name_category"),
+                        cast(None, Text).label("out_group_name"),
                         cast([], ARRAY(Text)).label("out_images"),
                     )
                     .join(GroupBusiness, GroupBusiness.id_group_business == LogbookOut.group_business_id)
@@ -1405,6 +1406,7 @@ class LogbookRepository:
                 entry_filters = self.apply_filters_union_all(LogbookEntry, filtersBase)
 
                 CategoryOut = aliased(Category)
+                GroupBusinessOut = aliased(GroupBusiness)
                 images_out_related_subq = (
                     select(
                         LogbookImages.logbook_id_out.label("logbook_id"),
@@ -1475,6 +1477,7 @@ class LogbookRepository:
                         LogbookOutRelated.created_by.label("out_created_by"),
                         LogbookOutRelated.updated_by.label("out_updated_by"),
                         CategoryOut.name_category.label("out_name_category"),
+                        GroupBusinessOut.name.label("out_group_name"),
                         func.coalesce(images_out_related_subq.c.images, cast([], ARRAY(Text))).label("out_images"),
                     )
                     .join(GroupBusiness, GroupBusiness.id_group_business == LogbookEntry.group_business_id)
@@ -1485,6 +1488,7 @@ class LogbookRepository:
                     # ── Joins del out relacionado ──────────────────────────────
                     .outerjoin(LogbookOutRelated, LogbookOutRelated.id_logbook_out == LogbookEntry.logbook_out_id)
                     .outerjoin(CategoryOut, CategoryOut.id_category == LogbookOutRelated.category_id)
+                    .outerjoin(GroupBusinessOut, GroupBusinessOut.id_group_business == LogbookOutRelated.group_business_id)
                     .outerjoin(images_out_related_subq, images_out_related_subq.c.logbook_id == LogbookOutRelated.id_logbook_out)
 
                     .where(and_(*entry_filters))

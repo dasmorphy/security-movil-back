@@ -939,6 +939,7 @@ class LogbookUseCase:
             "created_by": row["out_created_by"],
             "updated_by": row["out_updated_by"],
             "name_category": row["out_name_category"],
+            "group_name": row["out_group_name"],
             "images": row["out_images"] or [],
         }
 
