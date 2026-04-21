@@ -148,7 +148,8 @@ class LogbookUseCase:
 
         results = [
             {
-                "id_logbook_entry": c.id_logbook_entry,
+                "record_type": "entry",
+                "record_id": c.id_logbook_entry,
                 "unity_id": c.unity_id,
                 "group_name": group_name,
                 "name_user": c.name_user,
@@ -174,7 +175,7 @@ class LogbookUseCase:
                 "id_sector": id_sector,
                 "name_sector": name_sector,
                 "name_category": name_category,
-                "images_entry": images or []
+                "images": images or []
             }
             for c, group_name, id_sector, name_sector, name_category, images in rows
         ]
@@ -202,7 +203,8 @@ class LogbookUseCase:
 
         results = [
             {
-                "id_logbook_out": c.id_logbook_out,
+                "record_type": "out",
+                "record_id": c.id_logbook_out,
                 "unity_id": c.unity_id,
                 "category_id": c.category_id,
                 "name_user": c.name_user,
@@ -227,7 +229,7 @@ class LogbookUseCase:
                 "id_sector": id_sector,
                 "name_sector": name_sector,
                 "name_category": name_category,
-                "images_out": images or []
+                "images": images or []
             }
             for c, group_name, id_sector, name_sector, name_category, images in rows
         ]
