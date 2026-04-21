@@ -973,6 +973,9 @@ class LogbookUseCase:
             if record["record_type"] == "entry":
                 record["out"] = related_out
 
+            if record["record_type"] == "out":
+                record["status"] = "Finalizado"
+
             data.append(record)
 
         return {
