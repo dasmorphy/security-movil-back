@@ -911,6 +911,38 @@ class LogbookUseCase:
         elements.append(table)
         doc.build(elements)
 
+
+    def serialize_related_out(self, row: dict) -> dict | None:
+        if not row.get("out_record_id"):
+            return None
+        return {
+            "record_type": "out",
+            "record_id": row["out_record_id"],
+            "unity_id": row["out_unity_id"],
+            "category_id": row["out_category_id"],
+            "group_business_id": row["out_group_business_id"],
+            "name_user": row["out_name_user"],
+            "shipping_guide": row["out_shipping_guide"],
+            "quantity": row["out_quantity"],
+            "weight": row["out_weight"],
+            "truck_license": row["out_truck_license"],
+            "name_driver": row["out_name_driver"],
+            "authorized_by": row["out_authorized_by"],
+            "observations": row["out_observations"],
+            "workday": row["out_workday"],
+            "lat": row["out_lat"],
+            "long": row["out_long"],
+            "destiny": row["out_destiny"],
+            "person_withdraws": row["out_person_withdraws"],
+            "created_at": row["out_created_at"],
+            "updated_at": row["out_updated_at"],
+            "created_by": row["out_created_by"],
+            "updated_by": row["out_updated_by"],
+            "name_category": row["out_name_category"],
+            "images": row["out_images"] or [],
+        }
+
+
     def parse_pagination(self, params: dict) -> PaginationParams:
         try:
             page = max(1, int(params.get("first", 1)))
@@ -928,7 +960,20 @@ class LogbookUseCase:
             filters, pagination, internal, external
         )
 
-        data = [dict(row) for row in rows]
+        data = []
+
+        for row in rows:
+            record = dict(row)
+
+            # Extraer y limpiar campos out_* del registro principal
+            related_out = self.serialize_related_out(record)
+            record = {k: v for k, v in record.items() if not k.startswith("out_")}
+
+            # Solo los entry tienen la columna "out"
+            if record["record_type"] == "entry":
+                record["out"] = related_out
+
+            data.append(record)
 
         return {
             "data": data,

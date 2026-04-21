@@ -5,7 +5,7 @@ from typing import List
 from unittest import result
 from flask import json
 from loguru import logger
-from sqlalchemy import ARRAY, Integer, String, Text, and_, cast, exists, func, insert, literal, select, true, union_all
+from sqlalchemy import ARRAY, DateTime, Integer, String, Text, and_, cast, exists, func, insert, literal, select, true, union_all
 from sqlalchemy.orm import aliased
 from swagger_server.exception.custom_error_exception import CustomAPIException
 from swagger_server.models.db.authorized import Authorized
@@ -1366,6 +1366,30 @@ class LogbookRepository:
                         LogbookOut.updated_at,
                         LogbookOut.created_by,
                         LogbookOut.updated_by,
+
+                        cast(None, Integer).label("out_record_id"),
+                        cast(None, Integer).label("out_unity_id"),
+                        cast(None, Integer).label("out_category_id"),
+                        cast(None, Integer).label("out_group_business_id"),
+                        cast(None, Text).label("out_name_user"),
+                        cast(None, Text).label("out_shipping_guide"),
+                        cast(None, Integer).label("out_quantity"),
+                        cast(None, Integer).label("out_weight"),
+                        cast(None, Text).label("out_truck_license"),
+                        cast(None, Text).label("out_name_driver"),
+                        cast(None, Text).label("out_authorized_by"),
+                        cast(None, Text).label("out_observations"),
+                        cast(None, Text).label("out_workday"),
+                        cast(None, Text).label("out_lat"),
+                        cast(None, Text).label("out_long"),
+                        cast(None, Text).label("out_destiny"),
+                        cast(None, Text).label("out_person_withdraws"),
+                        cast(None, DateTime).label("out_created_at"),
+                        cast(None, DateTime).label("out_updated_at"),
+                        cast(None, Text).label("out_created_by"),
+                        cast(None, Text).label("out_updated_by"),
+                        cast(None, Text).label("out_name_category"),
+                        cast([], ARRAY(Text)).label("out_images"),
                     )
                     .join(GroupBusiness, GroupBusiness.id_group_business == LogbookOut.group_business_id)
                     .join(Sector, Sector.id_sector == GroupBusiness.sector_id)
@@ -1379,6 +1403,20 @@ class LogbookRepository:
 
                 # ── Rama ENTRY ────────────────────────────────────────────────
                 entry_filters = self.apply_filters_union_all(LogbookEntry, filtersBase)
+
+                CategoryOut = aliased(Category)
+                images_out_related_subq = (
+                    select(
+                        LogbookImages.logbook_id_out.label("logbook_id"),
+                        func.array_agg(LogbookImages.image_path)
+                            .filter(LogbookImages.image_path.isnot(None))
+                            .label("images")
+                    )
+                    .group_by(LogbookImages.logbook_id_out)
+                    .subquery()
+                )
+
+                LogbookOutRelated = aliased(LogbookOut)
 
                 stmt_entry = (
                     select(
@@ -1413,11 +1451,42 @@ class LogbookRepository:
                         LogbookEntry.updated_at,
                         LogbookEntry.created_by,
                         LogbookEntry.updated_by,
+
+                        # ── Datos del out relacionado ──────────────────────────
+                        LogbookOutRelated.id_logbook_out.label("out_record_id"),
+                        LogbookOutRelated.unity_id.label("out_unity_id"),
+                        LogbookOutRelated.category_id.label("out_category_id"),
+                        LogbookOutRelated.group_business_id.label("out_group_business_id"),
+                        LogbookOutRelated.name_user.label("out_name_user"),
+                        LogbookOutRelated.shipping_guide.label("out_shipping_guide"),
+                        LogbookOutRelated.quantity.label("out_quantity"),
+                        LogbookOutRelated.weight.label("out_weight"),
+                        LogbookOutRelated.truck_license.label("out_truck_license"),
+                        LogbookOutRelated.name_driver.label("out_name_driver"),
+                        LogbookOutRelated.authorized_by.label("out_authorized_by"),
+                        LogbookOutRelated.observations.label("out_observations"),
+                        LogbookOutRelated.workday.label("out_workday"),
+                        LogbookOutRelated.lat.label("out_lat"),
+                        LogbookOutRelated.long.label("out_long"),
+                        LogbookOutRelated.destiny.label("out_destiny"),
+                        LogbookOutRelated.person_withdraws.label("out_person_withdraws"),
+                        LogbookOutRelated.created_at.label("out_created_at"),
+                        LogbookOutRelated.updated_at.label("out_updated_at"),
+                        LogbookOutRelated.created_by.label("out_created_by"),
+                        LogbookOutRelated.updated_by.label("out_updated_by"),
+                        CategoryOut.name_category.label("out_name_category"),
+                        func.coalesce(images_out_related_subq.c.images, cast([], ARRAY(Text))).label("out_images"),
                     )
                     .join(GroupBusiness, GroupBusiness.id_group_business == LogbookEntry.group_business_id)
                     .join(Sector, Sector.id_sector == GroupBusiness.sector_id)
                     .join(Category, Category.id_category == LogbookEntry.category_id)
                     .outerjoin(images_entry_subq, images_entry_subq.c.logbook_id == LogbookEntry.id_logbook_entry)
+
+                    # ── Joins del out relacionado ──────────────────────────────
+                    .outerjoin(LogbookOutRelated, LogbookOutRelated.id_logbook_out == LogbookEntry.logbook_out_id)
+                    .outerjoin(CategoryOut, CategoryOut.id_category == LogbookOutRelated.category_id)
+                    .outerjoin(images_out_related_subq, images_out_related_subq.c.logbook_id == LogbookOutRelated.id_logbook_out)
+
                     .where(and_(*entry_filters))
                 )
 
