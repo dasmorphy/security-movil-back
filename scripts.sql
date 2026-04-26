@@ -637,6 +637,45 @@ ALTER TABLE IF EXISTS public.dispatch_status
 
 --------------------------------------------------------------------------------------------------------------------------
 
+CREATE TABLE public.user_sessions
+(
+    id_session integer NOT NULL,
+    token_session text NOT NULL,
+    user_id uuid NOT NULL,
+    ip_user text,
+    is_active boolean DEFAULT true,
+    created_at timestamp without time zone DEFAULT now(),
+    updated_at timestamp without time zone DEFAULT now(),
+    CONSTRAINT user_sessions_pkey PRIMARY KEY (id_session),
+    CONSTRAINT user_sessions_user_id_fkey FOREIGN KEY (user_id)
+        REFERENCES public.users (id_user) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+)
+
+ALTER TABLE IF EXISTS public.user_sessions
+    OWNER to nextgen;
+
+
+CREATE SEQUENCE public.user_sessions_id_seq
+    INCREMENT 1
+    START 1
+    MINVALUE 1
+    MAXVALUE 2147483647
+    CACHE 1;
+
+ALTER SEQUENCE public.user_sessions_id_seq
+    OWNED BY public.user_sessions.id_session;
+
+ALTER SEQUENCE public.user_sessions_id_seq
+    OWNER TO nextgen;
+
+ALTER TABLE IF EXISTS public.user_sessions
+    ALTER COLUMN id_session SET DEFAULT nextval('user_sessions_id_seq'::regclass);
+
+
+--------------------------------------------------------------------------------------------------------------------------
+
 
 CREATE TABLE public.dispatch_skus
 (

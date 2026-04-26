@@ -9,15 +9,19 @@ from swagger_server.models.db.permissions import Permission
 from swagger_server.models.db.role_permissions import RolePermission
 from swagger_server.models.db.roles import Roles
 from swagger_server.models.db.unity_weight import UnityWeight
+from swagger_server.models.db.user_sessions import UserSessions
 from swagger_server.models.db.users import Users
 from swagger_server.resources.databases.postgresql import PostgreSQLClient
 from sqlalchemy.dialects.postgresql import JSONB
+
+from swagger_server.resources.databases.redis import RedisClient
 
 
 class UserRepository:
     
     def __init__(self):
         self.db = PostgreSQLClient("POSTGRESQL")
+        self.redis_client = RedisClient()
 
 
     def post_new_user(self, new_user_body: Users, internal, external) -> None:
@@ -171,7 +175,7 @@ class UserRepository:
                 
 
                 user_autenticated = {
-                    "id_user": user_found.id_user,
+                    "id_user": str(user_found.id_user),
                     "role": user_found.role,
                     "user": user_found.user,
                     "email": user_found.email,
@@ -192,3 +196,77 @@ class UserRepository:
 
             finally:
                 session.close()
+
+
+    def logout(self, token: str, internal: str, external: str):
+        with self.db.session_factory() as session:
+            try:
+                session_user = session.execute(
+                    select(UserSessions).where(UserSessions.token_session == token)
+                ).scalar_one_or_none()
+
+                if not session_user:
+                    raise CustomAPIException("Sesión no encontrada", 404)
+
+                self.delete_session_redis(token)
+                session.delete(session_user)
+                session.commit()
+            except Exception as exception:
+                session.rollback()
+                logger.error('Error: {}', str(exception), internal=internal, external=external)
+                if isinstance(exception, CustomAPIException):
+                    raise exception
+                raise CustomAPIException("Error al obtener en la base de datos", 500)
+            finally:
+                session.close()
+
+    def delete_session_redis(self, token):
+        user_id = self.redis_client.client.get(f"token:{token}")
+        if user_id:
+            self.redis_client.client.delete(
+                f"token:{token}",
+            )
+
+
+    def save_session(self, data: UserSessions, internal, external):
+        with self.db.session_factory() as session:
+            try:
+                self.save_token_cache(data.token_session, str(data.user_id), internal, external)
+                session.add(data)
+                session.commit()
+            except Exception as exception:
+                session.rollback()
+                logger.error('Error: {}', str(exception), internal=internal, external=external)
+                if isinstance(exception, CustomAPIException):
+                    raise exception
+                
+                raise CustomAPIException("Error al obtener en la base de datos", 500)
+
+            finally:
+                session.close()
+
+    def save_token_cache(self, token: str, usr_id: str, internal, external):
+        try:
+            ttl = 60 * 60 * 24  # 24 horas
+            self.redis_client.client.set(
+                f"token:{token}",
+                usr_id,
+                ex=ttl
+            )
+                        
+        except Exception as exception:
+            logger.error('Error: {}', str(exception), internal=internal, external=external)                
+            raise CustomAPIException("Error al guardar el token del usuario", 500)
+        
+        
+    def search_user_session(self, id_user: str, internal, external):
+        with self.db.session_factory() as session:
+            try:
+                session_user = session.execute(
+                    select(UserSessions).where(UserSessions.user_id == id_user)
+                ).scalar_one_or_none()
+
+                return True if session_user else False
+            except Exception as exception:
+                logger.error('Error: {}', str(exception), internal=internal, external=external)
+                raise CustomAPIException("No se encontro la sesion del usuario", 401)
