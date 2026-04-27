@@ -266,7 +266,19 @@ class UserRepository:
                     select(UserSessions).where(UserSessions.user_id == id_user)
                 ).scalar_one_or_none()
 
-                return True if session_user else False
+                if not session_user:
+                    return False
+
+                exists_in_redis = self.redis_client.client.get(
+                    f"token:{session_user.token_session}"
+                )
+
+                if not exists_in_redis:
+                    session.delete(session_user)
+                    session.commit()
+                    return False
+
+                return True
             except Exception as exception:
                 logger.error('Error: {}', str(exception), internal=internal, external=external)
                 raise CustomAPIException("No se encontro la sesion del usuario", 401)
