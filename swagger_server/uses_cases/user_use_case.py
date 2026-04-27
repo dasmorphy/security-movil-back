@@ -51,10 +51,10 @@ class UserUseCase:
         if (channel == 'ZENTINEL'):
             return user_autenticated
         
-        verify_user_session = self.user_repository.search_user_session(user_autenticated['id_user'], internal, external)
+        # verify_user_session = self.user_repository.search_user_session(user_autenticated['id_user'], internal, external)
 
-        if verify_user_session:
-            raise CustomAPIException(message="El usuario ya tiene una sesión activa", status_code=401)
+        # if verify_user_session:
+        #     raise CustomAPIException(message="El usuario ya tiene una sesión activa", status_code=401)
 
         token = self.generate_jwt(user_autenticated)
 
