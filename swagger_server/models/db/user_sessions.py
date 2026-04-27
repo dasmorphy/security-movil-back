@@ -37,6 +37,8 @@ class UserSessions(Base):
     )
 
     ip_user = Column(Text)
+    device = Column(Text)
+    os = Column(Text)
 
 
     is_active = Column(Boolean, default=True)

@@ -1,6 +1,7 @@
 
 
 from datetime import datetime, timezone
+from user_agents import parse
 
 import jwt
 
@@ -64,13 +65,62 @@ class UserUseCase:
     
     def logout(self, body: RequestLogout, internal, external):
         self.user_repository.logout(body.logout.token, internal, external)
-    
-    def save_session(self, authenticated_user, ip_user, internal, external):
+
+
+    def save_session(self, authenticated_user, headers, internal, external):
+        ip_user = headers.get("X-Forwarded-For", "")
+        ua_string = headers.get("User-Agent", "")
+
+        device = None
+        os = None
+
+        try:
+            if ua_string:
+                user_agent = parse(ua_string)
+
+                # OS
+                os = user_agent.os.family if user_agent.os and user_agent.os.family else None
+
+                # DEVICE
+                if user_agent.device and user_agent.device.family:
+                    device_family = user_agent.device.family
+
+                    if device_family == "Other":
+                        if user_agent.is_pc:
+                            device = "PC"
+                        else:
+                            device = "Other"
+                    else:
+                        device = device_family
+                else:
+                    device = None
+
+        except Exception:
+            device = None
+            os = None
+
+        # print(user_agent.os.family)       # Windows, Android, iOS
+        # print(user_agent.os.version_string)
+
+        # print(user_agent.browser.family)  # Chrome, Firefox
+        # print(user_agent.browser.version_string)
+
+        # print(user_agent.device.family)   # iPhone, Samsung, etc.
+
+        # print(user_agent.is_mobile)
+        # print(user_agent.is_tablet)
+        # print(user_agent.is_pc)
+
+        # print(user_agent)
+
         session = UserSessions(
             token_session=authenticated_user["token"],
             user_id=authenticated_user["user_id"],
-            ip_user= ip_user
+            ip_user=ip_user,
+            device=device,
+            os=os
         )
+
         self.user_repository.save_session(session, internal, external)
         
     

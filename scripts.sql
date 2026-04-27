@@ -643,6 +643,8 @@ CREATE TABLE public.user_sessions
     token_session text NOT NULL,
     user_id uuid NOT NULL,
     ip_user text,
+    device text,
+    os text,
     is_active boolean DEFAULT true,
     created_at timestamp without time zone DEFAULT now(),
     updated_at timestamp without time zone DEFAULT now(),
@@ -1499,3 +1501,121 @@ CREATE INDEX idx_logbook_images_logbook_id_entry ON public.logbook_images (logbo
 -- group_business y sector (joins frecuentes)
 CREATE INDEX idx_group_business_sector_id    ON public.group_business (sector_id);
 --CREATE INDEX idx_group_business_business_id  ON public.group_business (business_id);
+
+----------------------------------------------------------------------------------------------------------------------------------------
+
+
+CREATE TABLE public.rounds
+(
+    id_round integer NOT NULL,
+    start_time timestamp without time zone,
+    end_time timestamp without time zone,
+    status text,
+    assigned_to text,
+    assigned_by text,
+    created_at timestamp without time zone DEFAULT now(),
+    created_by text DEFAULT 'job_round_created',
+    CONSTRAINT rounds_pkey PRIMARY KEY (id_round)
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.rounds
+    OWNER to nextgen;
+
+
+CREATE SEQUENCE public.rounds_round_id_seq
+    INCREMENT 1
+    START 1
+    MINVALUE 1
+    MAXVALUE 2147483647
+    CACHE 1;
+
+ALTER SEQUENCE public.rounds_round_id_seq
+    OWNED BY public.rounds.id_round;
+
+ALTER SEQUENCE public.rounds_round_id_seq
+    OWNER TO nextgen;
+
+ALTER TABLE IF EXISTS public.rounds
+    ALTER COLUMN id_round SET DEFAULT nextval('rounds_round_id_seq'::regclass);
+
+
+----------------------------------------------------------------------------------------------------------------
+
+
+CREATE TABLE public.round_register
+(
+    id_round_register integer NOT NULL,
+    round_id integer,
+    out_round boolean DEFAULT False,
+    lat text,
+    long text,
+    observations text,
+    created_by text,
+    created_at timestamp without time zone DEFAULT now(),
+    CONSTRAINT round_register_pkey PRIMARY KEY (id_round_register),
+    CONSTRAINT round_register_round_id_fkey FOREIGN KEY (round_id)
+        REFERENCES public.rounds (id_round) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.round_register
+    OWNER to nextgen;
+
+
+CREATE SEQUENCE public.round_register_id_seq
+    INCREMENT 1
+    START 1
+    MINVALUE 1
+    MAXVALUE 2147483647
+    CACHE 1;
+
+ALTER SEQUENCE public.round_register_id_seq
+    OWNED BY public.round_register.id_round_register;
+
+ALTER SEQUENCE public.round_register_id_seq
+    OWNER TO nextgen;
+
+ALTER TABLE IF EXISTS public.round_register
+    ALTER COLUMN id_round_register SET DEFAULT nextval('round_register_id_seq'::regclass);
+
+------------------------------------------------------------------------------------------------------------------------------------
+
+CREATE TABLE public.round_images
+(
+    id_image integer NOT NULL,
+    round_id integer,
+    image_path text,
+    created_at timestamp without time zone DEFAULT now(),
+    CONSTRAINT round_images_pkey PRIMARY KEY (id_round_image),
+    CONSTRAINT images_round_id_fkey FOREIGN KEY (round_id)
+        REFERENCES public.round_register (id_round_register) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.round_images
+    OWNER to nextgen;
+
+
+CREATE SEQUENCE public.round_images_id_seq
+    INCREMENT 1
+    START 1
+    MINVALUE 1
+    MAXVALUE 2147483647
+    CACHE 1;
+
+ALTER SEQUENCE public.round_images_id_seq
+    OWNED BY public.round_images.id_round_image;
+
+ALTER SEQUENCE public.round_images_id_seq
+    OWNER TO nextgen;
+
+ALTER TABLE IF EXISTS public.round_images
+    ALTER COLUMN id_round_image SET DEFAULT nextval('round_images_id_seq'::regclass);
