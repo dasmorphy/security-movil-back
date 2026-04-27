@@ -1,5 +1,5 @@
 from loguru import logger
-from sqlalchemy import Integer, and_, cast, exists, func, select
+from sqlalchemy import Integer, and_, cast, exists, func, select, text
 from swagger_server.exception.custom_error_exception import CustomAPIException
 from swagger_server.models.db.business import Business
 from swagger_server.models.db.company_modules import CompanyModules
@@ -11,6 +11,7 @@ from swagger_server.models.db.roles import Roles
 from swagger_server.models.db.unity_weight import UnityWeight
 from swagger_server.models.db.user_sessions import UserSessions
 from swagger_server.models.db.users import Users
+from swagger_server.models.form_expo_data import FormExpoData
 from swagger_server.resources.databases.postgresql import PostgreSQLClient
 from sqlalchemy.dialects.postgresql import JSONB
 
@@ -22,6 +23,41 @@ class UserRepository:
     def __init__(self):
         self.db = PostgreSQLClient("POSTGRESQL")
         self.redis_client = RedisClient()
+
+
+    def post_form_expo(self, data: FormExpoData, internal, external):
+        with self.db.session_factory() as session:
+            try:
+
+                query = text("""
+                    INSERT INTO public.form_expo 
+                    (names, email, business, position, type_industry, is_assist)
+                    VALUES 
+                    (:names, :email, :business, :position, :type_industry, :is_assist)
+                """)
+
+                session.execute(query, {
+                    "names": data.names,
+                    "email": data.email,
+                    "business": data.business,
+                    "position": data.position,
+                    "type_industry": data.type_industry,
+                    "is_assist": data.is_assist
+                })
+
+                session.commit()
+
+            except Exception as exception:
+                session.rollback()
+                logger.error('Error: {}', str(exception), internal=internal, external=external)
+
+                if isinstance(exception, CustomAPIException):
+                    raise exception
+                
+                raise CustomAPIException("Error al insertar en la base de datos", 500)
+
+            finally:
+                session.close()
 
 
     def post_new_user(self, new_user_body: Users, internal, external) -> None:
