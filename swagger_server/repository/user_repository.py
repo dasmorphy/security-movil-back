@@ -1,3 +1,5 @@
+import os
+
 from loguru import logger
 from sqlalchemy import Integer, and_, cast, exists, func, select, text
 from swagger_server.exception.custom_error_exception import CustomAPIException
@@ -14,9 +16,11 @@ from swagger_server.models.db.users import Users
 from swagger_server.models.form_expo_data import FormExpoData
 from swagger_server.resources.databases.postgresql import PostgreSQLClient
 from sqlalchemy.dialects.postgresql import JSONB
+import resend
 
 from swagger_server.resources.databases.redis import RedisClient
 
+resend.api_key = os.getenv('RESEND_API_KEY')
 
 class UserRepository:
     
@@ -46,6 +50,19 @@ class UserRepository:
                 })
 
                 session.commit()
+
+                resend.Emails.send({
+                    "from": "Telearseg <noreply@telearseg.net>",
+                    "to": data.email,
+                    "subject": "¡Gracias por registrar en el Primer Evento de Interseguridad!",
+                    "template": {
+                        "id": "template-v2",
+                        # "variables": {
+                        #     "PRODUCT": "Vintage Macintosh",
+                        #     "PRICE": 499
+                        # }
+                    }
+                })
 
             except Exception as exception:
                 session.rollback()
