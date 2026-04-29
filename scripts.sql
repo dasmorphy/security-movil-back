@@ -1619,3 +1619,38 @@ ALTER SEQUENCE public.round_images_id_seq
 
 ALTER TABLE IF EXISTS public.round_images
     ALTER COLUMN id_round_image SET DEFAULT nextval('round_images_id_seq'::regclass);
+
+
+
+--------------------------------------------------------------------------------------------------------------------------
+
+CREATE TABLE public.sector_pool
+(
+    id_sector integer NOT NULL,
+    name text,
+    created_at timestamp without time zone DEFAULT now(),
+    updated_at timestamp without time zone DEFAULT now(),
+    CONSTRAINT sector_pool_pkey PRIMARY KEY (id_sector)
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.sector_pool
+    OWNER to nextgen;
+
+
+CREATE SEQUENCE public.sector_pool_id_seq
+    INCREMENT 1
+    START 1
+    MINVALUE 1
+    MAXVALUE 2147483647
+    CACHE 1;
+
+ALTER SEQUENCE public.sector_pool_id_seq
+    OWNED BY public.sector_pool.id_sector;
+
+ALTER SEQUENCE public.sector_pool_id_seq
+    OWNER TO nextgen;
+
+ALTER TABLE IF EXISTS public.sector_pool
+    ALTER COLUMN id_sector SET DEFAULT nextval('sector_pool_id_seq'::regclass);

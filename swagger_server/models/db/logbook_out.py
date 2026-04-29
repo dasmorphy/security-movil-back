@@ -24,7 +24,6 @@ class LogbookOut(Base):
     unity_id = Column(
         Integer,
         ForeignKey('public.unity_weight.id_unity', onupdate='NO ACTION', ondelete='NO ACTION'),
-        nullable=False
     )
 
     category_id = Column(

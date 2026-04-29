@@ -50,7 +50,7 @@ class LogbookEntry(Base):
     truck_license = Column(Text)
     name_driver = Column(Text)
 
-    quantity = Column(Integer, nullable=False)
+    quantity = Column(Integer)
     weight = Column(Integer)
 
     provider = Column(Text)

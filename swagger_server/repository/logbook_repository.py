@@ -58,14 +58,21 @@ class LogbookRepository:
                         )
                     )
                 ).scalar()
-
-                unity_weight_exists = session.execute(
-                    select(
-                        exists().where(
-                            UnityWeight.id_unity == logbook_entry_body.unity_id
+                
+                if logbook_entry_body.unity_id is not None:
+                    unity_weight_exists = session.execute(
+                        select(
+                            exists().where(
+                                UnityWeight.id_unity == logbook_entry_body.unity_id
+                            )
                         )
-                    )
-                ).scalar()
+                    ).scalar()
+
+                    if not unity_weight_exists:
+                        raise CustomAPIException(
+                            message="No existe la unidad de peso",
+                            status_code=404
+                        )
 
                 group_business_exists = session.execute(
                     select(GroupBusiness).where(
@@ -84,12 +91,7 @@ class LogbookRepository:
                         message="No existe la categoría",
                         status_code=404
                     )
-                
-                if not unity_weight_exists:
-                    raise CustomAPIException(
-                        message="No existe la unidad de peso",
-                        status_code=404
-                    )
+
                 
                 if not group_business_exists:
                     raise CustomAPIException(
@@ -183,22 +185,7 @@ class LogbookRepository:
                     )
                 ).scalar_one_or_none()
 
-                #Si no viene unity_id, buscar la unidad por defecto (LB)
-                if not logbook_out_body.unity_id:
-                    unity_weight = session.execute(
-                        select(UnityWeight)
-                        .where(UnityWeight.code == 'LB')
-                    ).scalar_one_or_none()
-
-                    if not unity_weight:
-                        raise CustomAPIException(
-                            message="No existe la unidad de peso por defecto (LB)",
-                            status_code=404
-                        )
-
-                    logbook_out_body.unity_id = unity_weight.id_unity
-
-                else:
+                if logbook_out_body.unity_id is not None:
                     #validar si existe la unidad enviada
                     unity_weight_exists = session.execute(
                         select(
