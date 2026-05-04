@@ -59,7 +59,7 @@ class LogbookRepository:
                     )
                 ).scalar()
                 
-                if logbook_entry_body.unity_id is not None:
+                if logbook_entry_body.unity_id is not None and logbook_entry_body.unity_id != 0:
                     unity_weight_exists = session.execute(
                         select(
                             exists().where(
