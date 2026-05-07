@@ -1033,14 +1033,6 @@ class LogbookRepository:
     def apply_filters(self, stmt, model: LogbookEntry | LogbookOut, filtersBase):
         filters = []
         last_30_days = datetime.now() - timedelta(days=30)
-        
-        #TEMPORAL
-        temp = datetime.now() - timedelta(1)
-        #TEMPORAL
-        if filtersBase.get("user") == 'test':
-            filters.append(model.created_at >= temp)
-            stmt = stmt.where(and_(*filters))
-            return stmt
 
         if not filtersBase.get("start_date") and not filtersBase.get("end_date"):
             filters.append(model.created_at >= last_30_days)
