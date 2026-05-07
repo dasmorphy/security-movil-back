@@ -1548,6 +1548,8 @@ CREATE TABLE public.round_register
 (
     id_round_register integer NOT NULL,
     round_id integer,
+    sector_pool_id integer,
+    pool text,
     out_round boolean DEFAULT False,
     lat text,
     long text,
@@ -1558,7 +1560,11 @@ CREATE TABLE public.round_register
     CONSTRAINT round_register_round_id_fkey FOREIGN KEY (round_id)
         REFERENCES public.rounds (id_round) MATCH SIMPLE
         ON UPDATE NO ACTION
-        ON DELETE NO ACTION
+        ON DELETE NO ACTION,
+    CONSTRAINT round_register_sector_id_fkey FOREIGN KEY (sector_pool_id)
+        REFERENCES public.sector_pool (id_sector) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION;
 )
 
 TABLESPACE pg_default;
