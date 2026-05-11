@@ -35,9 +35,9 @@ class UserRepository:
 
                 query = text("""
                     INSERT INTO public.form_expo 
-                    (names, email, business, position, type_industry, is_assist)
+                    (names, email, business, position, type_industry, is_assist, phone)
                     VALUES 
-                    (:names, :email, :business, :position, :type_industry, :is_assist)
+                    (:names, :email, :business, :position, :type_industry, :is_assist, :phone)
                 """)
 
                 session.execute(query, {
@@ -46,7 +46,8 @@ class UserRepository:
                     "business": data.business,
                     "position": data.position,
                     "type_industry": data.type_industry,
-                    "is_assist": data.is_assist
+                    "is_assist": data.is_assist,
+                    "phone": data.phone
                 })
 
                 session.commit()

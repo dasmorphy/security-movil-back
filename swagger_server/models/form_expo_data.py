@@ -14,7 +14,7 @@ class FormExpoData(Model):
 
     Do not edit the class manually.
     """
-    def __init__(self, names: str=None, email: str=None, business: str=None, position: str=None, type_industry: str=None, is_assist: bool=None):  # noqa: E501
+    def __init__(self, names: str=None, email: str=None, business: str=None, position: str=None, phone: str=None, type_industry: str=None, is_assist: bool=None):  # noqa: E501
         """FormExpoData - a model defined in Swagger
 
         :param names: The names of this FormExpoData.  # noqa: E501
@@ -25,6 +25,8 @@ class FormExpoData(Model):
         :type business: str
         :param position: The position of this FormExpoData.  # noqa: E501
         :type position: str
+        :param phone: The phone of this FormExpoData.  # noqa: E501
+        :type phone: str
         :param type_industry: The type_industry of this FormExpoData.  # noqa: E501
         :type type_industry: str
         :param is_assist: The is_assist of this FormExpoData.  # noqa: E501
@@ -35,6 +37,7 @@ class FormExpoData(Model):
             'email': str,
             'business': str,
             'position': str,
+            'phone': str,
             'type_industry': str,
             'is_assist': bool
         }
@@ -44,6 +47,7 @@ class FormExpoData(Model):
             'email': 'email',
             'business': 'business',
             'position': 'position',
+            'phone': 'phone',
             'type_industry': 'type_industry',
             'is_assist': 'is_assist'
         }
@@ -51,6 +55,7 @@ class FormExpoData(Model):
         self._email = email
         self._business = business
         self._position = position
+        self._phone = phone
         self._type_industry = type_industry
         self._is_assist = is_assist
 
@@ -148,6 +153,27 @@ class FormExpoData(Model):
         """
 
         self._position = position
+
+    @property
+    def phone(self) -> str:
+        """Gets the phone of this FormExpoData.
+
+
+        :return: The phone of this FormExpoData.
+        :rtype: str
+        """
+        return self._phone
+
+    @phone.setter
+    def phone(self, phone: str):
+        """Sets the phone of this FormExpoData.
+
+
+        :param phone: The phone of this FormExpoData.
+        :type phone: str
+        """
+
+        self._phone = phone
 
     @property
     def type_industry(self) -> str:

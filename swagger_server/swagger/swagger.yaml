@@ -1944,6 +1944,9 @@ components:
         position:
           type: string
           example: "123456"
+        phone:
+          type: string
+          example: "123456"
         type_industry:
           type: string
           example: "123456"
