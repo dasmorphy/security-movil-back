@@ -52,7 +52,7 @@ class UserRepository:
                 session.commit()
 
                 resend.Emails.send({
-                    "from": "Telearseg <noreply@telearseg.net>",
+                    "from": "Alianza Centinela <noreply@telearseg.net>",
                     "to": data.email,
                     "subject": "¡Gracias por registrar en el Primer Evento de Interseguridad!",
                     "template": {
