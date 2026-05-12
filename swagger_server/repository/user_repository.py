@@ -1,4 +1,6 @@
+import base64
 import os
+import io
 
 from loguru import logger
 from sqlalchemy import Integer, and_, cast, exists, func, select, text
@@ -17,6 +19,7 @@ from swagger_server.models.form_expo_data import FormExpoData
 from swagger_server.resources.databases.postgresql import PostgreSQLClient
 from sqlalchemy.dialects.postgresql import JSONB
 import resend
+import qrcode
 
 from swagger_server.resources.databases.redis import RedisClient
 
@@ -33,11 +36,22 @@ class UserRepository:
         with self.db.session_factory() as session:
             try:
 
+                register_exist = text("""
+                    SELECT EXISTS (
+                        SELECT 1
+                        FROM public.form_expo
+                        WHERE email = :email
+                    )
+                """)
+
+                if session.execute(register_exist, {"email": data.email}).scalar():
+                    raise CustomAPIException(message="El correo ya se encuentra registrado", status_code=400)
+
                 query = text("""
                     INSERT INTO public.form_expo 
-                    (names, email, business, position, type_industry, is_assist, phone)
+                    (names, email, business, position, type_industry, is_assist, phone, token_qr)
                     VALUES 
-                    (:names, :email, :business, :position, :type_industry, :is_assist, :phone)
+                    (:names, :email, :business, :position, :type_industry, :is_assist, :phone, :token_qr)
                 """)
 
                 session.execute(query, {
@@ -47,23 +61,33 @@ class UserRepository:
                     "position": data.position,
                     "type_industry": data.type_industry,
                     "is_assist": data.is_assist,
-                    "phone": data.phone
+                    "phone": data.phone,
+                    "token_qr": external
                 })
 
-                session.commit()
+                qr = qrcode.make(external)
+                buffer = io.BytesIO()
+                qr.save(buffer, format="PNG")
+                qr_base64 = base64.b64encode(buffer.getvalue()).decode("utf-8")
 
                 resend.Emails.send({
                     "from": "Alianza Centinela <noreply@telearseg.net>",
                     "to": data.email,
+                    "cc": "desarrolladortlsg@telearseg.net",
                     "subject": "¡Gracias por registrar en el Primer Evento de Interseguridad!",
                     "template": {
-                        "id": "template-v2",
-                        # "variables": {
-                        #     "PRODUCT": "Vintage Macintosh",
-                        #     "PRICE": 499
-                        # }
-                    }
+                        "id": "template-v3",
+                    },
+                    "attachments": [
+                        {
+                            "filename": "qr.png",
+                            "content": qr_base64,
+                            "content_id": "qr_code"
+                        }
+                    ]
                 })
+
+                session.commit()
 
             except Exception as exception:
                 session.rollback()
@@ -76,6 +100,42 @@ class UserRepository:
 
             finally:
                 session.close()
+
+
+    def get_form_expo(self, internal, external):
+        with self.db.session_factory() as session:
+            try:
+                query = text("""
+                    SELECT * 
+                    FROM public.form_expo
+                """)
+
+                rows = session.execute(query).mappings().all()
+
+                data = [
+                    {
+                        "id_form": row["id_form"],
+                        "names": row["names"],
+                        "email": row["email"],
+                        "business": row["business"],
+                        "position": row["position"],
+                        "type_industry": row["type_industry"],
+                        "is_assist": row["is_assist"],
+                        "phone": row["phone"],
+                        "token_qr": row["token_qr"],
+                        "scanned": row["scanned"],
+                        "created_at": row["created_at"]
+                    }
+                    for row in rows
+                ]
+
+                return data
+            except Exception as exception:
+                logger.error('Error: {}', str(exception), internal=internal, external=external)
+                if isinstance(exception, CustomAPIException):
+                    raise exception
+                
+                raise CustomAPIException("Error al obtener en la base de datos", 500)
 
 
     def post_new_user(self, new_user_body: Users, internal, external) -> None:

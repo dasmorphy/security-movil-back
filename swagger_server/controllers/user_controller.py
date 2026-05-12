@@ -3,6 +3,7 @@
 
 from timeit import default_timer
 import connexion
+from flask import request
 from flask.views import MethodView
 from loguru import logger
 
@@ -202,6 +203,34 @@ class UserView(MethodView):
                 end_time = default_timer()
                 logger.info(f"Fin de la transacción, procesada en : {end_time - start_time} milisegundos",
                             internal=internal_transaction_id, external=body.external_transaction_id)
+                status_code = 200
+        except Exception as ex:
+            response, status_code = CustomAPIException.check_exception(ex, function_name, internal_process)
+            
+        return response, status_code
+    
+    def get_form_expo(self):
+        internal_process = (None, None)
+        function_name = "get_form_expo"
+        response = {}
+        status_code = 500
+        try:
+            if connexion.request.headers:
+                start_time = default_timer()
+                internal_transaction_id = str(generate_internal_transaction_id())
+                external_transaction_id = request.headers.get('externalTransactionId')
+                internal_process = (internal_transaction_id, external_transaction_id)
+                response["internal_transaction_id"] = internal_transaction_id
+                response["external_transaction_id"] = external_transaction_id
+                message = f"start request: {function_name}, channel: {request.headers.get('channel')}"
+                logger.info(message, internal=internal_transaction_id, external=external_transaction_id)
+                results = self.user_use_case.get_form_expo(internal_transaction_id, external_transaction_id)
+                response["error_code"] = 0
+                response["message"] = "Registros obtenidos correctamente"
+                response["data"] = results
+                end_time = default_timer()
+                logger.info(f"Fin de la transacción, procesada en : {end_time - start_time} milisegundos",
+                            internal=internal_transaction_id, external=external_transaction_id)
                 status_code = 200
         except Exception as ex:
             response, status_code = CustomAPIException.check_exception(ex, function_name, internal_process)

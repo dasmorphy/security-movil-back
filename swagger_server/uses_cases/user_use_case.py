@@ -43,6 +43,9 @@ class UserUseCase:
     def form_expo(self, data, internal, external):
         self.user_repository.post_form_expo(data, internal, external)
 
+    def get_form_expo(self, internal, external):
+        return self.user_repository.get_form_expo(internal, external)
+
     def login(self, body: RequestLogin, channel: str, internal, external):
         pass_hash = self.user_repository.get_pass_hash(body.login.user, internal, external)
         pass_verify = pwd_context.verify(body.login.password, pass_hash)
