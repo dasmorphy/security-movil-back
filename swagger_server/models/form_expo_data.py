@@ -14,7 +14,7 @@ class FormExpoData(Model):
 
     Do not edit the class manually.
     """
-    def __init__(self, names: str=None, email: str=None, business: str=None, position: str=None, phone: str=None, type_industry: str=None, is_assist: bool=None):  # noqa: E501
+    def __init__(self, names: str=None, email: str=None, business: str=None, position: str=None, phone: str=None, type_industry: str=None, is_assist: bool=None, is_coincidence: bool=None):  # noqa: E501
         """FormExpoData - a model defined in Swagger
 
         :param names: The names of this FormExpoData.  # noqa: E501
@@ -31,6 +31,8 @@ class FormExpoData(Model):
         :type type_industry: str
         :param is_assist: The is_assist of this FormExpoData.  # noqa: E501
         :type is_assist: bool
+        :param is_coincidence: The is_coincidence of this FormExpoData.  # noqa: E501
+        :type is_coincidence: bool
         """
         self.swagger_types = {
             'names': str,
@@ -39,7 +41,8 @@ class FormExpoData(Model):
             'position': str,
             'phone': str,
             'type_industry': str,
-            'is_assist': bool
+            'is_assist': bool,
+            'is_coincidence': bool
         }
 
         self.attribute_map = {
@@ -49,7 +52,8 @@ class FormExpoData(Model):
             'position': 'position',
             'phone': 'phone',
             'type_industry': 'type_industry',
-            'is_assist': 'is_assist'
+            'is_assist': 'is_assist',
+            'is_coincidence': 'is_coincidence'
         }
         self._names = names
         self._email = email
@@ -58,6 +62,7 @@ class FormExpoData(Model):
         self._phone = phone
         self._type_industry = type_industry
         self._is_assist = is_assist
+        self._is_coincidence = is_coincidence
 
     @classmethod
     def from_dict(cls, dikt) -> 'FormExpoData':
@@ -216,3 +221,24 @@ class FormExpoData(Model):
         """
 
         self._is_assist = is_assist
+
+    @property
+    def is_coincidence(self) -> bool:
+        """Gets the is_coincidence of this FormExpoData.
+
+
+        :return: The is_coincidence of this FormExpoData.
+        :rtype: bool
+        """
+        return self._is_coincidence
+
+    @is_coincidence.setter
+    def is_coincidence(self, is_coincidence: bool):
+        """Sets the is_coincidence of this FormExpoData.
+
+
+        :param is_coincidence: The is_coincidence of this FormExpoData.
+        :type is_coincidence: bool
+        """
+
+        self._is_coincidence = is_coincidence

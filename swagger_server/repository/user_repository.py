@@ -49,12 +49,13 @@ class UserRepository:
 
                 query = text("""
                     INSERT INTO public.form_expo 
-                    (names, email, business, position, type_industry, is_assist, phone, token_qr)
+                    (names, email, business, position, type_industry, is_assist, phone, token_qr, status_email)
                     VALUES 
-                    (:names, :email, :business, :position, :type_industry, :is_assist, :phone, :token_qr)
+                    (:names, :email, :business, :position, :type_industry, :is_assist, :phone, :token_qr, 'No Aplica')
+                    RETURNING *
                 """)
 
-                session.execute(query, {
+                result = session.execute(query, {
                     "names": data.names,
                     "email": data.email,
                     "business": data.business,
@@ -62,29 +63,65 @@ class UserRepository:
                     "type_industry": data.type_industry,
                     "is_assist": data.is_assist,
                     "phone": data.phone,
-                    "token_qr": external
+                    "token_qr": external,
                 })
 
-                qr = qrcode.make(external)
-                buffer = io.BytesIO()
-                qr.save(buffer, format="PNG")
-                qr_base64 = base64.b64encode(buffer.getvalue()).decode("utf-8")
+                created_register = result.mappings().first()
+                session.commit()
+                return created_register
 
-                resend.Emails.send({
-                    "from": "Alianza Centinela <noreply@telearseg.net>",
-                    "to": data.email,
-                    "cc": "desarrolladortlsg@telearseg.net",
-                    "subject": "¡Gracias por registrar en el Primer Evento de Interseguridad!",
-                    "template": {
-                        "id": "template-v3",
-                    },
-                    "attachments": [
-                        {
-                            "filename": "qr.png",
-                            "content": qr_base64,
-                            "content_id": "qr_code"
-                        }
-                    ]
+            except Exception as exception:
+                session.rollback()
+                logger.error('Error: {}', str(exception), internal=internal, external=external)
+
+                if isinstance(exception, CustomAPIException):
+                    raise exception
+                
+                raise CustomAPIException("Error al insertar en la base de datos", 500)
+
+            finally:
+                session.close()
+
+    
+    def update_form(self, id_form, status, internal, external):
+        with self.db.session_factory() as session:
+            try:
+
+                register_exist = text("""
+                    SELECT EXISTS (
+                        SELECT 1
+                        FROM public.form_expo
+                        WHERE id_form = :id_form
+                    )
+                """)
+
+                exists = session.execute(
+                    register_exist,
+                    {
+                        "id_form": id_form
+                    }
+                ).scalar()
+
+                if not exists:
+                    raise CustomAPIException(
+                        message="El registro no existe",
+                        status_code=404
+                    )
+
+                # =========================
+                # UPDATE
+                # =========================
+
+                query = text("""
+                    UPDATE public.form_expo
+                    SET status_email = :status_email
+                    WHERE id_form = :id_form
+                    RETURNING *
+                """)
+
+                session.execute(query, {
+                    "id_form": id_form,
+                    "status_email": status
                 })
 
                 session.commit()
@@ -102,12 +139,72 @@ class UserRepository:
                 session.close()
 
 
+    def send_email(self, data: FormExpoData, external):
+        qr = qrcode.make(external)
+        buffer = io.BytesIO()
+        qr.save(buffer, format="PNG")
+        qr_base64 = base64.b64encode(buffer.getvalue()).decode("utf-8")
+
+        resend.Emails.send({
+            "from": "Alianza Centinela <noreply@telearseg.net>",
+            "to": data.email,
+            "cc": "desarrolladortlsg@telearseg.net",
+            "subject": "¡Gracias por registrar en el Primer Evento de Interseguridad!",
+            "template": {
+                "id": "template-v3",
+            },
+            "attachments": [
+                {
+                    "filename": "qr.png",
+                    "content": qr_base64,
+                    "content_id": "qr_code"
+                }
+            ]
+        })
+
+    def validate_qr(self, token, internal, external):
+        with self.db.session_factory() as session:
+            try:
+                query = text("""
+                    SELECT *
+                    FROM public.form_expo
+                    WHERE token_qr = :token_qr
+                    LIMIT 1
+                """)
+
+                token_exist = session.execute(query, {"token_qr": token}).mappings().first()
+
+                if not token_exist:
+                    raise CustomAPIException("Qr no existe", 404)
+                
+                return {
+                    "id_form": token_exist["id_form"],
+                    "names": token_exist["names"],
+                    "email": token_exist["email"],
+                    "business": token_exist["business"],
+                    "position": token_exist["position"],
+                    "type_industry": token_exist["type_industry"],
+                    "is_assist": token_exist["is_assist"],
+                    "phone": token_exist["phone"],
+                    "token_qr": token_exist["token_qr"],
+                    "scanned": token_exist["scanned"],
+                    "created_at": token_exist["created_at"]
+                }
+
+            except Exception as exception:
+                logger.error('Error: {}', str(exception), internal=internal, external=external)
+                if isinstance(exception, CustomAPIException):
+                    raise exception
+                
+                raise CustomAPIException("Error al obtener en la base de datos", 500)
+
     def get_form_expo(self, internal, external):
         with self.db.session_factory() as session:
             try:
                 query = text("""
                     SELECT * 
                     FROM public.form_expo
+                    ORDER BY created_at desc
                 """)
 
                 rows = session.execute(query).mappings().all()
@@ -124,7 +221,8 @@ class UserRepository:
                         "phone": row["phone"],
                         "token_qr": row["token_qr"],
                         "scanned": row["scanned"],
-                        "created_at": row["created_at"]
+                        "created_at": row["created_at"],
+                        "status_email": row["status_email"]
                     }
                     for row in rows
                 ]
