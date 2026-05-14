@@ -122,7 +122,7 @@ class UserRepository:
                 session.execute(query, {
                     "id_form": id_form,
                     "status_email": status,
-                    "token_qr": external
+                    "token_qr": external if status == "Enviado" else None
                 })
 
                 session.commit()

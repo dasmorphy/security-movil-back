@@ -20,7 +20,7 @@ from swagger_server.models.request_post_new_user import RequestPostNewUser
 from swagger_server.repository.user_repository import UserRepository
 from passlib.context import CryptContext
 
-from swagger_server.utils.utils import CONTACTS_BY_CLIENT, PREFIX_RE
+from swagger_server.utils.utils import CONTACTS_BY_CLIENT, PREFIX_RE, WHITELIST
 
 pwd_context = CryptContext(
     schemes=["argon2"],
@@ -53,7 +53,7 @@ class UserUseCase:
 
         if data.is_coincidence:
             try:
-                result = self.validate_contact(data.business, data.names)
+                result = self.validate_contact2(data.business, data.names, data.position)
                 
                 if result["status"] == 'Enviado':
                     self.user_repository.send_email(data.email, external)
@@ -138,18 +138,16 @@ class UserUseCase:
         return PREFIX_RE.sub('', name).strip()
     
     
-    def _best_name_score(self, input_name: str, candidates: list[str]) -> tuple[int, str]:
+    def _best_name_score(self, input_text: str, candidates: list[str]) -> tuple[float, str]:
         """
-        Retorna (mejor_score, nombre_candidato) comparando input_name
-        contra cada nombre del listado usando token_sort_ratio, que maneja
-        diferente orden de palabras (ej: 'Franco Carlos' vs 'Carlos Franco').
+        Compara input_text contra una lista de candidatos con token_sort_ratio.
+        Retorna (mejor_score, mejor_candidato).
         """
-        cleaned_input = self._clean(input_name).lower()
-        best_score = 0
+        cleaned = self._clean(input_text).lower()
+        best_score = 0.0
         best_match = ""
         for candidate in candidates:
-            cleaned_candidate = self._clean(candidate).lower()
-            score = fuzz.token_sort_ratio(cleaned_input, cleaned_candidate)
+            score = fuzz.token_sort_ratio(cleaned, self._clean(candidate).lower())
             if score > best_score:
                 best_score = score
                 best_match = candidate
@@ -164,7 +162,7 @@ class UserUseCase:
         cleaned = input_business.strip().lower()
         best_score = 0
         best_key = ""
-        for company in CONTACTS_BY_CLIENT:
+        for company in WHITELIST:
             score = fuzz.token_sort_ratio(cleaned, company.lower())
             if score > best_score:
                 best_score = score
@@ -218,6 +216,99 @@ class UserUseCase:
             'company_score': company_score,
             'name_score': name_score,
             'matched_company': matched_company,
+            'matched_name': matched_name,
+        }
+    
+
+    def validate_contact2(
+        self,
+        business: str,
+        name: str,
+        position: str
+    ) -> dict:
+        """
+        Valida si la persona pertenece al listado de invitados del evento.
+    
+        Parámetros:
+            business         : empresa ingresada por el usuario
+            position         : cargo ingresado por el usuario
+            name             : nombre completo ingresado por el usuario
+            front_is_invited : bandera del front (True = empresa+cargo coincidieron
+                            con CLIENT_OPTIONS / POSITION_BY_CLIENT del TS)
+    
+        Retorna dict con:
+            status           : 'Enviado' | 'Pendiente' | 'Rechazado'
+            company_score    : score empresa  (0-100)
+            position_score   : score cargo    (0-100)
+            name_score       : score nombre   (0-100)
+            combined_score   : score ponderado final
+            matched_company  : empresa encontrada en el whitelist
+            matched_position : cargo encontrado en el whitelist
+            matched_name     : nombre encontrado en el whitelist
+        """
+        # --- 1. Empresa ---
+        company_score, matched_company = self._best_company_score(business)
+    
+        if company_score < 60:
+            return {
+                'status': 'Rechazado',
+                'company_score': company_score,
+                'position_score': 0,
+                'name_score': 0,
+                'combined_score': 0,
+                'matched_company': None,
+                'matched_position': None,
+                'matched_name': None,
+            }
+    
+        entry = WHITELIST[matched_company]
+    
+        # --- 2. Cargo ---
+        position_score, matched_position = self._best_name_score(position, entry['positions'])
+    
+        # --- 3. Nombre ---
+        name_score, matched_name = self._best_name_score(name, entry['contacts'])
+    
+        # --- 4. Score combinado ponderado ---
+        # Empresa 35% | Cargo 30% | Nombre 35%
+        combined_score = (
+            company_score  * 0.35 +
+            position_score * 0.30 +
+            name_score     * 0.35
+        )
+    
+        # --- 5. Decisión ---
+        #
+        # El front ya validó empresa+cargo contra el listado oficial (front_is_invited).
+        # Python igual valida los tres campos para detectar manipulaciones.
+        #
+        # Aprobado:  front confirmó la selección  Y  nombre tiene buen match
+        #            O los tres scores son altos de forma independiente
+        #
+        # Pendiente: empresa y cargo reconocibles pero nombre con duda,
+        #            o el front no marcó como invitado pero los scores son altos
+        #
+        # Rechazado: cualquier otro caso
+    
+        if name_score >= 70:
+            status = 'Enviado'
+        elif name_score >= 50:
+            status = 'Pendiente'          # nombre dudoso, revisión manual
+        elif company_score >= 85 and position_score >= 75 and name_score >= 75:
+            status = 'Enviado'            # triple match alto
+        elif combined_score >= 72:
+            status = 'Pendiente'
+        else:
+            status = 'Rechazado'
+    
+        return {
+            'status': status,
+            'company_score': round(company_score, 1),
+            'position_score': round(position_score, 1),
+            'name_score': round(name_score, 1),
+            'combined_score': round(combined_score, 1),
+            'matched_company': matched_company,
+            'matched_position': matched_position,
             'matched_name': matched_name,
         }
 
