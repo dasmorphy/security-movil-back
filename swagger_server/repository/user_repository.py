@@ -63,7 +63,6 @@ class UserRepository:
                     "type_industry": data.type_industry,
                     "is_assist": data.is_assist,
                     "phone": data.phone,
-                    "token_qr": external,
                 })
 
                 created_register = result.mappings().first()
@@ -114,14 +113,16 @@ class UserRepository:
 
                 query = text("""
                     UPDATE public.form_expo
-                    SET status_email = :status_email
+                    SET status_email = :status_email,
+                    token_qr = :token_qr
                     WHERE id_form = :id_form
                     RETURNING *
                 """)
 
                 session.execute(query, {
                     "id_form": id_form,
-                    "status_email": status
+                    "status_email": status,
+                    "token_qr": external
                 })
 
                 session.commit()
