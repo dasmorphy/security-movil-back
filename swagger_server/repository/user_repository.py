@@ -238,13 +238,15 @@ class UserRepository:
                 
                 query = text("""
                     UPDATE public.form_expo
-                    SET status_email = :status_email
+                    SET status_email = :status_email,
+                    token_qr = :token_qr
                     WHERE id_form = :id_form
                 """)
 
                 session.execute(query, {
                     "status_email": "Enviado",
-                    "id_form": id
+                    "id_form": id,
+                    "token_qr": external
                 })
 
                 session.commit()
