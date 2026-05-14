@@ -49,7 +49,7 @@ class UserRepository:
 
                 query = text("""
                     INSERT INTO public.form_expo 
-                    (names, email, business, position, type_industry, is_assist, phone, token_qr, status_email)
+                    (names, email, business, position, type_industry, is_assist, phone, status_email)
                     VALUES 
                     (:names, :email, :business, :position, :type_industry, :is_assist, :phone, 'No Aplica')
                     RETURNING *
