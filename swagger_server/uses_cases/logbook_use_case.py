@@ -125,6 +125,9 @@ class LogbookUseCase:
     
     def get_group_business_by_id_business(self, id_business, internal, external):
         return self.logbook_repository.get_group_business_by_id_business(id_business, internal, external)
+    
+    def get_group_business_by_sector(self, id_sector, internal, external):
+        return self.logbook_repository.get_group_business_by_sector(id_sector, internal, external)
 
     def get_logbooks_entry(self, headers, params, internal, external):
         groups = headers.get("groups-business-id")

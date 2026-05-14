@@ -644,6 +644,45 @@ class LogbookRepository:
                 
                 raise CustomAPIException("Error al obtener en la base de datos", 500)
             
+
+    def get_group_business_by_sector(self, id_sector, internal, external):
+        with self.db.session_factory() as session:
+            try:
+
+                sector_exist = session.get(Sector, id_sector)
+
+                if not sector_exist:
+                    raise CustomAPIException("Sector no existe", 404)
+                
+
+                stmt = select(GroupBusiness).where(
+                    GroupBusiness.sector_id == id_sector,
+                    GroupBusiness.is_active == True
+                )
+
+                group_business = session.execute(stmt).scalars().all()
+
+                groups_found = [
+                    {
+                        "id_group_business": gb.id_group_business,
+                        "business_id": gb.business_id,
+                        "sector_id": gb.sector_id,
+                        "name": gb.name,
+                        "created_at": gb.created_at,
+                        "updated_at": gb.updated_at
+                    }
+                    for gb in group_business
+                ]
+
+                return groups_found
+
+            except Exception as exception:
+                logger.error('Error: {}', str(exception), internal=internal, external=external)
+                if isinstance(exception, CustomAPIException):
+                    raise exception
+                
+                raise CustomAPIException("Error al obtener en la base de datos", 500)
+            
     def get_sector_by_business(self, id_business, internal, external):
         with self.db.session_factory() as session:
             try:
