@@ -139,7 +139,7 @@ class UserRepository:
                 session.close()
 
 
-    def send_email(self, data: FormExpoData, external):
+    def send_email(self, email: str, external):
         qr = qrcode.make(external)
         buffer = io.BytesIO()
         qr.save(buffer, format="PNG")
@@ -147,7 +147,7 @@ class UserRepository:
 
         resend.Emails.send({
             "from": "Alianza Centinela <noreply@telearseg.net>",
-            "to": data.email,
+            "to": email,
             "cc": "desarrolladortlsg@telearseg.net",
             "subject": "¡Gracias por registrar en el Primer Evento de Interseguridad!",
             "template": {
@@ -177,6 +177,23 @@ class UserRepository:
                 if not token_exist:
                     raise CustomAPIException("Qr no existe", 404)
                 
+                if token_exist["scanned"]:
+                    raise CustomAPIException("Qr ya escaneado", 400)
+
+                
+                query = text("""
+                    UPDATE public.form_expo
+                    SET scanned = :scanned
+                    WHERE token_qr = :token_qr
+                """)
+
+                session.execute(query, {
+                    "token_qr": token,
+                    "scanned": True,
+                })
+
+                session.commit()
+                
                 return {
                     "id_form": token_exist["id_form"],
                     "names": token_exist["names"],
@@ -187,9 +204,49 @@ class UserRepository:
                     "is_assist": token_exist["is_assist"],
                     "phone": token_exist["phone"],
                     "token_qr": token_exist["token_qr"],
-                    "scanned": token_exist["scanned"],
+                    "scanned": True,
                     "created_at": token_exist["created_at"]
                 }
+
+            except Exception as exception:
+                logger.error('Error: {}', str(exception), internal=internal, external=external)
+                if isinstance(exception, CustomAPIException):
+                    raise exception
+                
+                raise CustomAPIException("Error al obtener en la base de datos", 500)
+            
+
+    def validate_send_email(self, id, internal, external):
+        with self.db.session_factory() as session:
+            try:
+                query = text("""
+                    SELECT *
+                    FROM public.form_expo
+                    WHERE id_form = :id_form
+                """)
+
+                form_exist = session.execute(query, {"id_form": id}).mappings().first()
+
+                if not form_exist:
+                    raise CustomAPIException("Invitación no existe", 404)
+                
+                if form_exist["status_email"] == "Enviado":
+                    raise CustomAPIException("El correo ya fue enviado", 400)
+
+                self.send_email(form_exist["email"], external)
+                
+                query = text("""
+                    UPDATE public.form_expo
+                    SET status_email = :status_email
+                    WHERE id_form = :id_form
+                """)
+
+                session.execute(query, {
+                    "status_email": "Enviado",
+                    "id_form": id
+                })
+
+                session.commit()
 
             except Exception as exception:
                 logger.error('Error: {}', str(exception), internal=internal, external=external)

@@ -56,13 +56,18 @@ class UserUseCase:
                 result = self.validate_contact(data.business, data.names)
                 
                 if result["status"] == 'Enviado':
-                    self.user_repository.send_email(data, external)
+                    self.user_repository.send_email(data.email, external)
 
                 self.user_repository.update_form(form_saved["id_form"], result["status"], internal, external)
             
             except Exception as exception:
                 logger.error('Error: {}', str(exception), internal=internal, external=external)
                 raise CustomAPIException("Error al enviar el correo", 500)
+            
+
+    def send_email_qr(self, id_form, internal, external):
+        self.user_repository.validate_send_email(id_form, internal, external)
+
         
 
     def get_form_expo(self, internal, external):
