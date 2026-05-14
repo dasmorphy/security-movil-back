@@ -205,7 +205,7 @@ class UserUseCase:
     
         # Lógica de decisión
         # Empresa clara (>= 85) + nombre claro (>= 80) → aprobado automático
-        if company_score >= 85 and name_score >= 80:
+        if company_score >= 85 and name_score >= 70:
             status = 'Enviado'
         # Empresa reconocible pero nombre con duda → revisión manual
         elif company_score >= 60 and name_score >= 60:
