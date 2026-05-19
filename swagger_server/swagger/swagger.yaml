@@ -1283,6 +1283,18 @@ paths:
           schema:
             type: string
             example: "1,2,3"
+        - name: id-logbook
+          in: header
+          required: false
+          schema:
+            type: integer
+            example: 1
+        - name: type-logbook
+          in: header
+          required: false
+          schema:
+            type: string
+            example: "entry"
         - name: start_date
           in: query
           required: false

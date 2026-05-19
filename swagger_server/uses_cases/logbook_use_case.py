@@ -258,8 +258,17 @@ class LogbookUseCase:
 
     
     def get_all_logbooks(self, headers, params, internal, external):
-        rows_out = self.get_logbooks_out_new(headers, params, internal, external)
-        rows_entry = self.get_logbooks_entry_new(headers, params, internal, external)
+        rows_entry = []
+        rows_out = []
+        
+        if headers.get("id-logbook") and headers.get("type-logbook") == 'entry': 
+            rows_entry = self.get_logbooks_entry_new(headers, params, internal, external)
+        elif headers.get("id-logbook") and headers.get("type-logbook") == 'out':
+            rows_out = self.get_logbooks_out_new(headers, params, internal, external)
+        else:
+            rows_entry = self.get_logbooks_entry_new(headers, params, internal, external)
+            rows_out = self.get_logbooks_out_new(headers, params, internal, external)
+
 
         rows = rows_entry + rows_out
 

@@ -700,6 +700,7 @@ def parse_filters(headers, params):
     workday = headers.get("workday")
     category_ids = headers.get("ids-categories")
     return {
+        "id_logbook": headers.get("id-logbook"),
         "user": headers.get("user"),
         "groups_business_id": [int(x) for x in groups.split(",")] if groups else [],
         "start_date": params.get("start_date"),

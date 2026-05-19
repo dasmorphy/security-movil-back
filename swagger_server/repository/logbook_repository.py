@@ -1072,6 +1072,7 @@ class LogbookRepository:
     def apply_filters(self, stmt, model: LogbookEntry | LogbookOut, filtersBase):
         filters = []
         last_30_days = datetime.now() - timedelta(days=30)
+        id_logbook = filtersBase.get("id_logbook")
 
         if not filtersBase.get("start_date") and not filtersBase.get("end_date"):
             filters.append(model.created_at >= last_30_days)
@@ -1081,6 +1082,15 @@ class LogbookRepository:
 
         if filtersBase.get("user") and filtersBase.get("user") != 'cod_monitoreo' : #TEMPORAL
             filters.append(model.created_by == filtersBase["user"])
+
+        if id_logbook:
+            field = (
+                model.id_logbook_entry
+                if model is LogbookEntry
+                else model.id_logbook_out
+            )
+
+            filters.append(field == id_logbook)
 
         if filtersBase.get("start_date"):
             filters.append(model.created_at >= filtersBase["start_date"])
