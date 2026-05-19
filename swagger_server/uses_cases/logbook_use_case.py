@@ -26,6 +26,9 @@ from collections import OrderedDict, defaultdict
 
 from swagger_server.utils.utils import diference_time, get_workday, parse_filters, serialize_out
 
+from flask import render_template
+from xhtml2pdf import pisa
+
 @dataclass
 class PaginationParams:
     page: int = 1
@@ -1004,3 +1007,30 @@ class LogbookUseCase:
                 "has_prev": pagination.page > 1,
             }
         }
+    
+
+    def generate_detail_log_pdf(self, headers, params, internal, external):
+        logbook = self.get_all_logbooks(headers, params, internal, external)
+
+        if not logbook[0]:
+            raise CustomAPIException("Bitácora no encontrada", 404)
+        
+        html = render_template(
+            "detail-logbook-template.html",
+            logbook=logbook[0]
+        )
+
+        pdf_buffer = BytesIO()
+
+        pisa_status = pisa.CreatePDF(
+            html,
+            dest=pdf_buffer
+        )
+
+        if pisa_status.err:
+            raise CustomAPIException("Error al generar el pdf", 500)
+
+        pdf_buffer.seek(0)
+
+
+        return pdf_buffer

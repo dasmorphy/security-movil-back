@@ -4,7 +4,7 @@ from json import JSONEncoder
 import os
 from timeit import default_timer
 import connexion
-from flask import jsonify, request, send_file
+from flask import Response, jsonify, request, send_file
 import six
 import json
 from flask.views import MethodView
@@ -735,3 +735,37 @@ class LogbookView(MethodView):
             response, status_code = CustomAPIException.check_exception(ex, function_name, internal_process)
             
         return response, status_code
+    
+
+    def generate_pdf_detail_logbook(self):
+        internal_process = (None, None)
+        function_name = "generate_pdf_detail_logbook"
+        response = {}
+        status_code = 500
+        try:
+            if connexion.request.headers:
+                start_time = default_timer()
+                internal_transaction_id = str(generate_internal_transaction_id())
+                external_transaction_id = request.headers.get('externalTransactionId')
+                internal_process = (internal_transaction_id, external_transaction_id)
+                response["internal_transaction_id"] = internal_transaction_id
+                response["external_transaction_id"] = external_transaction_id
+                message = f"start request: {function_name}, channel: {request.headers.get('channel')}"
+                logger.info(message, internal=internal_transaction_id, external=external_transaction_id)
+                pdf = self.logbook_use_case.generate_detail_log_pdf(request.headers, request.args, internal_transaction_id, external_transaction_id)
+                end_time = default_timer()
+                logger.info(f"Fin de la transacción, procesada en : {end_time - start_time} milisegundos",
+                            internal=internal_transaction_id, external=external_transaction_id)
+                status_code = 200
+
+                return send_file(
+                    pdf,
+                    mimetype='application/pdf',
+                    as_attachment=True,
+                    download_name='bitacora_detalle.pdf'
+                )
+        except Exception as ex:
+            response, status_code = CustomAPIException.check_exception(ex, function_name, internal_process)
+            return response, status_code
+            
+        # return send_file(output, as_attachment=True)

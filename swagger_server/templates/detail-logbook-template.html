@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="sp">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pdf detalle bitacora</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 25px;
+            color: #333;
+        }
+
+        h2 {
+            margin-bottom: 20px;
+            color: #0f4c81;
+        }
+
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+            /* <-- clave */
+        }
+
+        .info-table td {
+            border: 1px solid #dcdcdc;
+            padding: 10px;
+            font-size: 13px;
+            word-wrap: break-word;
+            /* <-- evita desbordamiento */
+            overflow-wrap: break-word;
+            vertical-align: top;
+        }
+
+        /* Columnas label más angostas, columnas valor más anchas */
+        .info-table td:nth-child(1),
+        .info-table td:nth-child(3) {
+            width: 20%;
+        }
+
+        .info-table td:nth-child(2),
+        .info-table td:nth-child(4) {
+            width: 30%;
+        }
+    </style>
+
+</head>
+
+<body>
+    <h2>Bitácora entrada</h2>
+
+
+
+    <!-- <table class="info-table">
+
+            <tr>
+                <td><strong>Guía</strong></td>
+                <td>{{ logbook.guia }}</td>
+
+                <td><strong>Fecha</strong></td>
+                <td>{{ logbook.fecha }}</td>
+            </tr>
+
+            <tr>
+                <td><strong>Coordenadas</strong></td>
+                <td>{{ logbook.proveedor }}</td>
+
+                <td><strong>Categoria</strong></td>
+                <td>{{ logbook.peso }}</td>
+            </tr>
+
+            <tr>
+                <td><strong>Cantidad</strong></td>
+                <td>{{ logbook.proveedor }}</td>
+
+                <td><strong>Peso</strong></td>
+                <td>{{ logbook.peso }}</td>
+            </tr>
+
+            <tr>
+                <td><strong>Destino</strong></td>
+                <td>{{ logbook.proveedor }}</td>
+
+                <td><strong>Creado por</strong></td>
+                <td>{{ logbook.peso }}</td>
+            </tr>
+
+            <tr>
+                <td><strong>Proveedor</strong></td>
+                <td>{{ logbook.proveedor }}</td>
+
+                <td><strong>Conductor</strong></td>
+                <td>{{ logbook.peso }}</td>
+            </tr>
+
+        </table>
+
+        <div class="section">
+            <h3>Descripción</h3>
+            <p>{{ logbook.descripcion }}</p>
+        </div>
+
+        <div class="section">
+            <h3>Observaciones</h3>
+            <p>{{ logbook.observaciones }}</p>
+        </div> -->
+
+
+    {% if logbook.id_logbook_out or logbook.out %}
+        <h2>Bitácora salida</h2>
+
+    {% endif %}
+
+
+
+    <table class="info-table">
+
+        <tr>
+            <td><strong>Guía</strong></td>
+            <td>{{ logbook.shipping_guide }}</td>
+
+            <td><strong>Fecha</strong></td>
+            <td>{{ logbook.created_at.strftime('%d/%m/%Y') }}</td>
+        </tr>
+
+        <tr>
+            <td><strong>Coordenadas</strong></td>
+            <td>{{ logbook.lat }}, {{ logbook.long }}</td>
+
+            <td><strong>Categoria</strong></td>
+            <td>{{ logbook.name_category }}</td>
+        </tr>
+
+        <tr>
+            <td><strong>Cantidad</strong></td>
+            <td>{{ logbook.quantity }}</td>
+
+            <td><strong>Peso</strong></td>
+            <td>{{ logbook.weight }}</td>
+        </tr>
+
+        <tr>
+            <td><strong>Destino</strong></td>
+            <td>{{ logbook.destiny }}</td>
+
+            <td><strong>Creado por</strong></td>
+            <td>{{ logbook.created_by }}</td>
+        </tr>
+
+        <!-- <tr>
+                <td><strong>Proveedor</strong></td>
+                <td>{{ logbook.proveedor }}</td>
+
+                <td><strong>Conductor</strong></td>
+                <td>{{ logbook.peso }}</td>
+            </tr> -->
+
+    </table>
+
+    <!-- <div class="section">
+            <h3>Descripción</h3>
+            <p>{{ logbook.descripcion }}</p>
+        </div> -->
+
+    <div class="section">
+        <h3>Observaciones</h3>
+        <p>{{ logbook.observations }}</p>
+    </div>
+
+</body>
+
+</html>

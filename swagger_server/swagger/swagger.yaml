@@ -1697,6 +1697,64 @@ paths:
               schema:
                 $ref: "#/components/schemas/ResponseError"
       x-openapi-router-controller: swagger_server.controllers.logbook_controller.LogbookView
+  /pdf_detail_logbook:
+    get:
+      tags:
+      - Reports
+      summary: Obtiene todos las unidades de medida para ingreso de bitacoras
+      description: Devuelve todos las unidades de medida de la base
+      operationId: generate_pdf_detail_logbook
+      parameters:
+        - name: id-logbook
+          in: header
+          required: false
+          schema:
+            type: integer
+            example: 1
+        - name: type-logbook
+          in: header
+          required: false
+          schema:
+            type: string
+            example: "out"
+        - name: channel
+          in: header
+          required: true
+          schema:
+            type: string
+            example: "ZENTINEL"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenericResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+        "503":
+          description: Service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+      x-openapi-router-controller: swagger_server.controllers.logbook_controller.LogbookView
   /get/generate_report_history:
     get:
       tags:
