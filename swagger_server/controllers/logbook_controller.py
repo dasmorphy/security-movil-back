@@ -767,5 +767,3 @@ class LogbookView(MethodView):
         except Exception as ex:
             response, status_code = CustomAPIException.check_exception(ex, function_name, internal_process)
             return response, status_code
-            
-        # return send_file(output, as_attachment=True)

@@ -7,6 +7,11 @@
     <title>Pdf detalle bitacora</title>
 
     <style>
+        @page {
+            size: A4;
+            margin: 20mm;
+        }
+
         body {
             font-family: Arial, sans-serif;
             padding: 25px;
@@ -19,156 +24,313 @@
         }
 
         .info-table {
+            margin-bottom: 2rem;
             width: 100%;
             border-collapse: collapse;
-            table-layout: fixed;
-            /* <-- clave */
         }
 
         .info-table td {
             border: 1px solid #dcdcdc;
-            padding: 10px;
-            font-size: 13px;
-            word-wrap: break-word;
-            /* <-- evita desbordamiento */
-            overflow-wrap: break-word;
+            padding: 8px;
+            font-size: 12px;
             vertical-align: top;
         }
 
-        /* Columnas label más angostas, columnas valor más anchas */
-        .info-table td:nth-child(1),
-        .info-table td:nth-child(3) {
-            width: 20%;
+        .label {
+            width: 18%;
+            font-weight: bold;
+            background-color: #f2f2f2;
         }
 
-        .info-table td:nth-child(2),
-        .info-table td:nth-child(4) {
-            width: 30%;
+        .value {
+            width: 32%;
         }
+
+        .div-responsive {
+            margin-bottom: 0;
+            margin-top: 0;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+            gap: 1rem;
+        }
+
     </style>
 
 </head>
 
 <body>
-    <h2>Bitácora entrada</h2>
+    <h1 style="margin: 0; margin-bottom: 2rem; padding: 0; text-align: center;">Detalles Bitácoras</h1>
+
+    {% if logbook.get("id_logbook_entry") %}
+
+        <h2 style="margin: 0; padding: 0;">Bitácora entrada</h2>
 
 
 
-    <!-- <table class="info-table">
+        <table class="info-table">
 
             <tr>
-                <td><strong>Guía</strong></td>
-                <td>{{ logbook.guia }}</td>
+                <td class="label">Guía</td>
+                <td class="value">
+                    {{ logbook['shipping_guide'] }}
+                </td>
 
-                <td><strong>Fecha</strong></td>
-                <td>{{ logbook.fecha }}</td>
+                <td class="label">Fecha</td>
+                <td class="value">
+                    {{ logbook['created_at'].strftime('%d/%m/%Y %H:%M') }}
+                </td>
             </tr>
 
             <tr>
-                <td><strong>Coordenadas</strong></td>
-                <td>{{ logbook.proveedor }}</td>
+                <td class="label">Coordenadas</td>
+                <td class="value">
+                    {{ logbook.lat }},
+                    {{ logbook.long }}
+                </td>
 
-                <td><strong>Categoria</strong></td>
-                <td>{{ logbook.peso }}</td>
+                <td class="label">Categoría</td>
+                <td class="value">
+                    {{ logbook.name_category }}
+                </td>
             </tr>
 
             <tr>
-                <td><strong>Cantidad</strong></td>
-                <td>{{ logbook.proveedor }}</td>
+                <td class="label">Localidad</td>
+                <td class="value">
+                    {{ logbook.group_name or '-' }}
+                </td>
 
-                <td><strong>Peso</strong></td>
-                <td>{{ logbook.peso }}</td>
+                <td class="label">Placa</td>
+                <td class="value">
+                    {{ logbook.truck_license }}
+                </td>
             </tr>
 
             <tr>
-                <td><strong>Destino</strong></td>
-                <td>{{ logbook.proveedor }}</td>
+                <td class="label">Cantidad</td>
+                <td class="value">
+                    {{ logbook.quantity }}
+                </td>
 
-                <td><strong>Creado por</strong></td>
-                <td>{{ logbook.peso }}</td>
+                <td class="label">Peso</td>
+                <td class="value">
+                    {{ logbook.weight }}
+                </td>
             </tr>
 
             <tr>
-                <td><strong>Proveedor</strong></td>
-                <td>{{ logbook.proveedor }}</td>
+                <td class="label">Proveedor</td>
+                <td class="value">
+                    {{ logbook.provider or '-' }}
+                </td>
 
-                <td><strong>Conductor</strong></td>
-                <td>{{ logbook.peso }}</td>
+                <td class="label">Guardia</td>
+                <td class="value">
+                    {{ logbook.name_user }}
+                </td>
+            </tr>
+
+            <tr>
+                <td class="label">Coductor</td>
+                <td class="value">
+                    {{ logbook.name_driver or '-' }}
+                </td>
+
+                <td class="label">Destino</td>
+                <td class="value">
+                    {{ logbook.destiny or '-' }}
+                </td>    
+            </tr>
+
+            <tr>
+                <td class="label">Creado por</td>
+                <td class="value">
+                    {{ logbook.created_by }}
+                </td>
             </tr>
 
         </table>
 
-        <div class="section">
-            <h3>Descripción</h3>
-            <p>{{ logbook.descripcion }}</p>
-        </div>
+        <!-- <div class="section">
+                <h3>Descripción</h3>
+                <p>{{ logbook.descripcion }}</p>
+            </div> -->
 
-        <div class="section">
-            <h3>Observaciones</h3>
-            <p>{{ logbook.observaciones }}</p>
-        </div> -->
+        <h3 style="margin: 0; padding: 0;">Descripción</h3>
+        <p style="margin: 0; padding: 0;">{{ logbook.description or '-' }}</p>
+
+        <h3 style="margin: 0; margin-top: 2rem; padding: 0;">Observaciones</h3>
+        <p style="margin: 0; padding: 0;">{{ logbook.observations or '-' }}</p>
 
 
-    {% if logbook.id_logbook_out or logbook.out %}
-        <h2>Bitácora salida</h2>
+        <h3 style="margin: 0; padding: 0; margin-top: 2rem;">Imágenes</h3>
+
+        <table width="100%" style="margin-top: 1rem;">
+
+            {% for row in images_entry | batch(2, None) %}
+
+                <tr>
+
+                    {% for image in row %}
+
+                        <td
+                            align="center"
+                            style="padding:10px; page-break-inside: avoid;"
+                        >
+
+                            {% if image %}
+                                <img
+                                    src="{{ image }}"
+                                    width="220"
+                                    height="160"
+                                    style="border:1px solid #ccc;"
+                                >
+                            {% endif %}
+
+                        </td>
+
+                    {% endfor %}
+
+                </tr>
+
+            {% endfor %}
+
+        </table>
+
+            
+    {% endif %}
+
+
+    {% if out %}
+        <h2 style="margin: 0; margin-top: 2rem; padding: 0;">Bitácora salida</h2>
+
+        <table class="info-table">
+    
+            <tr>
+                <td class="label">Guía</td>
+                <td class="value">
+                    {{ out['shipping_guide'] }}
+                </td>
+    
+                <td class="label">Fecha</td>
+                <td class="value">
+                    {{ out['created_at'].strftime('%d/%m/%Y %H:%M') }}
+                </td>
+            </tr>
+    
+            <tr>
+                <td class="label">Coordenadas</td>
+                <td class="value">
+                    {{ out.lat }},
+                    {{ out.long }}
+                </td>
+    
+                <td class="label">Categoría</td>
+                <td class="value">
+                    {{ out.name_category }}
+                </td>
+            </tr>
+
+            <tr>
+                <td class="label">Localidad</td>
+                <td class="value">
+                    {{ logbook.group_name or '-' }}
+                </td>
+
+                <td class="label">Placa</td>
+                <td class="value">
+                    {{ logbook.truck_license }}
+                </td>
+            </tr>
+    
+            <tr>
+                <td class="label">Cantidad</td>
+                <td class="value">
+                    {{ out.quantity }}
+                </td>
+    
+                <td class="label">Peso</td>
+                <td class="value">
+                    {{ out.weight }}
+                </td>
+            </tr>
+
+            <tr>
+                <td class="label">Custodia</td>
+                <td class="value">
+                    {{ logbook.person_withdraws or '-' }}
+                </td>
+
+                <td class="label">Guardia</td>
+                <td class="value">
+                    {{ logbook.name_user }}
+                </td>
+            </tr>
+    
+            <tr>
+                <td class="label">Coductor</td>
+                <td class="value">
+                    {{ logbook.name_driver or '-' }}
+                </td>
+
+                <td class="label">Destino</td>
+                <td class="value">
+                    {{ out.destiny or '-' }}
+                </td>
+            </tr>
+
+            <tr>
+                <td class="label">Creado por</td>
+                <td class="value">
+                    {{ out.created_by }}
+                </td>
+            </tr>
+    
+        </table>
+    
+        <h3 style="margin: 0; padding: 0;">Observaciones</h3>
+        <p style="margin: 0; padding: 0;">{{ out.observations or '-' }}</p>
+
+        <h3 style="margin: 0; padding: 0; margin-top: 2rem;">Imágenes</h3>
+
+        
+        <table width="100%" style="margin-top: 1rem;">
+
+            {% for row in images_out | batch(2, None) %}
+
+                <tr>
+
+                    {% for image in row %}
+
+                        <td
+                            align="center"
+                            style="padding:10px; page-break-inside: avoid;"
+                        >
+
+                            {% if image %}
+                                <img
+                                    src="{{ image }}"
+                                    width="220"
+                                    height="160"
+                                    style="border:1px solid #ccc;"
+                                >
+                            {% endif %}
+
+                        </td>
+
+                    {% endfor %}
+
+                </tr>
+
+            {% endfor %}
+
+        </table>
+
 
     {% endif %}
 
 
 
-    <table class="info-table">
-
-        <tr>
-            <td><strong>Guía</strong></td>
-            <td>{{ logbook.shipping_guide }}</td>
-
-            <td><strong>Fecha</strong></td>
-            <td>{{ logbook.created_at.strftime('%d/%m/%Y') }}</td>
-        </tr>
-
-        <tr>
-            <td><strong>Coordenadas</strong></td>
-            <td>{{ logbook.lat }}, {{ logbook.long }}</td>
-
-            <td><strong>Categoria</strong></td>
-            <td>{{ logbook.name_category }}</td>
-        </tr>
-
-        <tr>
-            <td><strong>Cantidad</strong></td>
-            <td>{{ logbook.quantity }}</td>
-
-            <td><strong>Peso</strong></td>
-            <td>{{ logbook.weight }}</td>
-        </tr>
-
-        <tr>
-            <td><strong>Destino</strong></td>
-            <td>{{ logbook.destiny }}</td>
-
-            <td><strong>Creado por</strong></td>
-            <td>{{ logbook.created_by }}</td>
-        </tr>
-
-        <!-- <tr>
-                <td><strong>Proveedor</strong></td>
-                <td>{{ logbook.proveedor }}</td>
-
-                <td><strong>Conductor</strong></td>
-                <td>{{ logbook.peso }}</td>
-            </tr> -->
-
-    </table>
-
-    <!-- <div class="section">
-            <h3>Descripción</h3>
-            <p>{{ logbook.descripcion }}</p>
-        </div> -->
-
-    <div class="section">
-        <h3>Observaciones</h3>
-        <p>{{ logbook.observations }}</p>
-    </div>
 
 </body>
 

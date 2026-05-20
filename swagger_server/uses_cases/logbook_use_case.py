@@ -3,6 +3,8 @@
 from dataclasses import dataclass
 from io import BytesIO
 import os
+import urllib.request
+import tempfile
 import pandas as pd
 from typing import Counter
 from loguru import logger
@@ -1011,26 +1013,64 @@ class LogbookUseCase:
 
     def generate_detail_log_pdf(self, headers, params, internal, external):
         logbook = self.get_all_logbooks(headers, params, internal, external)
+        out = None
+        tmp_files = []
 
-        if not logbook[0]:
+        if not logbook or len(logbook) == 0 or not logbook[0]:
             raise CustomAPIException("Bitácora no encontrada", 404)
-        
-        html = render_template(
-            "detail-logbook-template.html",
-            logbook=logbook[0]
-        )
 
-        pdf_buffer = BytesIO()
+        if logbook[0].get('id_logbook_out'):
+            out = logbook[0]
+        elif logbook[0].get('out'):
+            out = logbook[0].get('out')
 
-        pisa_status = pisa.CreatePDF(
-            html,
-            dest=pdf_buffer
-        )
+        images_entry = [
+            f"https://st.telearseg.net{img}"
+            for img in (logbook[0].get('images_entry') or [])
+        ]
+        images_out = [
+            f"https://st.telearseg.net{img}"
+            for img in ((out or {}).get('images_out') or [])
+        ]
 
-        if pisa_status.err:
-            raise CustomAPIException("Error al generar el pdf", 500)
+        def link_callback(uri, rel):
+            if uri.startswith("http://") or uri.startswith("https://"):
+                try:
+                    ext = os.path.splitext(uri.split("?")[0])[1] or ".jpg"
+                    tmp = tempfile.NamedTemporaryFile(delete=False, suffix=ext)
+                    urllib.request.urlretrieve(uri, tmp.name)
+                    tmp_files.append(tmp.name)  # captura del scope externo
+                    return tmp.name
+                except Exception:
+                    return uri
+            return uri
 
-        pdf_buffer.seek(0)
+        try:
+            html = render_template(
+                "detail-logbook-template.html",
+                logbook=logbook[0],
+                out=out,
+                images_entry=images_entry,
+                images_out=images_out
+            )
 
+            pdf_buffer = BytesIO()
 
-        return pdf_buffer
+            pisa_status = pisa.CreatePDF(
+                html,
+                dest=pdf_buffer,
+                link_callback=link_callback
+            )
+
+            if pisa_status.err:
+                raise CustomAPIException("Error al generar el pdf", 500)
+
+            pdf_buffer.seek(0)
+            return pdf_buffer
+
+        finally:
+            for f in tmp_files:
+                try:
+                    os.unlink(f)
+                except Exception:
+                    pass
