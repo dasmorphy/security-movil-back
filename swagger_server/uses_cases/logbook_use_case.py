@@ -1,5 +1,7 @@
 
 
+import base64
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from io import BytesIO
 import os
@@ -10,6 +12,9 @@ from typing import Counter
 from loguru import logger
 from openpyxl import load_workbook
 from datetime import datetime
+
+import requests
+from weasyprint import HTML
 from swagger_server.exception.custom_error_exception import CustomAPIException
 from swagger_server.models.db.logbook_entry import LogbookEntry
 from swagger_server.models.db.logbook_out import LogbookOut
@@ -1011,10 +1016,35 @@ class LogbookUseCase:
         }
     
 
+    def get_image_base64(self, img: str) -> str | None:
+        """Descarga una imagen en memoria y la retorna como URI de datos en Base64."""
+        try:
+            url = f"https://st.telearseg.net{img}"
+            response = requests.get(url, timeout=10)
+            response.raise_for_status() 
+            
+            content_type = response.headers.get('content-type', 'image/jpeg')
+            img_b64 = base64.b64encode(response.content).decode('utf-8')
+            
+            return f"data:{content_type};base64,{img_b64}"
+            
+        except requests.exceptions.RequestException as e:
+            logger.warning(f"Error de red descargando imagen {img}: {e}")
+            return None
+        except Exception as e:
+            logger.warning(f"Error inesperado al procesar imagen {img}: {e}")
+            return None
+
+    def download_images_parallel(self, images: list) -> list:
+        if not images:
+            return []
+        with ThreadPoolExecutor(max_workers=6) as executor:
+            results = list(executor.map(self.get_image_base64, images))
+        return [r for r in results if r is not None]
+
     def generate_detail_log_pdf(self, headers, params, internal, external):
         logbook = self.get_all_logbooks(headers, params, internal, external)
         out = None
-        tmp_files = []
 
         if not logbook or len(logbook) == 0 or not logbook[0]:
             raise CustomAPIException("Bitácora no encontrada", 404)
@@ -1024,53 +1054,38 @@ class LogbookUseCase:
         elif logbook[0].get('out'):
             out = logbook[0].get('out')
 
-        images_entry = [
-            f"https://st.telearseg.net{img}"
-            for img in (logbook[0].get('images_entry') or [])
-        ]
-        images_out = [
-            f"https://st.telearseg.net{img}"
-            for img in ((out or {}).get('images_out') or [])
-        ]
+        # Descarga de imágenes en paralelo
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            future_entry = executor.submit(
+                self.download_images_parallel,
+                logbook[0].get('images_entry') or []
+            )
+            future_out = executor.submit(
+                self.download_images_parallel,
+                (out or {}).get('images_out') or []
+            )
+            
+            images_entry = future_entry.result()
+            images_out   = future_out.result()
 
-        def link_callback(uri, rel):
-            if uri.startswith("http://") or uri.startswith("https://"):
-                try:
-                    ext = os.path.splitext(uri.split("?")[0])[1] or ".jpg"
-                    tmp = tempfile.NamedTemporaryFile(delete=False, suffix=ext)
-                    urllib.request.urlretrieve(uri, tmp.name)
-                    tmp_files.append(tmp.name)  # captura del scope externo
-                    return tmp.name
-                except Exception:
-                    return uri
-            return uri
+        # Renderizar el HTML con Jinja2 (Flask/Django)
+        html_string = render_template(
+            "detail-logbook-template.html",
+            logbook=logbook[0],
+            out=out,
+            images_entry=images_entry,
+            images_out=images_out
+        )
 
+        pdf_buffer = BytesIO()
+        
         try:
-            html = render_template(
-                "detail-logbook-template.html",
-                logbook=logbook[0],
-                out=out,
-                images_entry=images_entry,
-                images_out=images_out
-            )
+            # MAGIA DE WEASYPRINT AQUÍ
+            # Transforma el string HTML directamente al buffer PDF
+            HTML(string=html_string).write_pdf(pdf_buffer)
+        except Exception as e:
+            logger.error(f"Error en WeasyPrint generando PDF: {e}")
+            raise CustomAPIException("Error al generar el pdf", 500)
 
-            pdf_buffer = BytesIO()
-
-            pisa_status = pisa.CreatePDF(
-                html,
-                dest=pdf_buffer,
-                link_callback=link_callback
-            )
-
-            if pisa_status.err:
-                raise CustomAPIException("Error al generar el pdf", 500)
-
-            pdf_buffer.seek(0)
-            return pdf_buffer
-
-        finally:
-            for f in tmp_files:
-                try:
-                    os.unlink(f)
-                except Exception:
-                    pass
+        pdf_buffer.seek(0)
+        return pdf_buffer
