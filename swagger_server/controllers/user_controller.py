@@ -124,7 +124,7 @@ class UserView(MethodView):
                 message = f"start request: {function_name}, channel: {body.channel}"
                 logger.info(message, internal=internal_transaction_id, external=external_transaction_id)
                 authenticated_user = self.user_use_case.login(body, body.channel, internal_transaction_id, external_transaction_id)
-                if (body.channel == 'ZENTINEL_WEB'):
+                if (body.channel == 'ZENTINEL_WEB' or body.channel == 'ZENTINEL_TEST'):
                     self.user_use_case.save_session(authenticated_user, connexion.request.headers, internal_transaction_id, external_transaction_id)
                 response["error_code"] = 0
                 response["message"] = "Login correcto",

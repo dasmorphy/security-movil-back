@@ -1200,6 +1200,7 @@ CREATE TABLE public.biomar_access_control
     observations text,
     created_by text,
     updated_by text,
+    type_access text,
     created_at timestamp without time zone DEFAULT now(),
     updated_at timestamp without time zone DEFAULT now(),
     CONSTRAINT access_control_pkey PRIMARY KEY (id_access_control)
@@ -1382,6 +1383,7 @@ CREATE TABLE public.access_control_materials
     access_control_id integer,
     material_id integer,
     quantity integer,
+    other_material text,
     created_at timestamp without time zone DEFAULT now(),
     CONSTRAINT access_control_materials_pkey PRIMARY KEY (id_material_control),
     CONSTRAINT control_materials_control_id_fkey FOREIGN KEY (access_control_id)
@@ -1444,7 +1446,7 @@ ALTER TABLE IF EXISTS public.dispatch_reception_detail DROP CONSTRAINT IF EXISTS
 
 ALTER TABLE IF EXISTS public.dispatch_reception_detail
     ADD CONSTRAINT reception_detail_product_sku_id_fkey FOREIGN KEY (product_sku_id)
-    REFERENCES public.products_sku (id_product_sku) MATCH SIMPLE
+    REFERENCES public.dispatch_skus (id_sku) MATCH SIMPLE
     ON UPDATE NO ACTION
     ON DELETE NO ACTION;
 CREATE INDEX IF NOT EXISTS fki_reception_detail_product_sku_id_fkey
