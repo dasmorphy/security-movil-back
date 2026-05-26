@@ -1123,7 +1123,7 @@ class LogbookRepository:
         filters = []
         last_30_days = datetime.now() - timedelta(days=30)
 
-        if not filtersBase.get("start_date") and not filtersBase.get("end_date"):
+        if not filtersBase.get("start_date") and not filtersBase.get("end_date") and not filtersBase.get("search"):
             filters.append(model.created_at >= last_30_days)
 
         if filtersBase.get("category_ids"):
