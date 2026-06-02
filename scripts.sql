@@ -1662,3 +1662,51 @@ ALTER SEQUENCE public.sector_pool_id_seq
 
 ALTER TABLE IF EXISTS public.sector_pool
     ALTER COLUMN id_sector SET DEFAULT nextval('sector_pool_id_seq'::regclass);
+
+
+----------------------------------------------------------------------------------------------------------
+
+
+CREATE TABLE public.employees_intern
+(
+    id_employee integer NOT NULL,
+    dni text,
+    names text,
+    lastname text,
+    group_business_id integer,
+    "position" text,
+    observations text,
+    photo text,
+    status text,
+    created_by text,
+    created_at timestamp without time zone DEFAULT now(),
+    updated_by text,
+    updated_at timestamp without time zone DEFAULT now(),
+    CONSTRAINT employee_pkey PRIMARY KEY (id_employee),
+    CONSTRAINT group_business_id_fkey FOREIGN KEY (group_business_id)
+        REFERENCES public.group_business (id_group_business) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.employees_intern
+    OWNER to nextgen;
+
+
+CREATE SEQUENCE public.employees_intern_id_seq
+    INCREMENT 1
+    START 1
+    MINVALUE 1
+    MAXVALUE 2147483647
+    CACHE 1;
+
+ALTER SEQUENCE public.employees_intern_id_seq
+    OWNED BY public.employees_intern.id_employee;
+
+ALTER SEQUENCE public.employees_intern_id_seq
+    OWNER TO nextgen;
+
+ALTER TABLE IF EXISTS public.employees_intern
+    ALTER COLUMN id_employee SET DEFAULT nextval('employees_intern_id_seq'::regclass);

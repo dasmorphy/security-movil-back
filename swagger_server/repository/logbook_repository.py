@@ -12,6 +12,7 @@ from swagger_server.models.db.authorized import Authorized
 from swagger_server.models.db.business import Business
 from swagger_server.models.db.business import Business
 from swagger_server.models.db.destiny_intern import DestinyIntern
+from swagger_server.models.db.employee_intern import EmployeeIntern
 from swagger_server.models.db.group_business import GroupBusiness
 from swagger_server.models.db.logbook_entry import LogbookEntry
 from swagger_server.models.db.category import Category
@@ -379,12 +380,17 @@ class LogbookRepository:
 
                 raise CustomAPIException("Error en la base de datos", 500)
 
-    def get_all_categories(self, internal, external):
+    def get_all_categories(self, filters, internal, external):
         with self.db.session_factory() as session:
             try:
-                result = session.execute(
-                    select(Category)
-                )
+                if filters.get("codes"):
+                    result = session.execute(
+                        select(Category).where(Category.code.in_(filters["codes"]))
+                    )
+                else:
+                    result = session.execute(
+                        select(Category)
+                    )
                 categories = [
                     {
                         "id_category": c.id_category,
@@ -1033,8 +1039,8 @@ class LogbookRepository:
             finally:
                 session.close()
 
-    def save_image(self, file):
-        folder = "/var/www/uploads/logbooks"
+    def save_image(self, file, name_folder="logbooks"):
+        folder = f"/var/www/uploads/{name_folder}"
         ALLOWED_EXTENSIONS = {"webp"}
         MAX_FILENAME_LEN = 255
         MAX_BASENAME_LEN = 50
@@ -1553,5 +1559,61 @@ class LogbookRepository:
                 if isinstance(exception, CustomAPIException):
                     raise exception
                 raise CustomAPIException("Error al buscar en la base de datos", 500)
+            finally:
+                session.close()
+
+
+    def post_employee_intern(self, employee_body: EmployeeIntern, internal, external) -> None:
+        saved_files = []
+
+        with self.db.session_factory() as session:
+            try:
+                data_request = RequestIdempotency(
+                    uuid=external,
+                    endpoint="/rest/zent-logbook-api/v1.0/employee-intern"
+                )
+                
+                self.request_idempotency(session, data_request, internal, external)
+
+                group_business_exists = session.execute(
+                    select(GroupBusiness).where(
+                        GroupBusiness.id_group_business == employee_body.group_business_id
+                    )
+                ).scalar_one_or_none()
+                
+                if not group_business_exists:
+                    raise CustomAPIException(
+                        message="No existe el grupo de negocio",
+                        status_code=404
+                    )
+                
+                
+                #Guardar imágenes (máx 10)
+                result = self.save_image(employee_body.photo, name_folder="employees")
+                saved_files.append(result["url"])
+                employee_body.photo = result["url"]
+
+                session.add(employee_body)
+                session.commit()
+
+            except OSError as e:
+                if e.errno == 36:
+                    raise CustomAPIException("Nombre de archivo demasiado largo", 400)
+
+            except Exception as exception:
+                session.rollback()
+
+                #limpia archivos guardados si falla DB
+                for path in saved_files:
+                    full_path = os.path.join("/var/www", path.lstrip("/"))
+                    if os.path.exists(full_path):
+                        os.remove(full_path)
+
+                logger.error('Error: {}', str(exception), internal=internal, external=external)
+                if isinstance(exception, CustomAPIException):
+                    raise exception
+                
+                raise CustomAPIException("Error al insertar en la base de datos", 500)
+
             finally:
                 session.close()

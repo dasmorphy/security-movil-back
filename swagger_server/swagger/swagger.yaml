@@ -913,6 +913,14 @@ paths:
       description: Devuelve todos las categorias de la base
       operationId: get_all_categories
       parameters:
+        - name: code-categories
+          in: header
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+            example: ["MAT", "HER", "EQP"]
         - name: externalTransactionId
           in: header
           required: true
@@ -2019,6 +2027,50 @@ paths:
               schema:
                 $ref: "#/components/schemas/ResponseError"
       x-openapi-router-controller: swagger_server.controllers.logbook_controller.LogbookView
+  /employee-intern:
+    post:
+      tags:
+      - Logbook
+      summary: Guarda del personal interno en la base de datos.
+      description: Guardado del personal interno
+      operationId: post_employee_intern
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/RequestPostEmployeeIntern"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponsePostEmployeeIntern"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+        "503":
+          description: Service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+      x-openapi-router-controller: swagger_server.controllers.logbook_controller.LogbookView
 components:
   schemas:
     RequestFormExpo:
@@ -2081,6 +2133,16 @@ components:
       properties:
         logbook_out:
           $ref: "#/components/schemas/LogBookOutData"
+        channel:
+          type: string
+          example: ZENTINEL
+        externalTransactionId:
+          type: string
+          example: fcea920f7412b5da7be0cf42b8c93759
+    RequestPostEmployeeIntern:
+      properties:
+        employee_intern:
+          $ref: "#/components/schemas/EmployeeInternData"
         channel:
           type: string
           example: ZENTINEL
@@ -2303,6 +2365,45 @@ components:
         is_assist:
           type: boolean
           example: true
+    EmployeeInternData:
+      type: object
+      properties:
+        id_group_business:
+          type: integer
+          example: 1
+        dni:
+          type: string
+          example: "1234567890"
+        names:
+          type: string
+          example: "Daniel"
+        lastname:
+          type: string
+          example: "Males"
+        position:
+          type: string
+          example: "Operario"
+        observations:
+          type: string
+          nullable: true
+          example: "Sin observaciones"
+        user:
+          type: string
+          example: "dmales"
+        photo:
+          items:
+            type: string
+            format: binary
+      example:
+        id_group_business: 1
+        dni: "1234567890"
+        names: "Daniel"
+        lastname: "Males"
+        position: "Operario"
+        observations: "Sin observaciones"
+        photo: "photo.jpg"
+        status: "Activo"
+        user: "dmales"
     LoginData:
       type: object
       properties:

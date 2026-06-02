@@ -16,6 +16,7 @@ from datetime import datetime
 import requests
 from weasyprint import HTML
 from swagger_server.exception.custom_error_exception import CustomAPIException
+from swagger_server.models.db.employee_intern import EmployeeIntern
 from swagger_server.models.db.logbook_entry import LogbookEntry
 from swagger_server.models.db.logbook_out import LogbookOut
 from swagger_server.models.db.request_idempotency import RequestIdempotency
@@ -109,8 +110,14 @@ class LogbookUseCase:
 
         self.logbook_repository.post_logbook_out(logbook_out, images, body.get('id_logbook_entry'), internal, external)
 
-    def get_all_categories(self, internal, external):
-        return self.logbook_repository.get_all_categories(internal, external)
+    def get_all_categories(self, headers, internal, external):
+        code_categories = headers.get('code-categories')
+
+        filters = {
+            "codes": [x.strip() for x in code_categories.split(",")] if code_categories else [],
+        }
+
+        return self.logbook_repository.get_all_categories(filters, internal, external)
     
     def get_all_unities(self, internal, external):
         return self.logbook_repository.get_all_unities(internal, external)
@@ -1089,3 +1096,19 @@ class LogbookUseCase:
 
         pdf_buffer.seek(0)
         return pdf_buffer
+
+
+    def post_employee_intern(self, body, images, internal, external) -> None:        
+        logbook_entry = EmployeeIntern(
+            dni=body['dni'],
+            group_business_id=body['group_business_id'],
+            names=body['names'],
+            lastname=body['lastname'],
+            position=body['position'],
+            observations=body['observations'],
+            created_at=body.get('user'),
+            updated_at=body.get('user'),
+            status="Activo"
+        )
+
+        self.logbook_repository.post_employee_intern(logbook_entry, images, internal, external)
