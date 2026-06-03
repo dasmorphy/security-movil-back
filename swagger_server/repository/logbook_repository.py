@@ -1589,9 +1589,10 @@ class LogbookRepository:
                 
                 
                 #Guardar imágenes (máx 10)
-                result = self.save_image(employee_body.photo, name_folder="employees")
-                saved_files.append(result["url"])
-                employee_body.photo = result["url"]
+                if employee_body.photo:
+                    result = self.save_image(employee_body.photo, name_folder="employees")
+                    saved_files.append(result["url"])
+                    employee_body.photo = result["url"]
 
                 session.add(employee_body)
                 session.commit()
