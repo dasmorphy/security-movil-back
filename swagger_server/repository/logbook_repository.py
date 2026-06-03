@@ -1624,21 +1624,19 @@ class LogbookRepository:
         with self.db.session_factory() as session:
             try:
                 result = session.execute(
-                    select(EmployeeIntern, GroupBusiness.name.label("group_name"))
-                    .join(GroupBusiness, GroupBusiness.id_group_business == EmployeeIntern.group_business_id)
+                    select(
+                        EmployeeIntern,
+                        GroupBusiness.name.label("group_name")
+                    )
+                    .join(
+                        GroupBusiness,
+                        GroupBusiness.id_group_business == EmployeeIntern.group_business_id
+                    )
                 )
 
-                if filters.get("start_date"):
-                    result = result.where(EmployeeIntern.created_at >= filters["start_date"])
+                rows = result.all()
 
-                if filters.get("end_date"):
-                    result = result.where(EmployeeIntern.created_at <= filters["end_date"])
-
-                employees = [
-                    employee.to_dict()
-                    for employee in result.scalars().all()
-                ]
-                return employees
+                return rows
             except Exception as exception:
                 logger.error('Error: {}', str(exception), internal=internal, external=external)
                 if isinstance(exception, CustomAPIException):

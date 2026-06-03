@@ -1124,7 +1124,7 @@ class LogbookUseCase:
 
         results = [
             {
-                "id_employee_intern": c.id_employee_intern,
+                "id_employee_intern": c.id_employee,
                 "dni": c.dni,
                 "group_business_id": c.group_business_id,
                 "names": c.names,
