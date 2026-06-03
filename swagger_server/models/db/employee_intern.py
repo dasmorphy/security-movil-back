@@ -26,6 +26,7 @@ class EmployeeIntern(Base):
     lastname = Column(Text)
     position = Column(Text)
     observations = Column(Text)
+    name_user = Column(Text)
     photo = Column(Text)
     status = Column(Text)
     created_by = Column(Text)

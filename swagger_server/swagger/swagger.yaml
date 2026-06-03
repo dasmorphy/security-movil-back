@@ -2028,9 +2028,74 @@ paths:
                 $ref: "#/components/schemas/ResponseError"
       x-openapi-router-controller: swagger_server.controllers.logbook_controller.LogbookView
   /employee-intern:
+    get:
+      tags:
+      - Employee
+      summary: Obtiene todo el personal interno
+      description: Devuelve todo el personal interno de la base
+      operationId: get_employees_intern
+      parameters:
+        - name: start_date
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+            example: "2025-01-21T00:00:00"
+        - name: end_date
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+            example: "2025-01-22T00:00:00"
+        - name: externalTransactionId
+          in: header
+          required: true
+          schema:
+            type: string
+            example: "fcea920f7412b5da7be0cf42b8c93759"
+        - name: channel
+          in: header
+          required: true
+          schema:
+            type: string
+            example: "ZENTINEL"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenericResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+        "503":
+          description: Service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+      x-openapi-router-controller: swagger_server.controllers.logbook_controller.LogbookView
     post:
       tags:
-      - Logbook
+      - Employee
       summary: Guarda del personal interno en la base de datos.
       description: Guardado del personal interno
       operationId: post_employee_intern
@@ -2045,7 +2110,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ResponsePostEmployeeIntern"
+                $ref: "#/components/schemas/GenericResponse"
         "400":
           description: Bad request
           content:
@@ -2390,6 +2455,9 @@ components:
         user:
           type: string
           example: "dmales"
+        name_user:
+          type: string
+          example: "daniel"
         photo:
           items:
             type: string

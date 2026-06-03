@@ -1671,6 +1671,7 @@ CREATE TABLE public.employees_intern
 (
     id_employee integer NOT NULL,
     dni text,
+    name_user text,
     names text,
     lastname text,
     group_business_id integer,

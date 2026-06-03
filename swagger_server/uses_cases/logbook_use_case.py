@@ -1107,8 +1107,40 @@ class LogbookUseCase:
             position=body['position'],
             observations=body['observations'],
             created_at=body.get('user'),
+            name_user=body['name_user'],
             updated_at=body.get('user'),
             status="Activo"
         )
 
         self.logbook_repository.post_employee_intern(logbook_entry, images, internal, external)
+
+    def get_employees_intern(self, headers, params, internal, external):
+        filters = {
+            "start_date": params.get("start_date"),
+            "end_date": params.get("end_date")
+        }
+        
+        rows = self.logbook_repository.get_employees_intern(filters, internal, external)
+
+        results = [
+            {
+                "id_employee_intern": c.id_employee_intern,
+                "dni": c.dni,
+                "group_business_id": c.group_business_id,
+                "names": c.names,
+                "lastname": c.lastname,
+                "position": c.position,
+                "observations": c.observations,
+                "name_user": c.name_user,
+                "status": c.status,
+                "created_at": c.created_at,
+                "updated_at": c.updated_at,
+                "created_by": c.created_by,
+                "updated_by": c.updated_by,
+                "group_name": group_name,
+                "photo": c.photo
+            }
+            for c, group_name in rows
+        ]
+
+        return results

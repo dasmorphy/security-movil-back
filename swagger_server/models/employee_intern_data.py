@@ -14,7 +14,7 @@ class EmployeeInternData(Model):
 
     Do not edit the class manually.
     """
-    def __init__(self, id_group_business: int=None, dni: str=None, names: str=None, lastname: str=None, position: str=None, observations: str=None, user: str=None, photo: List[str]=None):  # noqa: E501
+    def __init__(self, id_group_business: int=None, dni: str=None, names: str=None, lastname: str=None, position: str=None, observations: str=None, user: str=None, name_user: str=None, photo: List[str]=None):  # noqa: E501
         """EmployeeInternData - a model defined in Swagger
 
         :param id_group_business: The id_group_business of this EmployeeInternData.  # noqa: E501
@@ -31,6 +31,8 @@ class EmployeeInternData(Model):
         :type observations: str
         :param user: The user of this EmployeeInternData.  # noqa: E501
         :type user: str
+        :param name_user: The name_user of this EmployeeInternData.  # noqa: E501
+        :type name_user: str
         :param photo: The photo of this EmployeeInternData.  # noqa: E501
         :type photo: List[str]
         """
@@ -42,6 +44,7 @@ class EmployeeInternData(Model):
             'position': str,
             'observations': str,
             'user': str,
+            'name_user': str,
             'photo': List[str]
         }
 
@@ -53,6 +56,7 @@ class EmployeeInternData(Model):
             'position': 'position',
             'observations': 'observations',
             'user': 'user',
+            'name_user': 'name_user',
             'photo': 'photo'
         }
         self._id_group_business = id_group_business
@@ -62,6 +66,7 @@ class EmployeeInternData(Model):
         self._position = position
         self._observations = observations
         self._user = user
+        self._name_user = name_user
         self._photo = photo
 
     @classmethod
@@ -221,6 +226,27 @@ class EmployeeInternData(Model):
         """
 
         self._user = user
+
+    @property
+    def name_user(self) -> str:
+        """Gets the name_user of this EmployeeInternData.
+
+
+        :return: The name_user of this EmployeeInternData.
+        :rtype: str
+        """
+        return self._name_user
+
+    @name_user.setter
+    def name_user(self, name_user: str):
+        """Sets the name_user of this EmployeeInternData.
+
+
+        :param name_user: The name_user of this EmployeeInternData.
+        :type name_user: str
+        """
+
+        self._name_user = name_user
 
     @property
     def photo(self) -> List[str]:
