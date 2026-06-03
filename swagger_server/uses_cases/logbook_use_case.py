@@ -364,7 +364,7 @@ class LogbookUseCase:
         total_entry = len(rows_entry)
         total_out = len(rows_out)
 
-        categories = self.get_all_categories(internal, external)
+        categories = self.get_all_categories({}, internal, external)
 
         # Mapa {id: nombre}
         category_map = {
