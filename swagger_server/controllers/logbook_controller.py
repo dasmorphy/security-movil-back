@@ -793,8 +793,8 @@ class LogbookView(MethodView):
                 response["external_transaction_id"] = external_transaction_id
                 message = f"start request: {function_name}, channel: {employee_dict['channel']}"
                 logger.info(message, internal=internal_transaction_id, external=external_transaction_id)
-                files = request.files.getlist("images")
-                self.logbook_use_case.post_employee_intern(employee_dict, files, internal_transaction_id, external_transaction_id)
+                # files = request.files.getlist("images")
+                self.logbook_use_case.post_employee_intern(employee_dict, internal_transaction_id, external_transaction_id)
                 response["error_code"] = 0
                 response["message"] = "Personal creado correctamente"
                 end_time = default_timer()

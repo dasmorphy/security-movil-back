@@ -14,7 +14,7 @@ from openpyxl import load_workbook
 from datetime import datetime
 
 import requests
-from weasyprint import HTML
+# from weasyprint import HTML
 from swagger_server.exception.custom_error_exception import CustomAPIException
 from swagger_server.models.db.employee_intern import EmployeeIntern
 from swagger_server.models.db.logbook_entry import LogbookEntry
@@ -1086,19 +1086,19 @@ class LogbookUseCase:
 
         pdf_buffer = BytesIO()
         
-        try:
-            # MAGIA DE WEASYPRINT AQUÍ
-            # Transforma el string HTML directamente al buffer PDF
-            HTML(string=html_string).write_pdf(pdf_buffer)
-        except Exception as e:
-            logger.error(f"Error en WeasyPrint generando PDF: {e}")
-            raise CustomAPIException("Error al generar el pdf", 500)
+        # try:
+        #     # MAGIA DE WEASYPRINT AQUÍ
+        #     # Transforma el string HTML directamente al buffer PDF
+        #     HTML(string=html_string).write_pdf(pdf_buffer)
+        # except Exception as e:
+        #     logger.error(f"Error en WeasyPrint generando PDF: {e}")
+        #     raise CustomAPIException("Error al generar el pdf", 500)
 
         pdf_buffer.seek(0)
         return pdf_buffer
 
 
-    def post_employee_intern(self, body, images, internal, external) -> None:        
+    def post_employee_intern(self, body, internal, external) -> None:        
         logbook_entry = EmployeeIntern(
             dni=body['dni'],
             group_business_id=body['group_business_id'],
@@ -1112,7 +1112,7 @@ class LogbookUseCase:
             status="Activo"
         )
 
-        self.logbook_repository.post_employee_intern(logbook_entry, images, internal, external)
+        self.logbook_repository.post_employee_intern(logbook_entry, internal, external)
 
     def get_employees_intern(self, headers, params, internal, external):
         filters = {
