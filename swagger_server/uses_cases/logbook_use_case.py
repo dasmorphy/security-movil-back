@@ -1106,9 +1106,9 @@ class LogbookUseCase:
             lastname=body['lastname'],
             position=body['position'],
             observations=body['observations'],
-            created_at=body.get('user'),
+            created_by=body.get('user'),
             name_user=body['name_user'],
-            updated_at=body.get('user'),
+            updated_by=body.get('user'),
             status="Activo"
         )
 
