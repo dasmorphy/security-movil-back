@@ -1098,7 +1098,7 @@ class LogbookUseCase:
         return pdf_buffer
 
 
-    def post_employee_intern(self, body, internal, external) -> None:        
+    def post_employee_intern(self, body, files, internal, external) -> None:        
         logbook_entry = EmployeeIntern(
             dni=body['dni'],
             group_business_id=body['group_business_id'],
@@ -1112,7 +1112,7 @@ class LogbookUseCase:
             status="Activo"
         )
 
-        self.logbook_repository.post_employee_intern(logbook_entry, internal, external)
+        self.logbook_repository.post_employee_intern(logbook_entry, files, internal, external)
 
     def get_employees_intern(self, headers, params, internal, external):
         filters = {

@@ -1711,3 +1711,29 @@ ALTER SEQUENCE public.employees_intern_id_seq
 
 ALTER TABLE IF EXISTS public.employees_intern
     ALTER COLUMN id_employee SET DEFAULT nextval('employees_intern_id_seq'::regclass);
+
+
+---------------------------------------------------------------------------------------------------------------------
+
+ALTER TABLE IF EXISTS public.logbook_entry
+    ADD COLUMN employee_intern_id integer;
+ALTER TABLE IF EXISTS public.logbook_entry
+    ADD CONSTRAINT logbook_entry_employee_id_fkey FOREIGN KEY (employee_intern_id)
+    REFERENCES public.employees_intern (id_employee) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE NO ACTION;
+CREATE INDEX IF NOT EXISTS fki_logbook_entry_employee_id_fkey
+    ON public.logbook_entry(employee_intern_id);
+
+
+----------------------------------------------------------------------------------------------------------------------
+
+ALTER TABLE IF EXISTS public.logbook_out
+    ADD COLUMN employee_intern_id integer;
+ALTER TABLE IF EXISTS public.logbook_out
+    ADD CONSTRAINT logbook_out_employee_id_fkey FOREIGN KEY (employee_intern_id)
+    REFERENCES public.employees_intern (id_employee) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE NO ACTION;
+CREATE INDEX IF NOT EXISTS fki_logbook_out_employee_id_fkey
+    ON public.logbook_out(employee_intern_id);

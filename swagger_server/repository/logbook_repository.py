@@ -1563,7 +1563,7 @@ class LogbookRepository:
                 session.close()
 
 
-    def post_employee_intern(self, employee_body: EmployeeIntern, internal, external) -> None:
+    def post_employee_intern(self, employee_body: EmployeeIntern, files, internal, external) -> None:
         saved_files = []
 
         with self.db.session_factory() as session:
@@ -1589,10 +1589,10 @@ class LogbookRepository:
                 
                 
                 #Guardar imágenes (máx 10)
-                if employee_body.photo:
-                    result = self.save_image(employee_body.photo, name_folder="employees")
+                if files:
+                    result = self.save_image(files, name_folder="employees")
                     saved_files.append(result["url"])
-                    employee_body.photo = result["url"]
+                    files = result["url"]
 
                 session.add(employee_body)
                 session.commit()
