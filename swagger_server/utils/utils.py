@@ -703,6 +703,7 @@ def parse_filters(headers, params):
         "id_logbook": headers.get("id-logbook"),
         "user": headers.get("user"),
         "groups_business_id": [int(x) for x in groups.split(",")] if groups else [],
+        "employees_intern": [int(x) for x in headers.get("employees-intern", "").split(",") if x],
         "start_date": params.get("start_date"),
         "end_date": params.get("end_date"),
         "sector_id": [int(x) for x in sectors.split(",")] if sectors else [],

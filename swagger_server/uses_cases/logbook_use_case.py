@@ -76,7 +76,8 @@ class LogbookUseCase:
             lat=body.get('lat'),
             long=body.get('long'),
             created_at=body.get('created_at'),
-            status="Pendiente Salida"
+            status="Pendiente Salida",
+            employee_intern_id=body.get('employee_intern')
         )
 
         self.logbook_repository.post_logbook_entry(logbook_entry, images, internal, external)
@@ -105,7 +106,8 @@ class LogbookUseCase:
             workday=get_workday(),
             lat=body.get('lat'),
             long=body.get('long'),
-            created_at=body.get('created_at')
+            created_at=body.get('created_at'),
+            employee_intern_id=body.get('employee_intern')
         )
 
         self.logbook_repository.post_logbook_out(logbook_out, images, body.get('id_logbook_entry'), internal, external)

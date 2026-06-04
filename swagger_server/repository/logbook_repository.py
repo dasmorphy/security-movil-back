@@ -52,6 +52,21 @@ class LogbookRepository:
                 
                 self.request_idempotency(session, data_request, internal, external)
 
+                if logbook_entry_body.employee_intern_id is not None:
+                    employee_intern_exists = session.execute(
+                        select(
+                            exists().where(
+                                EmployeeIntern.id_employee == logbook_entry_body.employee_intern_id
+                            )
+                        )
+                    ).scalar()
+
+                    if not employee_intern_exists:
+                        raise CustomAPIException(
+                            message="No existe el personal interno",
+                            status_code=404
+                        )
+
                 category_exists = session.execute(
                     select(
                         exists().where(
@@ -164,6 +179,21 @@ class LogbookRepository:
                 )
                 
                 self.request_idempotency(session, data_request, internal, external)
+
+                if logbook_out_body.employee_intern_id is not None:
+                    employee_intern_exists = session.execute(
+                        select(
+                            exists().where(
+                                EmployeeIntern.id_employee == logbook_out_body.employee_intern_id
+                            )
+                        )
+                    ).scalar()
+
+                    if not employee_intern_exists:
+                        raise CustomAPIException(
+                            message="No existe el personal interno",
+                            status_code=404
+                        )
 
                 unity_weight_exists = True
                 category_exists = session.execute(
@@ -1152,6 +1182,9 @@ class LogbookRepository:
 
         if filtersBase.get("groups_business_id"):
             filters.append(model.group_business_id.in_(filtersBase.get("groups_business_id")))
+
+        if filtersBase.get("employees_intern"):
+            filters.append(model.employee_intern_id.in_(filtersBase.get("employees_intern")))
 
         if filtersBase.get("id_business"):
             filters.append(GroupBusiness.business_id == filtersBase.get("id_business"))

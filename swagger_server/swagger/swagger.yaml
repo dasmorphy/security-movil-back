@@ -1387,6 +1387,12 @@ paths:
           schema:
             type: string
             example: "1,2,3"
+        - name: employees-intern
+          in: header
+          required: false
+          schema:
+            type: string
+            example: "1,2,3"
         - name: ids-categories
           in: header
           required: false
@@ -2308,6 +2314,10 @@ components:
         name_user:
           type: string
           example: Daniel
+        employee_intern:
+          type: integer
+          nullable: true
+          example: 1
         images:
           type: array
           maxItems: 10
@@ -2330,6 +2340,7 @@ components:
         observations: Sin observaciones
         created_by: dmales
         name_user: Daniel
+        employee_intern: 1
         images: []
     LogBookOutData:
       type: object
@@ -2374,6 +2385,10 @@ components:
         authorized_by:
           type: string
           example: Camanglar
+        employee_intern:
+          type: integer
+          nullable: true
+          example: 1
         observations:
           type: string
           nullable: true
@@ -2402,6 +2417,7 @@ components:
         person_withdraws: "Juan"
         destiny: Camanglar
         authorized_by: Camanglar
+        employee_intern: 1
         observations: Sin observaciones
         created_by: dmales
         name_user: Daniel Males

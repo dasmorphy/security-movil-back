@@ -14,7 +14,7 @@ class LogBookOutData(Model):
 
     Do not edit the class manually.
     """
-    def __init__(self, id_group_business: int=None, id_category: int=None, id_unity: int=None, shipping_guide: str=None, quantity: float=None, weight: float=None, truck_license: str=None, name_driver: str=None, lat: str=None, long: str=None, person_withdraws: str=None, destiny: str=None, authorized_by: str=None, observations: str=None, created_by: str=None, name_user: str=None, images: List[str]=None):  # noqa: E501
+    def __init__(self, id_group_business: int=None, id_category: int=None, id_unity: int=None, shipping_guide: str=None, quantity: float=None, weight: float=None, truck_license: str=None, name_driver: str=None, lat: str=None, long: str=None, person_withdraws: str=None, destiny: str=None, authorized_by: str=None, employee_intern: int=None, observations: str=None, created_by: str=None, name_user: str=None, images: List[str]=None):  # noqa: E501
         """LogBookOutData - a model defined in Swagger
 
         :param id_group_business: The id_group_business of this LogBookOutData.  # noqa: E501
@@ -43,6 +43,8 @@ class LogBookOutData(Model):
         :type destiny: str
         :param authorized_by: The authorized_by of this LogBookOutData.  # noqa: E501
         :type authorized_by: str
+        :param employee_intern: The employee_intern of this LogBookOutData.  # noqa: E501
+        :type employee_intern: int
         :param observations: The observations of this LogBookOutData.  # noqa: E501
         :type observations: str
         :param created_by: The created_by of this LogBookOutData.  # noqa: E501
@@ -66,6 +68,7 @@ class LogBookOutData(Model):
             'person_withdraws': str,
             'destiny': str,
             'authorized_by': str,
+            'employee_intern': int,
             'observations': str,
             'created_by': str,
             'name_user': str,
@@ -86,6 +89,7 @@ class LogBookOutData(Model):
             'person_withdraws': 'person_withdraws',
             'destiny': 'destiny',
             'authorized_by': 'authorized_by',
+            'employee_intern': 'employee_intern',
             'observations': 'observations',
             'created_by': 'created_by',
             'name_user': 'name_user',
@@ -104,6 +108,7 @@ class LogBookOutData(Model):
         self._person_withdraws = person_withdraws
         self._destiny = destiny
         self._authorized_by = authorized_by
+        self._employee_intern = employee_intern
         self._observations = observations
         self._created_by = created_by
         self._name_user = name_user
@@ -392,6 +397,27 @@ class LogBookOutData(Model):
         """
 
         self._authorized_by = authorized_by
+
+    @property
+    def employee_intern(self) -> int:
+        """Gets the employee_intern of this LogBookOutData.
+
+
+        :return: The employee_intern of this LogBookOutData.
+        :rtype: int
+        """
+        return self._employee_intern
+
+    @employee_intern.setter
+    def employee_intern(self, employee_intern: int):
+        """Sets the employee_intern of this LogBookOutData.
+
+
+        :param employee_intern: The employee_intern of this LogBookOutData.
+        :type employee_intern: int
+        """
+
+        self._employee_intern = employee_intern
 
     @property
     def observations(self) -> str:

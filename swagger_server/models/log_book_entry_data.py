@@ -14,7 +14,7 @@ class LogBookEntryData(Model):
 
     Do not edit the class manually.
     """
-    def __init__(self, id_group_business: int=None, id_category: int=None, shipping_guide: str=None, description: str=None, quantity: float=None, id_unity: int=None, truck_license: str=None, name_driver: str=None, weight: float=None, lat: str=None, long: str=None, provider: str=None, destiny_intern: str=None, authorized_by: str=None, observations: str=None, created_by: str=None, name_user: str=None, images: List[str]=None):  # noqa: E501
+    def __init__(self, id_group_business: int=None, id_category: int=None, shipping_guide: str=None, description: str=None, quantity: float=None, id_unity: int=None, truck_license: str=None, name_driver: str=None, weight: float=None, lat: str=None, long: str=None, provider: str=None, destiny_intern: str=None, authorized_by: str=None, observations: str=None, created_by: str=None, name_user: str=None, employee_intern: int=None, images: List[str]=None):  # noqa: E501
         """LogBookEntryData - a model defined in Swagger
 
         :param id_group_business: The id_group_business of this LogBookEntryData.  # noqa: E501
@@ -51,6 +51,8 @@ class LogBookEntryData(Model):
         :type created_by: str
         :param name_user: The name_user of this LogBookEntryData.  # noqa: E501
         :type name_user: str
+        :param employee_intern: The employee_intern of this LogBookEntryData.  # noqa: E501
+        :type employee_intern: int
         :param images: The images of this LogBookEntryData.  # noqa: E501
         :type images: List[str]
         """
@@ -72,6 +74,7 @@ class LogBookEntryData(Model):
             'observations': str,
             'created_by': str,
             'name_user': str,
+            'employee_intern': int,
             'images': List[str]
         }
 
@@ -93,6 +96,7 @@ class LogBookEntryData(Model):
             'observations': 'observations',
             'created_by': 'created_by',
             'name_user': 'name_user',
+            'employee_intern': 'employee_intern',
             'images': 'images'
         }
         self._id_group_business = id_group_business
@@ -112,6 +116,7 @@ class LogBookEntryData(Model):
         self._observations = observations
         self._created_by = created_by
         self._name_user = name_user
+        self._employee_intern = employee_intern
         self._images = images
 
     @classmethod
@@ -481,6 +486,27 @@ class LogBookEntryData(Model):
         """
 
         self._name_user = name_user
+
+    @property
+    def employee_intern(self) -> int:
+        """Gets the employee_intern of this LogBookEntryData.
+
+
+        :return: The employee_intern of this LogBookEntryData.
+        :rtype: int
+        """
+        return self._employee_intern
+
+    @employee_intern.setter
+    def employee_intern(self, employee_intern: int):
+        """Sets the employee_intern of this LogBookEntryData.
+
+
+        :param employee_intern: The employee_intern of this LogBookEntryData.
+        :type employee_intern: int
+        """
+
+        self._employee_intern = employee_intern
 
     @property
     def images(self) -> List[str]:
