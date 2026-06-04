@@ -1072,7 +1072,7 @@ class LogbookRepository:
         file.save(path)
 
         return {
-            "url": f"/uploads/logbooks/{filename}"
+            "url": f"/uploads/{name_folder}/{filename}"
         }
     
     def apply_filters(self, stmt, model: LogbookEntry | LogbookOut, filtersBase):
@@ -1574,6 +1574,18 @@ class LogbookRepository:
                 )
                 
                 self.request_idempotency(session, data_request, internal, external)
+
+                existing_employee = session.execute(
+                    select(EmployeeIntern).where(
+                        EmployeeIntern.dni == employee_body.dni
+                    )
+                ).scalar_one_or_none()
+
+                if existing_employee:
+                    raise CustomAPIException(
+                        message=f"Ya existe un empleado registrado con la cédula {employee_body.dni}",
+                        status_code=400
+                    )
 
                 group_business_exists = session.execute(
                     select(GroupBusiness).where(
