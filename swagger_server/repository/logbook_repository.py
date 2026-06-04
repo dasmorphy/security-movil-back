@@ -1592,7 +1592,7 @@ class LogbookRepository:
                 if files:
                     result = self.save_image(files[0], name_folder="employees")
                     saved_files.append(result["url"])
-                    files = result["url"]
+                    employee_body.photo = result["url"]
 
                 session.add(employee_body)
                 session.commit()
