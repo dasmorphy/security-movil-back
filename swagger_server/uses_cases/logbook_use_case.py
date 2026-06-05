@@ -14,7 +14,7 @@ from openpyxl import load_workbook
 from datetime import datetime
 
 import requests
-from weasyprint import HTML
+# from weasyprint import HTML
 from swagger_server.exception.custom_error_exception import CustomAPIException
 from swagger_server.models.db.employee_intern import EmployeeIntern
 from swagger_server.models.db.logbook_entry import LogbookEntry
@@ -77,7 +77,6 @@ class LogbookUseCase:
             long=body.get('long'),
             created_at=body.get('created_at'),
             status="Pendiente Salida",
-            employee_intern_id=body.get('employee_intern')
         )
 
         self.logbook_repository.post_logbook_entry(logbook_entry, images, internal, external)
@@ -107,7 +106,6 @@ class LogbookUseCase:
             lat=body.get('lat'),
             long=body.get('long'),
             created_at=body.get('created_at'),
-            employee_intern_id=body.get('employee_intern')
         )
 
         self.logbook_repository.post_logbook_out(logbook_out, images, body.get('id_logbook_entry'), internal, external)
@@ -1088,61 +1086,13 @@ class LogbookUseCase:
 
         pdf_buffer = BytesIO()
         
-        try:
-            # MAGIA DE WEASYPRINT AQUÍ
-            # Transforma el string HTML directamente al buffer PDF
-            HTML(string=html_string).write_pdf(pdf_buffer)
-        except Exception as e:
-            logger.error(f"Error en WeasyPrint generando PDF: {e}")
-            raise CustomAPIException("Error al generar el pdf", 500)
+        # try:
+        #     # MAGIA DE WEASYPRINT AQUÍ
+        #     # Transforma el string HTML directamente al buffer PDF
+        #     HTML(string=html_string).write_pdf(pdf_buffer)
+        # except Exception as e:
+        #     logger.error(f"Error en WeasyPrint generando PDF: {e}")
+        #     raise CustomAPIException("Error al generar el pdf", 500)
 
         pdf_buffer.seek(0)
         return pdf_buffer
-
-
-    def post_employee_intern(self, body, files, internal, external) -> None:        
-        logbook_entry = EmployeeIntern(
-            dni=body['dni'],
-            group_business_id=body['group_business_id'],
-            names=body['names'],
-            lastname=body['lastname'],
-            position=body['position'],
-            observations=body['observations'],
-            created_by=body.get('user'),
-            name_user=body['name_user'],
-            updated_by=body.get('user'),
-            status="Activo"
-        )
-
-        self.logbook_repository.post_employee_intern(logbook_entry, files, internal, external)
-
-    def get_employees_intern(self, headers, params, internal, external):
-        filters = {
-            "start_date": params.get("start_date"),
-            "end_date": params.get("end_date")
-        }
-        
-        rows = self.logbook_repository.get_employees_intern(filters, internal, external)
-
-        results = [
-            {
-                "id_employee_intern": c.id_employee,
-                "dni": c.dni,
-                "group_business_id": c.group_business_id,
-                "names": c.names,
-                "lastname": c.lastname,
-                "position": c.position,
-                "observations": c.observations,
-                "name_user": c.name_user,
-                "status": c.status,
-                "created_at": c.created_at,
-                "updated_at": c.updated_at,
-                "created_by": c.created_by,
-                "updated_by": c.updated_by,
-                "group_name": group_name,
-                "photo": c.photo
-            }
-            for c, group_name in rows
-        ]
-
-        return results

@@ -38,12 +38,6 @@ class LogbookOut(Base):
         nullable=False
     )
 
-    employee_intern_id = Column(
-        Integer,
-        ForeignKey('public.employees_intern.id_employee', onupdate='NO ACTION', ondelete='NO ACTION'),
-        nullable=True
-    )
-
     shipping_guide = Column(Text)
 
     quantity = Column(Integer)

@@ -1715,25 +1715,55 @@ ALTER TABLE IF EXISTS public.employees_intern
 
 ---------------------------------------------------------------------------------------------------------------------
 
-ALTER TABLE IF EXISTS public.logbook_entry
-    ADD COLUMN employee_intern_id integer;
-ALTER TABLE IF EXISTS public.logbook_entry
-    ADD CONSTRAINT logbook_entry_employee_id_fkey FOREIGN KEY (employee_intern_id)
-    REFERENCES public.employees_intern (id_employee) MATCH SIMPLE
-    ON UPDATE NO ACTION
-    ON DELETE NO ACTION;
-CREATE INDEX IF NOT EXISTS fki_logbook_entry_employee_id_fkey
-    ON public.logbook_entry(employee_intern_id);
+CREATE TABLE public.employee_movements
+(
+    id_movement integer NOT NULL,
+    employee_id integer,
+    group_business_id integer,
+    authorized_id integer,
+    type_movement text,
+    observations text,
+    other_destiny text,
+    name_user text,
+    status text,
+    reason_out text,
+    created_by text,
+    created_at timestamp without time zone DEFAULT now(),
+    updated_by text,
+    updated_at timestamp without time zone DEFAULT now(),
+    CONSTRAINT employee_movements_pkey PRIMARY KEY (id_movement),
+    CONSTRAINT movements_employee_fkey FOREIGN KEY (employee_id)
+        REFERENCES public.employees_intern (id_employee) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION,
+    CONSTRAINT movement_group_business_fkey FOREIGN KEY (group_business_id)
+        REFERENCES public.group_business (id_group_business) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION,
+    CONSTRAINT movement_authorized_fkey FOREIGN KEY (authorized_id)
+        REFERENCES public.authorized (id_authorized) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.employee_movements
+    OWNER to nextgen;
 
 
-----------------------------------------------------------------------------------------------------------------------
+CREATE SEQUENCE public.employee_movements_id_seq
+    INCREMENT 1
+    START 1
+    MINVALUE 1
+    MAXVALUE 2147483647
+    CACHE 1;
 
-ALTER TABLE IF EXISTS public.logbook_out
-    ADD COLUMN employee_intern_id integer;
-ALTER TABLE IF EXISTS public.logbook_out
-    ADD CONSTRAINT logbook_out_employee_id_fkey FOREIGN KEY (employee_intern_id)
-    REFERENCES public.employees_intern (id_employee) MATCH SIMPLE
-    ON UPDATE NO ACTION
-    ON DELETE NO ACTION;
-CREATE INDEX IF NOT EXISTS fki_logbook_out_employee_id_fkey
-    ON public.logbook_out(employee_intern_id);
+ALTER SEQUENCE public.employee_movements_id_seq
+    OWNED BY public.employee_movements.id_movement;
+
+ALTER SEQUENCE public.employee_movements_id_seq
+    OWNER TO nextgen;
+
+ALTER TABLE IF EXISTS public.employee_movements
+    ALTER COLUMN id_movement SET DEFAULT nextval('employee_movements_id_seq'::regclass);

@@ -39,12 +39,6 @@ class LogbookEntry(Base):
         nullable=False
     )
 
-    employee_intern_id = Column(
-        Integer,
-        ForeignKey('public.employees_intern.id_employee', onupdate='NO ACTION', ondelete='NO ACTION'),
-        nullable=True
-    )
-
     logbook_out_id = Column(
         Integer,
         ForeignKey('public.logbook_out.id_logbook_out', onupdate='NO ACTION', ondelete='NO ACTION')

@@ -2098,7 +2098,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ResponseError"
-      x-openapi-router-controller: swagger_server.controllers.logbook_controller.LogbookView
+      x-openapi-router-controller: swagger_server.controllers.employee_controller.EmployeeView
     post:
       tags:
       - Employee
@@ -2141,7 +2141,122 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ResponseError"
-      x-openapi-router-controller: swagger_server.controllers.logbook_controller.LogbookView
+      x-openapi-router-controller: swagger_server.controllers.employee_controller.EmployeeView
+  /employee-movement:
+    get:
+      tags:
+      - Employee
+      summary: Obtiene todo el personal interno
+      description: Devuelve todo el personal interno de la base
+      operationId: get_employees_movement
+      parameters:
+        - name: start_date
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+            example: "2025-01-21T00:00:00"
+        - name: end_date
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+            example: "2025-01-22T00:00:00"
+        - name: id_employee
+          in: query
+          required: false
+          schema:
+            type: string
+            example: "1"
+        - name: externalTransactionId
+          in: header
+          required: true
+          schema:
+            type: string
+            example: "fcea920f7412b5da7be0cf42b8c93759"
+        - name: channel
+          in: header
+          required: true
+          schema:
+            type: string
+            example: "ZENTINEL"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenericResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+        "503":
+          description: Service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+      x-openapi-router-controller: swagger_server.controllers.employee_controller.EmployeeView
+    post:
+      tags:
+      - Employee
+      summary: Guarda del personal interno en la base de datos.
+      description: Guardado del personal interno
+      operationId: post_employee_movement
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RequestPostEmployeeMovement"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenericResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+        "503":
+          description: Service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+      x-openapi-router-controller: swagger_server.controllers.employee_controller.EmployeeView
 components:
   schemas:
     RequestFormExpo:
@@ -2214,6 +2329,16 @@ components:
       properties:
         employee_intern:
           $ref: "#/components/schemas/EmployeeInternData"
+        channel:
+          type: string
+          example: ZENTINEL
+        externalTransactionId:
+          type: string
+          example: fcea920f7412b5da7be0cf42b8c93759
+    RequestPostEmployeeMovement:
+      properties:
+        employee_movement:
+          $ref: "#/components/schemas/EmployeeMovementData"
         channel:
           type: string
           example: ZENTINEL
@@ -2314,10 +2439,6 @@ components:
         name_user:
           type: string
           example: Daniel
-        employee_intern:
-          type: integer
-          nullable: true
-          example: 1
         images:
           type: array
           maxItems: 10
@@ -2340,7 +2461,6 @@ components:
         observations: Sin observaciones
         created_by: dmales
         name_user: Daniel
-        employee_intern: 1
         images: []
     LogBookOutData:
       type: object
@@ -2385,10 +2505,6 @@ components:
         authorized_by:
           type: string
           example: Camanglar
-        employee_intern:
-          type: integer
-          nullable: true
-          example: 1
         observations:
           type: string
           nullable: true
@@ -2417,7 +2533,6 @@ components:
         person_withdraws: "Juan"
         destiny: Camanglar
         authorized_by: Camanglar
-        employee_intern: 1
         observations: Sin observaciones
         created_by: dmales
         name_user: Daniel Males
@@ -2488,6 +2603,51 @@ components:
         photo: "photo.jpg"
         status: "Activo"
         user: "dmales"
+    EmployeeMovementData:
+      type: object
+      properties:
+        group_business_id:
+          type: integer
+          nullable: true
+          example: 1
+        employee_id:
+          type: integer
+          example: 1
+        authorized_id:
+          type: integer
+          nullable: true
+          example: 1
+        type_movement:
+          type: string
+          example: "OUT"
+        observations:
+          type: string
+          nullable: true
+          example: "N/A"
+        other_destiny:
+          type: string
+          nullable: true
+          example: "Operario"
+        reason_out:
+          type: string
+          nullable: true
+          example: "N/A"
+        user:
+          type: string
+          example: "dmales"
+        name_user:
+          type: string
+          example: "daniel"
+      example:
+        group_business_id: 1
+        employee_id: 1
+        authorized_id: 1
+        type_movement: "OUT"
+        other_destiny: "Operario"
+        reason_out: "N/A"
+        observations: "Sin observaciones"
+        user: "dmales"
+        name_user: "daniel"
     LoginData:
       type: object
       properties:

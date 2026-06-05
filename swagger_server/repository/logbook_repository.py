@@ -52,21 +52,6 @@ class LogbookRepository:
                 
                 self.request_idempotency(session, data_request, internal, external)
 
-                if logbook_entry_body.employee_intern_id is not None:
-                    employee_intern_exists = session.execute(
-                        select(
-                            exists().where(
-                                EmployeeIntern.id_employee == logbook_entry_body.employee_intern_id
-                            )
-                        )
-                    ).scalar()
-
-                    if not employee_intern_exists:
-                        raise CustomAPIException(
-                            message="No existe el personal interno",
-                            status_code=404
-                        )
-
                 category_exists = session.execute(
                     select(
                         exists().where(
@@ -179,21 +164,6 @@ class LogbookRepository:
                 )
                 
                 self.request_idempotency(session, data_request, internal, external)
-
-                if logbook_out_body.employee_intern_id is not None:
-                    employee_intern_exists = session.execute(
-                        select(
-                            exists().where(
-                                EmployeeIntern.id_employee == logbook_out_body.employee_intern_id
-                            )
-                        )
-                    ).scalar()
-
-                    if not employee_intern_exists:
-                        raise CustomAPIException(
-                            message="No existe el personal interno",
-                            status_code=404
-                        )
 
                 unity_weight_exists = True
                 category_exists = session.execute(
@@ -1183,9 +1153,6 @@ class LogbookRepository:
         if filtersBase.get("groups_business_id"):
             filters.append(model.group_business_id.in_(filtersBase.get("groups_business_id")))
 
-        if filtersBase.get("employees_intern"):
-            filters.append(model.employee_intern_id.in_(filtersBase.get("employees_intern")))
-
         if filtersBase.get("id_business"):
             filters.append(GroupBusiness.business_id == filtersBase.get("id_business"))
 
@@ -1594,97 +1561,3 @@ class LogbookRepository:
                 raise CustomAPIException("Error al buscar en la base de datos", 500)
             finally:
                 session.close()
-
-
-    def post_employee_intern(self, employee_body: EmployeeIntern, files, internal, external) -> None:
-        saved_files = []
-
-        with self.db.session_factory() as session:
-            try:
-                data_request = RequestIdempotency(
-                    uuid=external,
-                    endpoint="/rest/zent-logbook-api/v1.0/employee-intern"
-                )
-                
-                self.request_idempotency(session, data_request, internal, external)
-
-                existing_employee = session.execute(
-                    select(EmployeeIntern).where(
-                        EmployeeIntern.dni == employee_body.dni
-                    )
-                ).scalar_one_or_none()
-
-                if existing_employee:
-                    raise CustomAPIException(
-                        message=f"Ya existe un empleado registrado con la cédula {employee_body.dni}",
-                        status_code=400
-                    )
-
-                group_business_exists = session.execute(
-                    select(GroupBusiness).where(
-                        GroupBusiness.id_group_business == employee_body.group_business_id
-                    )
-                ).scalar_one_or_none()
-                
-                if not group_business_exists:
-                    raise CustomAPIException(
-                        message="No existe el grupo de negocio",
-                        status_code=404
-                    )
-                
-                
-                #Guardar imágenes (máx 10)
-                if files:
-                    result = self.save_image(files[0], name_folder="employees")
-                    saved_files.append(result["url"])
-                    employee_body.photo = result["url"]
-
-                session.add(employee_body)
-                session.commit()
-
-            except OSError as e:
-                if e.errno == 36:
-                    raise CustomAPIException("Nombre de archivo demasiado largo", 400)
-
-            except Exception as exception:
-                session.rollback()
-
-                #limpia archivos guardados si falla DB
-                for path in saved_files:
-                    full_path = os.path.join("/var/www", path.lstrip("/"))
-                    if os.path.exists(full_path):
-                        os.remove(full_path)
-
-                logger.error('Error: {}', str(exception), internal=internal, external=external)
-                if isinstance(exception, CustomAPIException):
-                    raise exception
-                
-                raise CustomAPIException("Error al insertar en la base de datos", 500)
-
-            finally:
-                session.close()
-
-
-    def get_employees_intern(self, filters: dict, internal, external) -> List[EmployeeIntern]:
-        with self.db.session_factory() as session:
-            try:
-                result = session.execute(
-                    select(
-                        EmployeeIntern,
-                        GroupBusiness.name.label("group_name")
-                    )
-                    .join(
-                        GroupBusiness,
-                        GroupBusiness.id_group_business == EmployeeIntern.group_business_id
-                    )
-                )
-
-                rows = result.all()
-
-                return rows
-            except Exception as exception:
-                logger.error('Error: {}', str(exception), internal=internal, external=external)
-                if isinstance(exception, CustomAPIException):
-                    raise exception
-                
-                raise CustomAPIException("Error al obtener en la base de datos", 500)
