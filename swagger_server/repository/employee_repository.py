@@ -23,6 +23,7 @@ from swagger_server.models.db.report_generated import ReportGenerated
 from swagger_server.models.db.request_idempotency import RequestIdempotency
 from swagger_server.models.db.sector import Sector
 from swagger_server.models.db.unity_weight import UnityWeight
+from swagger_server.repository.logbook_repository import LogbookRepository
 from swagger_server.resources.databases import postgresql
 from swagger_server.resources.databases.postgresql import PostgreSQLClient
 from swagger_server.resources.databases.redis import RedisClient
@@ -39,6 +40,7 @@ class EmployeeRepository:
     def __init__(self):
         self.db = PostgreSQLClient("POSTGRESQL")
         self.redis_client = RedisClient()
+        self.logbook_repository = LogbookRepository()
 
 
     def post_employee_intern(self, employee_body: EmployeeIntern, files, internal, external) -> None:
@@ -51,7 +53,7 @@ class EmployeeRepository:
                     endpoint="/rest/zent-logbook-api/v1.0/employee-intern"
                 )
                 
-                self.request_idempotency(session, data_request, internal, external)
+                self.logbook_repository.request_idempotency(session, data_request, internal, external)
 
                 existing_employee = session.execute(
                     select(EmployeeIntern).where(
@@ -144,7 +146,7 @@ class EmployeeRepository:
                     endpoint="/rest/zent-logbook-api/v1.0/employee-movement"
                 )
                 
-                self.request_idempotency(session, data_request, internal, external)
+                self.logbook_repository.request_idempotency(session, data_request, internal, external)
 
                 employee_exists = session.execute(
                     select(EmployeeIntern).where(

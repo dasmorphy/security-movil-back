@@ -1,6 +1,6 @@
     
 from timeit import default_timer
-from venv import logger
+from loguru import logger
 
 import connexion
 from flask import json, request
