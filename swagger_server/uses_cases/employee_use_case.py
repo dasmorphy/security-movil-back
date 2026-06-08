@@ -159,6 +159,7 @@ class EmployeeUseCase:
                 "updated_by": c[0].updated_by,
                 "employee_dni": c[1].dni if c[1] else None,
                 "employee_names": c[1].names if c[1] else None,
+                "employee_status": c[1].status if c[1] else None,
                 "employee_lastname": c[1].lastname if c[1] else None,
                 "group_name": c[2] if c[2] else None
             }
