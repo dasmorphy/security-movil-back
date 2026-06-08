@@ -49,7 +49,6 @@ class EmployeeMovement(Base):
     type_movement = Column(Text)
     observations = Column(Text)
     other_destiny = Column(Text)
-    status = Column(Text)
     reason_out = Column(Text)
     name_user = Column(Text)
 

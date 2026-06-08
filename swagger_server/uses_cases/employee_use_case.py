@@ -74,7 +74,14 @@ class EmployeeUseCase:
     def get_employees_intern(self, headers, params, internal, external):
         filters = {
             "start_date": params.get("start_date"),
-            "end_date": params.get("end_date")
+            "end_date": params.get("end_date"),
+            "type_movement": params.get("type_movement")
+        }
+
+        MOVEMENT_STATUS = {
+            "CHECK_IN": "Ingreso",
+            "TRANSFER": "Movimiento interno",
+            "CHECK_OUT": "Salida"
         }
         
         rows = self.employee_repository.get_employees_intern(filters, internal, external)
@@ -95,9 +102,10 @@ class EmployeeUseCase:
                 "created_by": c.created_by,
                 "updated_by": c.updated_by,
                 "group_name": group_name,
-                "photo": c.photo
+                "photo": c.photo,
+                "last_status_movement": MOVEMENT_STATUS.get(last_type_movement) or "Sin movimientos"
             }
-            for c, group_name in rows
+            for c, group_name, last_type_movement in rows
         ]
 
         return results
@@ -123,7 +131,12 @@ class EmployeeUseCase:
             "start_date": params.get("start_date"),
             "end_date": params.get("end_date"),
             "type_movement": params.get("type_movement"),
-            "status": params.get("status")
+        }
+
+        MOVEMENT_STATUS = {
+            "CHECK_IN": "Ingreso",
+            "TRANSFER": "Movimiento interno",
+            "CHECK_OUT": "Salida"
         }
         
         rows = self.employee_repository.get_employees_movement(filters, internal, external)
@@ -137,7 +150,7 @@ class EmployeeUseCase:
                 "type_movement": c[0].type_movement,
                 "observations": c[0].observations,
                 "other_destiny": c[0].other_destiny,
-                "status": c[0].status,
+                "status": MOVEMENT_STATUS.get(c[0].type_movement),
                 "reason_out": c[0].reason_out,
                 "name_user": c[0].name_user,
                 "created_at": c[0].created_at,

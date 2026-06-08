@@ -115,10 +115,19 @@ class EmployeeRepository:
     def get_employees_intern(self, filters: dict, internal, external) -> List[EmployeeIntern]:
         with self.db.session_factory() as session:
             try:
-                result = session.execute(
+                last_movement_subquery = (
+                    select(EmployeeMovement.type_movement)
+                    .where(EmployeeMovement.employee_id == EmployeeIntern.id_employee)
+                    .order_by(EmployeeMovement.created_at.desc())
+                    .limit(1)
+                    .scalar_subquery()
+                )
+
+                query = (
                     select(
                         EmployeeIntern,
-                        GroupBusiness.name.label("group_name")
+                        GroupBusiness.name.label("group_name"),
+                        last_movement_subquery.label("last_type_movement")
                     )
                     .join(
                         GroupBusiness,
@@ -126,9 +135,23 @@ class EmployeeRepository:
                     )
                 )
 
-                rows = result.all()
+                if filters.get("type_movement"):
+                    query = query.where(
+                        last_movement_subquery == filters["type_movement"]
+                    )
 
+                if filters.get("start_date"):
+                    start_date = datetime.strptime(filters["start_date"], "%Y-%m-%d")
+                    query = query.where(EmployeeIntern.created_at >= start_date)
+
+                if filters.get("end_date"):
+                    end_date = datetime.strptime(filters["end_date"], "%Y-%m-%d")
+                    query = query.where(EmployeeIntern.created_at <= end_date)
+
+                result = session.execute(query)
+                rows = result.all()
                 return rows
+
             except Exception as exception:
                 logger.error('Error: {}', str(exception), internal=internal, external=external)
                 if isinstance(exception, CustomAPIException):
@@ -236,9 +259,6 @@ class EmployeeRepository:
 
                 if filters.get("type_movement"):
                     query = query.where(EmployeeMovement.type_movement == filters["type_movement"])
-
-                if filters.get("status"):
-                    query = query.where(EmployeeMovement.status == filters["status"])
 
                 result = session.execute(query)
                 rows = result.all()
