@@ -135,6 +135,9 @@ class EmployeeRepository:
                     )
                 )
 
+                if filters.get("id_employee"):
+                    query = query.where(EmployeeIntern.id_employee == filters["id_employee"])
+
                 if filters.get("type_movement"):
                     query = query.where(
                         last_movement_subquery == filters["type_movement"]
