@@ -112,18 +112,18 @@ class EmployeeUseCase:
 
         return results
 
-    def post_employee_movement(self, body: EmployeeMovementData, files, internal, external) -> None:
+    def post_employee_movement(self, body, files, internal, external) -> None:
         employee_movement = EmployeeMovement(
-            employee_id=body.employee_id,
-            group_business_id=body.group_business_id,
-            authorized_id=body.authorized_id,
-            type_movement=body.type_movement,
-            observations=body.observations,
-            other_destiny=body.other_destiny,
-            reason_out=body.reason_out,
-            name_user=body.name_user,
-            created_by=body.user,
-            updated_by=body.user,
+            employee_id=body['employee_id'],
+            group_business_id=body.get('group_business_id'),
+            authorized_id=body.get('authorized_id'),
+            type_movement=body.get('type_movement'),
+            observations=body.get('observations'),
+            other_destiny=body.get('other_destiny'),
+            reason_out=body.get('reason_out'),
+            name_user=body.get('name_user'),
+            created_by=body.get('user'),
+            updated_by=body.get('user'),
         )
 
         self.employee_repository.post_employee_movement(employee_movement, files, internal, external)

@@ -96,7 +96,6 @@ class EmployeeView(MethodView):
         status_code = 500
         try:
             if request.content_type.startswith("multipart/form-data"):
-                body = RequestPostEmployeeMovement.from_dict(connexion.request.get_json())  # noqa: E501
                 start_time = default_timer()
                 internal_transaction_id = str(generate_internal_transaction_id())
 
@@ -114,7 +113,7 @@ class EmployeeView(MethodView):
                 message = f"start request: {function_name}, channel: {movement_dict['channel']}"
                 logger.info(message, internal=internal_transaction_id, external=external_transaction_id)
                 files = request.files.getlist("images")
-                self.employee_use_case.post_employee_movement(body.employee_movement, files, internal_transaction_id, external_transaction_id)
+                self.employee_use_case.post_employee_movement(movement_dict, files, internal_transaction_id, external_transaction_id)
                 response["error_code"] = 0
                 response["message"] = "Movimiento de personal creado correctamente"
                 end_time = default_timer()
