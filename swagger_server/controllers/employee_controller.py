@@ -95,15 +95,23 @@ class EmployeeView(MethodView):
         response = {}
         status_code = 500
         try:
-            if connexion.request.headers:
+            if request.content_type.startswith("multipart/form-data"):
                 body = RequestPostEmployeeMovement.from_dict(connexion.request.get_json())  # noqa: E501
                 start_time = default_timer()
                 internal_transaction_id = str(generate_internal_transaction_id())
-                external_transaction_id = body.external_transaction_id
+
+                movement_file = request.files.get("employee_movement")
+                if not movement_file:
+                    raise CustomAPIException("Campo employee_movement no enviado", 400)
+
+                movement_raw = movement_file.read().decode("utf-8")
+                movement_dict = json.loads(movement_raw)
+
+                external_transaction_id = movement_dict['external_transaction_id']
                 internal_process = (internal_transaction_id, external_transaction_id)
                 response["internal_transaction_id"] = internal_transaction_id
                 response["external_transaction_id"] = external_transaction_id
-                message = f"start request: {function_name}, channel: {body.channel}"
+                message = f"start request: {function_name}, channel: {movement_dict['channel']}"
                 logger.info(message, internal=internal_transaction_id, external=external_transaction_id)
                 files = request.files.getlist("images")
                 self.employee_use_case.post_employee_movement(body.employee_movement, files, internal_transaction_id, external_transaction_id)

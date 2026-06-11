@@ -14,7 +14,7 @@ class EmployeeMovementData(Model):
 
     Do not edit the class manually.
     """
-    def __init__(self, group_business_id: int=None, employee_id: int=None, authorized_id: int=None, type_movement: str=None, observations: str=None, other_destiny: str=None, reason_out: str=None, user: str=None, name_user: str=None):  # noqa: E501
+    def __init__(self, group_business_id: int=None, employee_id: int=None, authorized_id: int=None, type_movement: str=None, observations: str=None, other_destiny: str=None, reason_out: str=None, user: str=None, name_user: str=None, images: List[str]=None):  # noqa: E501
         """EmployeeMovementData - a model defined in Swagger
 
         :param group_business_id: The group_business_id of this EmployeeMovementData.  # noqa: E501
@@ -35,6 +35,8 @@ class EmployeeMovementData(Model):
         :type user: str
         :param name_user: The name_user of this EmployeeMovementData.  # noqa: E501
         :type name_user: str
+        :param images: The images of this EmployeeMovementData.  # noqa: E501
+        :type images: List[str]
         """
         self.swagger_types = {
             'group_business_id': int,
@@ -45,7 +47,8 @@ class EmployeeMovementData(Model):
             'other_destiny': str,
             'reason_out': str,
             'user': str,
-            'name_user': str
+            'name_user': str,
+            'images': List[str]
         }
 
         self.attribute_map = {
@@ -57,7 +60,8 @@ class EmployeeMovementData(Model):
             'other_destiny': 'other_destiny',
             'reason_out': 'reason_out',
             'user': 'user',
-            'name_user': 'name_user'
+            'name_user': 'name_user',
+            'images': 'images'
         }
         self._group_business_id = group_business_id
         self._employee_id = employee_id
@@ -68,6 +72,7 @@ class EmployeeMovementData(Model):
         self._reason_out = reason_out
         self._user = user
         self._name_user = name_user
+        self._images = images
 
     @classmethod
     def from_dict(cls, dikt) -> 'EmployeeMovementData':
@@ -268,3 +273,24 @@ class EmployeeMovementData(Model):
         """
 
         self._name_user = name_user
+
+    @property
+    def images(self) -> List[str]:
+        """Gets the images of this EmployeeMovementData.
+
+
+        :return: The images of this EmployeeMovementData.
+        :rtype: List[str]
+        """
+        return self._images
+
+    @images.setter
+    def images(self, images: List[str]):
+        """Sets the images of this EmployeeMovementData.
+
+
+        :param images: The images of this EmployeeMovementData.
+        :type images: List[str]
+        """
+
+        self._images = images

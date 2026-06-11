@@ -1802,3 +1802,40 @@ ALTER SEQUENCE public.register_lead_id_seq
 
 ALTER TABLE IF EXISTS public.register_lead
     ALTER COLUMN id_lead SET DEFAULT nextval('register_lead_id_seq'::regclass);
+
+---------------------------------------------------------------------------------------------------
+
+CREATE TABLE public.employee_movements_images
+(
+    id_image integer NOT NULL,
+    employee_movement_id integer,
+    image_path text,
+    created_at timestamp without time zone DEFAULT now(),
+    CONSTRAINT employee_movement_image_pkey PRIMARY KEY (id_image),
+    CONSTRAINT image_movement_employee_fkey FOREIGN KEY (employee_movement_id)
+        REFERENCES public.employee_movements (id_movement) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.employee_movements_images
+    OWNER to nextgen;
+
+
+CREATE SEQUENCE public.employee_movement_image_id_seq
+    INCREMENT 1
+    START 1
+    MINVALUE 1
+    MAXVALUE 2147483647
+    CACHE 1;
+
+ALTER SEQUENCE public.employee_movement_image_id_seq
+    OWNED BY public.employee_movements_images.id_image;
+
+ALTER SEQUENCE public.employee_movement_image_id_seq
+    OWNER TO nextgen;
+
+ALTER TABLE IF EXISTS public.employee_movements_images
+    ALTER COLUMN id_image SET DEFAULT nextval('employee_movement_image_id_seq'::regclass);

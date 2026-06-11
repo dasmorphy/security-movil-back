@@ -2293,7 +2293,7 @@ paths:
       operationId: post_employee_movement
       requestBody:
         content:
-          application/json:
+          multipart/form-data:
             schema:
               $ref: "#/components/schemas/RequestPostEmployeeMovement"
       responses:
@@ -2731,6 +2731,12 @@ components:
         name_user:
           type: string
           example: "daniel"
+        images:
+          type: array
+          maxItems: 10
+          items:
+            type: string
+            format: binary
       example:
         group_business_id: 1
         employee_id: 1
@@ -2741,6 +2747,7 @@ components:
         observations: "Sin observaciones"
         user: "dmales"
         name_user: "daniel"
+        images: []
     LoginData:
       type: object
       properties:

@@ -14,6 +14,7 @@ from swagger_server.models.db.business import Business
 from swagger_server.models.db.destiny_intern import DestinyIntern
 from swagger_server.models.db.employee_intern import EmployeeIntern
 from swagger_server.models.db.employee_movement import EmployeeMovement
+from swagger_server.models.db.employee_movement_image import EmployeeMovementImage
 from swagger_server.models.db.group_business import GroupBusiness
 from swagger_server.models.db.logbook_entry import LogbookEntry
 from swagger_server.models.db.category import Category
@@ -163,7 +164,7 @@ class EmployeeRepository:
                 
                 raise CustomAPIException("Error al obtener en la base de datos", 500)
 
-    def post_employee_movement(self, employee_movement_body: EmployeeMovement, files, internal, external) -> None:
+    def post_employee_movement(self, employee_movement_body: EmployeeMovement, images, internal, external) -> None:
         saved_files = []
 
         with self.db.session_factory() as session:
@@ -211,8 +212,24 @@ class EmployeeRepository:
                             message="El autorizado especificado no existe",
                             status_code=404
                         )
-
+                    
                 session.add(employee_movement_body)
+                session.flush()
+
+                movement_id = employee_movement_body.id_movement
+
+                #Guardar imágenes (máx 10)
+                for file in images[:10]:
+                    result = self.logbook_repository.save_image(file, "employees")
+                    saved_files.append(result["url"])
+
+                    image = EmployeeMovementImage(
+                        movement_employee_id=movement_id,
+                        image_path=result["url"]
+                    )
+
+                    session.add(image)
+
                 session.commit()
 
             except OSError as e:
