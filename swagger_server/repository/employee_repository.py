@@ -265,7 +265,7 @@ class EmployeeRepository:
                 ).join(
                     EmployeeIntern,
                     EmployeeIntern.id_employee == EmployeeMovement.employee_id
-                ).join(
+                ).outerjoin(
                     GroupBusiness,
                     GroupBusiness.id_group_business == EmployeeMovement.group_business_id
                 )
