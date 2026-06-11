@@ -322,8 +322,8 @@ class UserUseCase:
         
         user_autenticated = self.user_repository.get_user(body.login.user, internal, external)
 
-        if (channel == 'ZENTINEL'):
-            return user_autenticated
+        # if (channel == 'ZENTINEL'):
+        #     return user_autenticated
         
         # verify_user_session = self.user_repository.search_user_session(user_autenticated['id_user'], internal, external)
 
