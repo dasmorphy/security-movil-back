@@ -187,18 +187,19 @@ class EmployeeRepository:
                         message="El empleado especificado no existe",
                         status_code=404
                     )
-
-                group_business_exists = session.execute(
-                    select(GroupBusiness).where(
-                        GroupBusiness.id_group_business == employee_movement_body.group_business_id
-                    )
-                ).scalar_one_or_none()
                 
-                if not group_business_exists:
-                    raise CustomAPIException(
-                        message="No existe el grupo de negocio",
-                        status_code=404
-                    )
+                if employee_movement_body.group_business_id:
+                    group_business_exists = session.execute(
+                        select(GroupBusiness).where(
+                            GroupBusiness.id_group_business == employee_movement_body.group_business_id
+                        )
+                    ).scalar_one_or_none()
+                    
+                    if not group_business_exists:
+                        raise CustomAPIException(
+                            message="No existe el grupo de negocio",
+                            status_code=404
+                        )
 
                 if employee_movement_body.authorized_id:
                     authorized_exists = session.execute(
