@@ -9,6 +9,7 @@ from swagger_server.models.log_book_out_data import LogBookOutData
 from swagger_server.models.request_generic import RequestGeneric
 from swagger_server.models.request_post_logbook_entry import RequestPostLogbookEntry
 from swagger_server.models.request_post_logbook_out import RequestPostLogbookOut
+from swagger_server.models.request_update_status_employee import RequestUpdateStatusEmployee
 from swagger_server.models.response_error import ResponseError
 from swagger_server.models.response_post_logbook_entry import ResponsePostLogbookEntry
 from swagger_server.models.response_post_logbook_out import ResponsePostLogbookOut

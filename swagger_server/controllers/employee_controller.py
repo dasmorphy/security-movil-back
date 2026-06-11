@@ -8,6 +8,7 @@ from flask.views import MethodView
 
 from swagger_server.exception.custom_error_exception import CustomAPIException
 from swagger_server.models.request_post_employee_movement import RequestPostEmployeeMovement
+from swagger_server.models.request_update_status_employee import RequestUpdateStatusEmployee
 from swagger_server.repository.employee_repository import EmployeeRepository
 from swagger_server.repository.logbook_repository import LogbookRepository
 from swagger_server.uses_cases.employee_use_case import EmployeeUseCase
@@ -138,6 +139,34 @@ class EmployeeView(MethodView):
                 response["error_code"] = 0
                 response["message"] = "Movimientos de personal obtenidos correctamente"
                 response["data"] = results
+                end_time = default_timer()
+                logger.info(f"Fin de la transacción, procesada en : {end_time - start_time} milisegundos",
+                            internal=internal_transaction_id, external=external_transaction_id)
+                status_code = 200
+        except Exception as ex:
+            response, status_code = CustomAPIException.check_exception(ex, function_name, internal_process)
+            
+        return response, status_code
+
+    def update_status_employee(self, id_employee_intern):
+        internal_process = (None, None)
+        function_name = "update_status_employee"
+        response = {}
+        status_code = 500
+        try:
+            if connexion.request.headers:
+                start_time = default_timer()
+                body = RequestUpdateStatusEmployee.from_dict(connexion.request.get_json())  # noqa: E501
+                internal_transaction_id = str(generate_internal_transaction_id())
+                external_transaction_id = request.headers.get('externalTransactionId')
+                internal_process = (internal_transaction_id, external_transaction_id)
+                response["internal_transaction_id"] = internal_transaction_id
+                response["external_transaction_id"] = external_transaction_id
+                message = f"start request: {function_name}, employee_id: {id_employee_intern}"
+                logger.info(message, internal=internal_transaction_id, external=external_transaction_id)                
+                self.employee_use_case.update_employee_intern_status(id_employee_intern, body.data, internal_process)
+                response["error_code"] = 0
+                response["message"] = "Estado del personal actualizado correctamente"
                 end_time = default_timer()
                 logger.info(f"Fin de la transacción, procesada en : {end_time - start_time} milisegundos",
                             internal=internal_transaction_id, external=external_transaction_id)

@@ -24,6 +24,7 @@ from swagger_server.models.db.request_idempotency import RequestIdempotency
 from swagger_server.models.employee_movement_data import EmployeeMovementData
 from swagger_server.models.request_post_logbook_entry import RequestPostLogbookEntry
 from swagger_server.models.request_post_logbook_out import RequestPostLogbookOut
+from swagger_server.models.update_status_employee_data import UpdateStatusEmployeeData
 from swagger_server.repository.employee_repository import EmployeeRepository
 from swagger_server.repository.logbook_repository import LogbookRepository
 from openpyxl.styles import Font, PatternFill
@@ -168,3 +169,6 @@ class EmployeeUseCase:
         ]
 
         return results
+
+    def update_employee_intern_status(self, id_employee_intern: int, data: UpdateStatusEmployeeData, internal_process) -> None:
+        self.employee_repository.update_employee_intern_status(id_employee_intern, data, internal_process)

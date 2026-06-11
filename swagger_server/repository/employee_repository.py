@@ -23,6 +23,7 @@ from swagger_server.models.db.report_generated import ReportGenerated
 from swagger_server.models.db.request_idempotency import RequestIdempotency
 from swagger_server.models.db.sector import Sector
 from swagger_server.models.db.unity_weight import UnityWeight
+from swagger_server.models.update_status_employee_data import UpdateStatusEmployeeData
 from swagger_server.repository.logbook_repository import LogbookRepository
 from swagger_server.resources.databases import postgresql
 from swagger_server.resources.databases.postgresql import PostgreSQLClient
@@ -273,3 +274,40 @@ class EmployeeRepository:
                     raise exception
                 
                 raise CustomAPIException("Error al obtener en la base de datos", 500)
+
+    def update_employee_intern_status(self, id_employee_intern: int, data: UpdateStatusEmployeeData, internal_process) -> None:
+        internal, external = internal_process
+        status = data.status
+        user_update = data.user_update
+
+        with self.db.session_factory() as session:
+            try:
+                # Verificar que el empleado existe
+                employee_exists = session.execute(
+                    select(EmployeeIntern).where(
+                        EmployeeIntern.id_employee == id_employee_intern
+                    )
+                ).scalar_one_or_none()
+
+                if not employee_exists:
+                    raise CustomAPIException(
+                        message="El personal no existe",
+                        status_code=404
+                    )
+
+                # Actualizar el status
+                employee_exists.status = status
+                employee_exists.updated_by = user_update
+                employee_exists.updated_at = datetime.now()
+                session.commit()
+
+            except Exception as exception:
+                session.rollback()
+                logger.error('Error: {}', str(exception), internal=internal, external=external)
+                if isinstance(exception, CustomAPIException):
+                    raise exception
+                
+                raise CustomAPIException("Error al actualizar en la base de datos", 500)
+
+            finally:
+                session.close()

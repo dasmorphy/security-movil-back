@@ -1767,3 +1767,38 @@ ALTER SEQUENCE public.employee_movements_id_seq
 
 ALTER TABLE IF EXISTS public.employee_movements
     ALTER COLUMN id_movement SET DEFAULT nextval('employee_movements_id_seq'::regclass);
+
+
+----------------------------------------------------------------------------------------------------------
+
+CREATE TABLE public.register_lead
+(
+    id_lead integer NOT NULL,
+    names text,
+    phone text,
+    email text,
+    business text,
+    interested text,
+    CONSTRAINT lead_pkey PRIMARY KEY (id_lead)
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.register_lead
+    OWNER to nextgen;
+
+CREATE SEQUENCE public.register_lead_id_seq
+    INCREMENT 1
+    START 1
+    MINVALUE 1
+    MAXVALUE 2147483647
+    CACHE 1;
+
+ALTER SEQUENCE public.register_lead_id_seq
+    OWNED BY public.register_lead.id_lead;
+
+ALTER SEQUENCE public.register_lead_id_seq
+    OWNER TO nextgen;
+
+ALTER TABLE IF EXISTS public.register_lead
+    ALTER COLUMN id_lead SET DEFAULT nextval('register_lead_id_seq'::regclass);
