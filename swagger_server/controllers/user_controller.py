@@ -127,11 +127,7 @@ class UserView(MethodView):
                 self.user_use_case.save_session(authenticated_user, connexion.request.headers, internal_transaction_id, external_transaction_id)
                 response["error_code"] = 0
                 response["message"] = "Login correcto",
-                
-                if (body.channel == 'ZENTINEL'):
-                    response["data"] = authenticated_user
-                else:
-                    response["access_token"] = authenticated_user["token"]
+                response["access_token"] = authenticated_user["token"]
                 
                 end_time = default_timer()
                 logger.info(f"Fin de la transacción, procesada en : {end_time - start_time} milisegundos",
