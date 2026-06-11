@@ -224,7 +224,7 @@ class EmployeeRepository:
                     saved_files.append(result["url"])
 
                     image = EmployeeMovementImage(
-                        movement_employee_id=movement_id,
+                        employee_movement_id=movement_id,
                         image_path=result["url"]
                     )
 
