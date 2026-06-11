@@ -5,7 +5,7 @@ from typing import List
 from unittest import result
 from flask import json
 from loguru import logger
-from sqlalchemy import ARRAY, DateTime, Integer, String, Text, and_, cast, exists, func, insert, literal, select, true, union_all
+from sqlalchemy import ARRAY, DateTime, Integer, String, Text, and_, cast, exists, func, insert, literal, select, text, true, union_all
 from sqlalchemy.orm import aliased
 from swagger_server.exception.custom_error_exception import CustomAPIException
 from swagger_server.models.db.authorized import Authorized
@@ -1559,5 +1559,85 @@ class LogbookRepository:
                 if isinstance(exception, CustomAPIException):
                     raise exception
                 raise CustomAPIException("Error al buscar en la base de datos", 500)
+            finally:
+                session.close()
+
+    
+    def save_lead(self, data, internal, external):
+        with self.db.session_factory() as session:
+            try:
+
+                register_exist = text("""
+                    SELECT EXISTS (
+                        SELECT 1
+                        FROM public.register_lead
+                        WHERE email = :email
+                    )
+                """)
+
+                if session.execute(
+                    register_exist,
+                    {"email": data.email}
+                ).scalar():
+                    raise CustomAPIException(
+                        message="El correo ya se encuentra registrado",
+                        status_code=400
+                    )
+
+                query = text("""
+                    INSERT INTO public.register_lead
+                    (
+                        names,
+                        phone,
+                        email,
+                        business,
+                        interested
+                    )
+                    VALUES
+                    (
+                        :names,
+                        :phone,
+                        :email,
+                        :business,
+                        :interested
+                    )
+                    RETURNING *
+                """)
+
+                result = session.execute(
+                    query,
+                    {
+                        "names": data.names,
+                        "phone": data.phone,
+                        "email": data.email,
+                        "business": data.business,
+                        "interested": data.interested,
+                    }
+                )
+
+                created_register = result.mappings().first()
+
+                session.commit()
+
+                return created_register
+
+            except Exception as exception:
+                session.rollback()
+
+                logger.error(
+                    'Error: {}',
+                    str(exception),
+                    internal=internal,
+                    external=external
+                )
+
+                if isinstance(exception, CustomAPIException):
+                    raise exception
+
+                raise CustomAPIException(
+                    "Error al insertar en la base de datos",
+                    500
+                )
+
             finally:
                 session.close()

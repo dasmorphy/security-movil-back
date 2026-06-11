@@ -2033,6 +2033,50 @@ paths:
               schema:
                 $ref: "#/components/schemas/ResponseError"
       x-openapi-router-controller: swagger_server.controllers.logbook_controller.LogbookView
+  /register-leads:
+    post:
+      tags:
+      - Telearseg
+      summary: Guarda el registro de lead en la base de datos.
+      description: Guardado de lead
+      operationId: save_register_lead
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RequestLead"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenericResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+        "503":
+          description: Service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+      x-openapi-router-controller: swagger_server.controllers.logbook_controller.LogbookView
   /employee-intern:
     get:
       tags:
@@ -2426,6 +2470,16 @@ components:
         externalTransactionId:
           type: string
           example: fcea920f7412b5da7be0cf42b8c93759
+    RequestLead:
+      properties:
+        lead:
+          $ref: "#/components/schemas/RegisterLeadData"
+        channel:
+          type: string
+          example: ZENTINEL
+        externalTransactionId:
+          type: string
+          example: fcea920f7412b5da7be0cf42b8c93759
     ResponsePostLogbookEntry:
       properties:
         errorCode:
@@ -2696,6 +2750,33 @@ components:
         photo: "photo.jpg"
         status: "Activo"
         user: "dmales"
+    RegisterLeadData:
+      type: object
+      properties:
+        names:
+          type: string
+          example: "Daniel"
+        phone:
+          type: string
+          nullable: true
+          example: "999999999"
+        email:
+          type: string
+          nullable: true
+          example: "daniel@hotmail.com"
+        business:
+          type: string
+          nullable: true
+          example: "Telearseg"
+        interested:
+          type: string
+          example: "N/A"
+      example:
+        names: "Daniel"
+        phone: "999999999"
+        email: "daniel@hotmail.com"
+        business: "Telearseg"
+        interested: "N/A"
     EmployeeMovementData:
       type: object
       properties:
