@@ -258,17 +258,31 @@ class EmployeeRepository:
     def get_employees_movement(self, filters: dict, internal, external) -> List:
         with self.db.session_factory() as session:
             try:
+                # ── Subquery de imágenes ENTRY ────────────────────────────────
+                images_movement_subq = (
+                    select(
+                        EmployeeMovementImage.employee_movement_id.label("movement_id"),
+                        func.array_agg(EmployeeMovementImage.image_path)
+                            .filter(EmployeeMovementImage.image_path.isnot(None))
+                            .label("images")
+                    )
+                    .group_by(EmployeeMovementImage.employee_movement_id)
+                    .subquery()
+                )
+
                 query = select(
                     EmployeeMovement,
                     EmployeeIntern,
-                    GroupBusiness.name.label("group_name")
+                    GroupBusiness.name.label("group_name"),
+                    func.coalesce(images_movement_subq.c.images, cast([], ARRAY(Text))).label("images"),
                 ).join(
                     EmployeeIntern,
                     EmployeeIntern.id_employee == EmployeeMovement.employee_id
                 ).outerjoin(
                     GroupBusiness,
                     GroupBusiness.id_group_business == EmployeeMovement.group_business_id
-                )
+                ).outerjoin(images_movement_subq, images_movement_subq.c.movement_id == EmployeeMovement.id_movement)
+
 
                 # Aplicar filtros
                 if filters.get("start_date"):

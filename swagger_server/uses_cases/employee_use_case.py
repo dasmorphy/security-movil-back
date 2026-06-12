@@ -163,7 +163,8 @@ class EmployeeUseCase:
                 "employee_names": c[1].names if c[1] else None,
                 "employee_status": c[1].status if c[1] else None,
                 "employee_lastname": c[1].lastname if c[1] else None,
-                "group_name": c[2] if c[2] else None
+                "group_name": c[2] if c[2] else None,
+                "images": c[3] or [],
             }
             for c in rows
         ]
