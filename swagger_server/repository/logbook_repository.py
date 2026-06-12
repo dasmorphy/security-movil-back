@@ -389,7 +389,7 @@ class LogbookRepository:
                     )
                 else:
                     result = session.execute(
-                        select(Category)
+                        select(Category).where(Category.name_category != "Personal interno")
                     )
                 categories = [
                     {
@@ -1158,6 +1158,8 @@ class LogbookRepository:
 
         if filtersBase.get("notCategory"):
             filters.append(Category.code != filtersBase.get("notCategory"))
+
+        filters.append(Category.name_category != "Personal interno")
 
         column_search = SEARCH_COLUMNS_OUT if model is LogbookOut else SEARCH_COLUMNS_ENTRY
         apply_search(filters, filtersBase.get("search"), column_search)
