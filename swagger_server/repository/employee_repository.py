@@ -84,7 +84,7 @@ class EmployeeRepository:
                 
                 #Guardar imágenes (máx 10)
                 if files:
-                    result = self.save_image(files[0], name_folder="employees")
+                    result = self.logbook_repository.save_image(files[0], name_folder="employees")
                     saved_files.append(result["url"])
                     employee_body.photo = result["url"]
 
