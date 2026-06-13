@@ -133,6 +133,7 @@ class EmployeeUseCase:
             "start_date": params.get("start_date"),
             "end_date": params.get("end_date"),
             "type_movement": params.get("type_movement"),
+            "id_employee": params.get("id_employee"),
         }
 
         MOVEMENT_STATUS = {

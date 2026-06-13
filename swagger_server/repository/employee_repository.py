@@ -296,6 +296,9 @@ class EmployeeRepository:
                 if filters.get("type_movement"):
                     query = query.where(EmployeeMovement.type_movement == filters["type_movement"])
 
+                if filters.get("id_employee"):
+                    query = query.where(EmployeeMovement.employee_id == filters["id_employee"])
+
                 result = session.execute(query)
                 rows = result.all()
 
