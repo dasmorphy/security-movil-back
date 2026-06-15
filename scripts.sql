@@ -1782,6 +1782,7 @@ CREATE TABLE public.register_lead
     id_lead integer NOT NULL,
     names text,
     phone text,
+    position text,
     email text,
     business text,
     interested text,

@@ -1591,6 +1591,7 @@ class LogbookRepository:
                         phone,
                         email,
                         business,
+                        position,
                         interested
                     )
                     VALUES
@@ -1599,6 +1600,7 @@ class LogbookRepository:
                         :phone,
                         :email,
                         :business,
+                        :position,
                         :interested
                     )
                     RETURNING *
@@ -1611,6 +1613,7 @@ class LogbookRepository:
                         "phone": data.phone,
                         "email": data.email,
                         "business": data.business,
+                        "position": data.position,
                         "interested": data.interested,
                     }
                 )
