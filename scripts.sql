@@ -1720,6 +1720,7 @@ CREATE TABLE public.employee_movements
     id_movement integer NOT NULL,
     employee_id integer,
     group_business_id integer,
+    destiny_id integer,
     authorized_id integer,
     type_movement text,
     observations text,
@@ -1727,6 +1728,7 @@ CREATE TABLE public.employee_movements
     name_user text,
     status text,
     reason_out text,
+    shipping_guide text,
     created_by text,
     created_at timestamp without time zone DEFAULT now(),
     updated_by text,
@@ -1737,6 +1739,10 @@ CREATE TABLE public.employee_movements
         ON UPDATE NO ACTION
         ON DELETE NO ACTION,
     CONSTRAINT movement_group_business_fkey FOREIGN KEY (group_business_id)
+        REFERENCES public.group_business (id_group_business) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION,
+    CONSTRAINT movements_destiny_fkey FOREIGN KEY (destiny_id)
         REFERENCES public.group_business (id_group_business) MATCH SIMPLE
         ON UPDATE NO ACTION
         ON DELETE NO ACTION,

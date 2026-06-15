@@ -5,7 +5,7 @@ from typing import List
 from unittest import result
 from flask import json
 from loguru import logger
-from sqlalchemy import ARRAY, DateTime, Integer, String, Text, and_, cast, exists, func, insert, literal, select, true, union_all
+from sqlalchemy import ARRAY, DateTime, Integer, String, Text, and_, cast, exists, func, insert, literal, or_, select, true, union_all
 from sqlalchemy.orm import aliased
 from swagger_server.exception.custom_error_exception import CustomAPIException
 from swagger_server.models.db.authorized import Authorized
@@ -144,6 +144,9 @@ class EmployeeRepository:
                     query = query.where(
                         last_movement_subquery == filters["type_movement"]
                     )
+
+                if filters.get("groups_business_id"):
+                    query = query.where(EmployeeIntern.group_business_id.in_(filters["groups_business_id"]))
 
                 if filters.get("start_date"):
                     start_date = datetime.strptime(filters["start_date"], "%Y-%m-%d")
@@ -293,12 +296,25 @@ class EmployeeRepository:
                     end_date = datetime.strptime(filters["end_date"], "%Y-%m-%d")
                     query = query.where(EmployeeMovement.created_at <= end_date)
 
-                if filters.get("type_movement"):
-                    query = query.where(EmployeeMovement.type_movement == filters["type_movement"])
-
                 if filters.get("id_employee"):
                     query = query.where(EmployeeMovement.employee_id == filters["id_employee"])
 
+                if filters.get("group_business_id"):
+                    company_ids = filters["group_business_id"]
+
+                    query = query.where(
+                        or_(
+                            EmployeeMovement.group_business_id.in_(company_ids),
+                            and_(
+                                EmployeeMovement.destiny_id.in_(company_ids),
+                                EmployeeMovement.type_movement == "TRANSFER"
+                            )
+                        )
+                    )
+
+                if filters.get("type_movement"):
+                    query = query.where(EmployeeMovement.type_movement == filters["type_movement"])
+                
                 result = session.execute(query)
                 rows = result.all()
 

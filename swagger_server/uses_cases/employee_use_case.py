@@ -73,11 +73,18 @@ class EmployeeUseCase:
         self.employee_repository.post_employee_intern(employee, files, internal, external)
 
     def get_employees_intern(self, headers, params, internal, external):
+        groups_business_id = params.get("id_group_business")
+
         filters = {
             "start_date": params.get("start_date"),
             "end_date": params.get("end_date"),
             "type_movement": params.get("type_movement"),
-            "id_employee": params.get("id_employee")
+            "id_employee": params.get("id_employee"),
+            "groups_business_id": [
+                int(x.strip())
+                for x in groups_business_id.split(",")
+                if x.strip()
+            ] if groups_business_id else [],
         }
 
         MOVEMENT_STATUS = {
@@ -116,6 +123,8 @@ class EmployeeUseCase:
         employee_movement = EmployeeMovement(
             employee_id=body['employee_id'],
             group_business_id=body.get('group_business_id'),
+            destiny_id=body.get('destiny_id'),
+            shipping_guide=body.get('shipping_guide'),
             authorized_id=body.get('authorized_id'),
             type_movement=body.get('type_movement'),
             observations=body.get('observations'),
@@ -129,11 +138,19 @@ class EmployeeUseCase:
         self.employee_repository.post_employee_movement(employee_movement, files, internal, external)
 
     def get_employees_movement(self, headers, params, internal, external):
+        groups_business_id = params.get("group_business_id")
+
         filters = {
             "start_date": params.get("start_date"),
             "end_date": params.get("end_date"),
             "type_movement": params.get("type_movement"),
             "id_employee": params.get("id_employee"),
+            "destiny_id": params.get("destiny_id"),
+            "group_business_id": [
+                int(x.strip())
+                for x in groups_business_id.split(",")
+                if x.strip()
+            ] if groups_business_id else [],
         }
 
         MOVEMENT_STATUS = {
@@ -152,6 +169,7 @@ class EmployeeUseCase:
                 "authorized_id": c[0].authorized_id,
                 "type_movement": c[0].type_movement,
                 "observations": c[0].observations,
+                "destiny_id": c[0].destiny_id,
                 "other_destiny": c[0].other_destiny,
                 "status": MOVEMENT_STATUS.get(c[0].type_movement),
                 "reason_out": c[0].reason_out,

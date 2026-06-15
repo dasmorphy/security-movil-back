@@ -14,17 +14,21 @@ class EmployeeMovementData(Model):
 
     Do not edit the class manually.
     """
-    def __init__(self, group_business_id: int=None, employee_id: int=None, authorized_id: int=None, type_movement: str=None, observations: str=None, other_destiny: str=None, reason_out: str=None, user: str=None, name_user: str=None, images: List[str]=None):  # noqa: E501
+    def __init__(self, group_business_id: int=None, destiny_id: int=None, employee_id: int=None, authorized_id: int=None, type_movement: str=None, shipping_guide: str=None, observations: str=None, other_destiny: str=None, reason_out: str=None, user: str=None, name_user: str=None, images: List[str]=None):  # noqa: E501
         """EmployeeMovementData - a model defined in Swagger
 
         :param group_business_id: The group_business_id of this EmployeeMovementData.  # noqa: E501
         :type group_business_id: int
+        :param destiny_id: The destiny_id of this EmployeeMovementData.  # noqa: E501
+        :type destiny_id: int
         :param employee_id: The employee_id of this EmployeeMovementData.  # noqa: E501
         :type employee_id: int
         :param authorized_id: The authorized_id of this EmployeeMovementData.  # noqa: E501
         :type authorized_id: int
         :param type_movement: The type_movement of this EmployeeMovementData.  # noqa: E501
         :type type_movement: str
+        :param shipping_guide: The shipping_guide of this EmployeeMovementData.  # noqa: E501
+        :type shipping_guide: str
         :param observations: The observations of this EmployeeMovementData.  # noqa: E501
         :type observations: str
         :param other_destiny: The other_destiny of this EmployeeMovementData.  # noqa: E501
@@ -40,9 +44,11 @@ class EmployeeMovementData(Model):
         """
         self.swagger_types = {
             'group_business_id': int,
+            'destiny_id': int,
             'employee_id': int,
             'authorized_id': int,
             'type_movement': str,
+            'shipping_guide': str,
             'observations': str,
             'other_destiny': str,
             'reason_out': str,
@@ -53,9 +59,11 @@ class EmployeeMovementData(Model):
 
         self.attribute_map = {
             'group_business_id': 'group_business_id',
+            'destiny_id': 'destiny_id',
             'employee_id': 'employee_id',
             'authorized_id': 'authorized_id',
             'type_movement': 'type_movement',
+            'shipping_guide': 'shipping_guide',
             'observations': 'observations',
             'other_destiny': 'other_destiny',
             'reason_out': 'reason_out',
@@ -64,9 +72,11 @@ class EmployeeMovementData(Model):
             'images': 'images'
         }
         self._group_business_id = group_business_id
+        self._destiny_id = destiny_id
         self._employee_id = employee_id
         self._authorized_id = authorized_id
         self._type_movement = type_movement
+        self._shipping_guide = shipping_guide
         self._observations = observations
         self._other_destiny = other_destiny
         self._reason_out = reason_out
@@ -105,6 +115,27 @@ class EmployeeMovementData(Model):
         """
 
         self._group_business_id = group_business_id
+
+    @property
+    def destiny_id(self) -> int:
+        """Gets the destiny_id of this EmployeeMovementData.
+
+
+        :return: The destiny_id of this EmployeeMovementData.
+        :rtype: int
+        """
+        return self._destiny_id
+
+    @destiny_id.setter
+    def destiny_id(self, destiny_id: int):
+        """Sets the destiny_id of this EmployeeMovementData.
+
+
+        :param destiny_id: The destiny_id of this EmployeeMovementData.
+        :type destiny_id: int
+        """
+
+        self._destiny_id = destiny_id
 
     @property
     def employee_id(self) -> int:
@@ -168,6 +199,27 @@ class EmployeeMovementData(Model):
         """
 
         self._type_movement = type_movement
+
+    @property
+    def shipping_guide(self) -> str:
+        """Gets the shipping_guide of this EmployeeMovementData.
+
+
+        :return: The shipping_guide of this EmployeeMovementData.
+        :rtype: str
+        """
+        return self._shipping_guide
+
+    @shipping_guide.setter
+    def shipping_guide(self, shipping_guide: str):
+        """Sets the shipping_guide of this EmployeeMovementData.
+
+
+        :param shipping_guide: The shipping_guide of this EmployeeMovementData.
+        :type shipping_guide: str
+        """
+
+        self._shipping_guide = shipping_guide
 
     @property
     def observations(self) -> str:

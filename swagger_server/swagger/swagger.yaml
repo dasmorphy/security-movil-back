@@ -2105,6 +2105,12 @@ paths:
           schema:
             type: string
             example: "CHECK_IN"
+        - name: id_group_business
+          in: query
+          required: false
+          schema:
+            type: string
+            example: "1, 2, 3"
         - name: id_employee
           in: query
           required: false
@@ -2285,6 +2291,18 @@ paths:
           schema:
             type: string
             example: "CHECK_IN"
+        - name: group_business_id
+          in: query
+          required: false
+          schema:
+            type: string
+            example: "1, 2, 3"
+        - name: destiny_id
+          in: query
+          required: false
+          schema:
+            type: integer
+            example: 1
         - name: externalTransactionId
           in: header
           required: true
@@ -2784,6 +2802,10 @@ components:
           type: integer
           nullable: true
           example: 1
+        destiny_id:
+          type: integer
+          nullable: true
+          example: 1
         employee_id:
           type: integer
           example: 1
@@ -2794,6 +2816,10 @@ components:
         type_movement:
           type: string
           example: "OUT"
+        shipping_guide:
+          nullable: true
+          type: string
+          example: "123"
         observations:
           type: string
           nullable: true
@@ -2819,6 +2845,8 @@ components:
             type: string
             format: binary
       example:
+        shipping_guide: "123"
+        destiny_id: "1"
         group_business_id: 1
         employee_id: 1
         authorized_id: 1

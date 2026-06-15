@@ -37,6 +37,15 @@ class EmployeeMovement(Base):
         )
     )
 
+    destiny_id = Column(
+        Integer,
+        ForeignKey(
+            'public.group_business.id_group_business',
+            onupdate='NO ACTION',
+            ondelete='NO ACTION'
+        )
+    )
+
     authorized_id = Column(
         Integer,
         ForeignKey(
@@ -47,6 +56,7 @@ class EmployeeMovement(Base):
     )
 
     type_movement = Column(Text)
+    shipping_guide = Column(Text)
     observations = Column(Text)
     other_destiny = Column(Text)
     reason_out = Column(Text)
