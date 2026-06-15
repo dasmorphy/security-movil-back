@@ -168,6 +168,7 @@ class EmployeeUseCase:
                 "group_business_id": c[0].group_business_id,
                 "authorized_id": c[0].authorized_id,
                 "type_movement": c[0].type_movement,
+                "shipping_guide": c[0].shipping_guide,
                 "observations": c[0].observations,
                 "destiny_id": c[0].destiny_id,
                 "other_destiny": c[0].other_destiny,

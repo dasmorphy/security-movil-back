@@ -135,6 +135,7 @@ class EmployeeRepository:
                         GroupBusiness,
                         GroupBusiness.id_group_business == EmployeeIntern.group_business_id
                     )
+                    .order_by(EmployeeIntern.created_at.desc())
                 )
 
                 if filters.get("id_employee"):
@@ -284,7 +285,10 @@ class EmployeeRepository:
                 ).outerjoin(
                     GroupBusiness,
                     GroupBusiness.id_group_business == EmployeeMovement.group_business_id
-                ).outerjoin(images_movement_subq, images_movement_subq.c.movement_id == EmployeeMovement.id_movement)
+                ).outerjoin(
+                    images_movement_subq, 
+                    images_movement_subq.c.movement_id == EmployeeMovement.id_movement
+                ).order_by(EmployeeMovement.created_at.desc())
 
 
                 # Aplicar filtros
