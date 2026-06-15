@@ -146,6 +146,7 @@ class EmployeeUseCase:
             "type_movement": params.get("type_movement"),
             "id_employee": params.get("id_employee"),
             "destiny_id": params.get("destiny_id"),
+            "status_employee": params.get("status_employee"),
             "group_business_id": [
                 int(x.strip())
                 for x in groups_business_id.split(",")

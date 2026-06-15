@@ -281,7 +281,7 @@ class EmployeeRepository:
                     func.coalesce(images_movement_subq.c.images, cast([], ARRAY(Text))).label("images"),
                 ).join(
                     EmployeeIntern,
-                    EmployeeIntern.id_employee == EmployeeMovement.employee_id
+                    EmployeeIntern.id_employee == EmployeeMovement.employee_id,
                 ).outerjoin(
                     GroupBusiness,
                     GroupBusiness.id_group_business == EmployeeMovement.group_business_id
@@ -302,6 +302,9 @@ class EmployeeRepository:
 
                 if filters.get("id_employee"):
                     query = query.where(EmployeeMovement.employee_id == filters["id_employee"])
+
+                if filters.get("status_employee"):
+                    query = query.where(EmployeeIntern.status == filters["status_employee"])
 
                 if filters.get("group_business_id"):
                     company_ids = filters["group_business_id"]
