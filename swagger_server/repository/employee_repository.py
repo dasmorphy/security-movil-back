@@ -369,3 +369,71 @@ class EmployeeRepository:
 
             finally:
                 session.close()
+
+
+    def get_count_movements(self, filtersBase, internal, external):
+        with self.db.session_factory() as session:
+            try:
+                filters = true()
+
+                if filtersBase.get("user"):
+                    filters = and_(
+                        filters,
+                        EmployeeMovement.created_by == filtersBase.get("user")
+                    )
+
+                if filtersBase.get("start_date"):
+                    filters = and_(
+                        filters,
+                        EmployeeMovement.created_at >= filtersBase.get("start_date")
+                    )
+
+                if filtersBase.get("end_date"):
+                    filters = and_(
+                        filters,
+                        EmployeeMovement.created_at <= filtersBase.get("end_date")
+                    )
+
+                if filtersBase.get("group_business"):
+                    filters = and_(filters, EmployeeMovement.group_business_id.in_(filtersBase.get("group_business")))
+
+                stmt = (
+                    select(
+                        EmployeeMovement.type_movement,
+                        func.count().label("count")
+                    )
+                    .where(filters)
+                    .group_by(EmployeeMovement.type_movement)
+                )
+
+                result = session.execute(stmt).all()
+
+                data = [
+                    {
+                        "type_movement": row.type_movement,
+                        "count": row.count
+                    }
+                    for row in result
+                ]
+
+                # Total general
+                total = sum(item["count"] for item in data)
+
+                # Agregar porcentaje
+                for item in data:
+                    percentage = (
+                        (item["count"] / total) * 100
+                        if total > 0 else 0
+                    )
+
+                    item["percentage"] = round(percentage)
+
+                return data
+
+            except Exception as exception:
+                logger.error('Error: {}', str(exception), internal=internal, external=external)
+
+                if isinstance(exception, CustomAPIException):
+                    raise exception
+
+                raise CustomAPIException("Error al obtener el conteo de ingresos en la base de datos", 500)

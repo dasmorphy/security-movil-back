@@ -194,3 +194,22 @@ class EmployeeUseCase:
 
     def update_employee_intern_status(self, id_employee_intern: int, data: UpdateStatusEmployeeData, internal_process) -> None:
         self.employee_repository.update_employee_intern_status(id_employee_intern, data, internal_process)
+
+
+    def get_resume_graphs(self, headers, params, internal, external):
+        group_business = headers.get("groups-business-id")
+        
+        filters = {
+            "group_business": [int(x) for x in group_business.split(",")] if group_business else [],
+            "user": headers.get("user"),
+            "start_date": params.get("start_date"),
+            "end_date": params.get("end_date"),
+        }
+        
+        count_movements = self.employee_repository.get_count_movements(
+            filters, internal, external
+        )
+
+        return {
+            "movements": count_movements,
+        }
