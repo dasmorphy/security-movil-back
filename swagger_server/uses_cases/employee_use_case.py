@@ -67,7 +67,7 @@ class EmployeeUseCase:
             created_by=body.get('user'),
             name_user=body['name_user'],
             updated_by=body.get('user'),
-            status="Activo"
+            status="Autorizado"
         )
 
         self.employee_repository.post_employee_intern(employee, files, internal, external)
