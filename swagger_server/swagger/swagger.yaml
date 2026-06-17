@@ -2856,6 +2856,7 @@ components:
       type: object
       properties:
         names:
+          nullable: true
           type: string
           example: "Daniel"
         phone:
@@ -2863,17 +2864,21 @@ components:
           nullable: true
           example: "999999999"
         email:
+          nullable: true
           type: string
           nullable: true
           example: "daniel@hotmail.com"
         business:
+          nullable: true
           type: string
           nullable: true
           example: "Telearseg"
         interested:
+          nullable: true
           type: string
           example: "N/A"
         position:
+          nullable: true
           type: string
           example: "desarrollo"
       example:
