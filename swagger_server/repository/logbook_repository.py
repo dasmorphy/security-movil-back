@@ -1575,14 +1575,14 @@ class LogbookRepository:
                     )
                 """)
 
-                if session.execute(
-                    register_exist,
-                    {"email": data.email}
-                ).scalar():
-                    raise CustomAPIException(
-                        message="El correo ya se encuentra registrado",
-                        status_code=400
-                    )
+                # if session.execute(
+                #     register_exist,
+                #     {"email": data.email}
+                # ).scalar():
+                #     raise CustomAPIException(
+                #         message="El correo ya se encuentra registrado",
+                #         status_code=400
+                #     )
 
                 query = text("""
                     INSERT INTO public.register_lead
