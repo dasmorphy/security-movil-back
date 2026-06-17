@@ -14,7 +14,7 @@ class RegisterLeadData(Model):
 
     Do not edit the class manually.
     """
-    def __init__(self, names: str=None, phone: str=None, email: str=None, business: str=None, interested: str=None):  # noqa: E501
+    def __init__(self, names: str=None, phone: str=None, email: str=None, business: str=None, interested: str=None, position: str=None):  # noqa: E501
         """RegisterLeadData - a model defined in Swagger
 
         :param names: The names of this RegisterLeadData.  # noqa: E501
@@ -27,13 +27,16 @@ class RegisterLeadData(Model):
         :type business: str
         :param interested: The interested of this RegisterLeadData.  # noqa: E501
         :type interested: str
+        :param position: The position of this RegisterLeadData.  # noqa: E501
+        :type position: str
         """
         self.swagger_types = {
             'names': str,
             'phone': str,
             'email': str,
             'business': str,
-            'interested': str
+            'interested': str,
+            'position': str
         }
 
         self.attribute_map = {
@@ -41,13 +44,15 @@ class RegisterLeadData(Model):
             'phone': 'phone',
             'email': 'email',
             'business': 'business',
-            'interested': 'interested'
+            'interested': 'interested',
+            'position': 'position'
         }
         self._names = names
         self._phone = phone
         self._email = email
         self._business = business
         self._interested = interested
+        self._position = position
 
     @classmethod
     def from_dict(cls, dikt) -> 'RegisterLeadData':
@@ -164,3 +169,24 @@ class RegisterLeadData(Model):
         """
 
         self._interested = interested
+
+    @property
+    def position(self) -> str:
+        """Gets the position of this RegisterLeadData.
+
+
+        :return: The position of this RegisterLeadData.
+        :rtype: str
+        """
+        return self._position
+
+    @position.setter
+    def position(self, position: str):
+        """Sets the position of this RegisterLeadData.
+
+
+        :param position: The position of this RegisterLeadData.
+        :type position: str
+        """
+
+        self._position = position

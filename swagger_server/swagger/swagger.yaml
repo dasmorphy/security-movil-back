@@ -2873,6 +2873,9 @@ components:
         interested:
           type: string
           example: "N/A"
+        position:
+          type: string
+          example: "desarrollo"
       example:
         names: "Daniel"
         phone: "999999999"
