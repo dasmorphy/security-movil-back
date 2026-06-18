@@ -146,8 +146,8 @@ class EmployeeRepository:
                         last_movement_subquery == filters["type_movement"]
                     )
 
-                if filters.get("groups_business_id"):
-                    query = query.where(EmployeeIntern.group_business_id.in_(filters["groups_business_id"]))
+                # if filters.get("groups_business_id"):
+                #     query = query.where(EmployeeIntern.group_business_id.in_(filters["groups_business_id"]))
 
                 if filters.get("start_date"):
                     start_date = datetime.strptime(filters["start_date"], "%Y-%m-%d")
