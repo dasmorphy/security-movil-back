@@ -317,18 +317,34 @@ class UserUseCase:
         pass_hash = self.user_repository.get_pass_hash(body.login.user, internal, external)
         pass_verify = pwd_context.verify(body.login.password, pass_hash)
 
+        VALID_CHANNELS = {
+            'ZENTINEL',
+            'ZENTINEL_WEB',
+            'ZENTINEL_TEST'
+        }
+
+        CHANNEL_PLATFORMS = {
+            'ZENTINEL': 'MOVIL',
+            'ZENTINEL_WEB': 'WEB',
+            'ZENTINEL_TEST': 'HIBRID'
+        }
+
+        if channel not in VALID_CHANNELS:
+            raise CustomAPIException(message="Canal no registrado", status_code=401)
+
         if not pass_verify:
             raise CustomAPIException(message="Credenciales incorrectas", status_code=401)
         
         user_autenticated = self.user_repository.get_user(body.login.user, internal, external)
 
-        # if (channel == 'ZENTINEL'):
-        #     return user_autenticated
-        
-        # verify_user_session = self.user_repository.search_user_session(user_autenticated['id_user'], internal, external)
+        if user_autenticated["platform"] != 'HIBRID':
+            expected_platform = CHANNEL_PLATFORMS[channel]
 
-        # if verify_user_session:
-        #     raise CustomAPIException(message="El usuario ya tiene una sesión activa", status_code=401)
+            if user_autenticated["platform"] != expected_platform:
+                raise CustomAPIException(
+                    message=f"Usuario no habilitado para el ambiente {expected_platform.lower()}",
+                    status_code=401
+                )
 
         token = self.generate_jwt(user_autenticated)
 

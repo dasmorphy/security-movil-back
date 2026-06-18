@@ -404,6 +404,7 @@ class UserRepository:
                         Users.user,
                         Users.email,
                         Users.is_active,
+                        Users.platform,
                         Roles.name.label("role"),
                         func.jsonb_set(
                             func.coalesce(Users.attributes, cast("{}", JSONB)),
@@ -452,6 +453,7 @@ class UserRepository:
                     "user": user_found.user,
                     "email": user_found.email,
                     "is_active": user_found.is_active,
+                    "platform": user_found.platform,
                     "attributes": user_found.attributes
                 }
                 

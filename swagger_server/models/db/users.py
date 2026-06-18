@@ -27,6 +27,7 @@ class Users(Base):
     user = Column(Text, nullable=False)
     email = Column(Text, nullable=True)
     password = Column(Text, nullable=False)
+    platform = Column(Text)
 
     role_id = Column(
         UUID(as_uuid=True),
