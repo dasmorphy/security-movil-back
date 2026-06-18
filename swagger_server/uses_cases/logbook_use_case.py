@@ -1100,3 +1100,6 @@ class LogbookUseCase:
 
     def save_lead(self, data, internal, external):
         self.logbook_repository.save_lead(data, internal, external)
+
+    def get_leads(self, internal, external):
+        return self.logbook_repository.get_leads(internal, external)

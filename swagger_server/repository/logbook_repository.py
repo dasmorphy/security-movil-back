@@ -1644,3 +1644,37 @@ class LogbookRepository:
 
             finally:
                 session.close()
+
+
+    def get_leads(self, internal, external):
+        with self.db.session_factory() as session:
+            try:
+                query = text("""
+                    SELECT * 
+                    FROM public.register_lead
+                    ORDER BY created_at desc
+                """)
+
+                rows = session.execute(query).mappings().all()
+
+                data = [
+                    {
+                        "id_lead": row["id_lead"],
+                        "names": row["names"],
+                        "email": row["email"],
+                        "business": row["business"],
+                        "interested": row["interested"],
+                        "position": row["position"],
+                        "phone": row["phone"],
+                        "created_at": row["created_at"],
+                    }
+                    for row in rows
+                ]
+
+                return data
+            except Exception as exception:
+                logger.error('Error: {}', str(exception), internal=internal, external=external)
+                if isinstance(exception, CustomAPIException):
+                    raise exception
+                
+                raise CustomAPIException("Error al obtener en la base de datos", 500)
