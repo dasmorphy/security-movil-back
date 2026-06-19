@@ -1846,3 +1846,166 @@ ALTER SEQUENCE public.employee_movement_image_id_seq
 
 ALTER TABLE IF EXISTS public.employee_movements_images
     ALTER COLUMN id_image SET DEFAULT nextval('employee_movement_image_id_seq'::regclass);
+
+
+----------------------------------------------------------------------------------------------------------------
+
+CREATE TABLE public.blacklist_drivers
+(
+    id_blacklist integer NOT NULL,
+    dni text,
+    full_names text,
+    reason_restriction text,
+    observations text,
+    image_path text,
+    created_at timestamp without time zone DEFAULT now(),
+    created_by text,
+    updated_at timestamp without time zone DEFAULT now(),
+    updated_by text,
+    CONSTRAINT blacklist_pkey PRIMARY KEY (id_blacklist)
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.blacklist_drivers
+    OWNER to nextgen;
+
+
+CREATE SEQUENCE public.blacklist_driver_id_seq
+    INCREMENT 1
+    START 1
+    MINVALUE 1
+    MAXVALUE 2147483647
+    CACHE 1;
+
+ALTER SEQUENCE public.blacklist_driver_id_seq
+    OWNED BY public.blacklist_drivers.id_blacklist;
+
+ALTER SEQUENCE public.blacklist_driver_id_seq
+    OWNER TO nextgen;
+
+ALTER TABLE IF EXISTS public.blacklist_drivers
+    ALTER COLUMN id_blacklist SET DEFAULT nextval('blacklist_driver_id_seq'::regclass);
+
+-----------------------------------------------------------------------------------------------------------------
+
+CREATE TABLE public.status_purchase_orders
+(
+    id_status integer NOT NULL,
+    name text,
+    created_at timestamp without time zone DEFAULT now(),
+    created_by text,
+    CONSTRAINT status_purchase_orders_pkey PRIMARY KEY (id_status)
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.status_purchase_orders
+    OWNER to nextgen;
+
+
+CREATE SEQUENCE public.status_purchase_orders_id_seq
+    INCREMENT 1
+    START 1
+    MINVALUE 1
+    MAXVALUE 2147483647
+    CACHE 1;
+
+ALTER SEQUENCE public.status_purchase_orders_id_seq
+    OWNED BY public.status_purchase_orders.id_status;
+
+ALTER SEQUENCE public.status_purchase_orders_id_seq
+    OWNER TO nextgen;
+
+ALTER TABLE IF EXISTS public.status_purchase_orders
+    ALTER COLUMN id_status SET DEFAULT nextval('status_purchase_orders_id_seq'::regclass);
+
+
+--------------------------------------------------------------------------------------------------------------------
+
+CREATE TABLE public.purchase_orders
+(
+    id_order integer NOT NULL,
+    start_date timestamp without time zone,
+    end_date timestamp without time zone,
+    type_order text,
+    destiny_id integer,
+    number_order text,
+    quantity integer,
+    provider text,
+    observations text,
+    status_id integer,
+    created_at timestamp without time zone DEFAULT now(),
+    created_by text,
+    updated_at timestamp without time zone DEFAULT now(),
+    updated_by text,
+    CONSTRAINT purchase_order_pkey PRIMARY KEY (id_order),
+    CONSTRAINT status_purchase_fkey FOREIGN KEY (status_id)
+        REFERENCES public.status_purchase_orders (id_status) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.purchase_orders
+    OWNER to nextgen;
+
+
+CREATE SEQUENCE public.purchase_orders_id_seq
+    INCREMENT 1
+    START 1
+    MINVALUE 1
+    MAXVALUE 2147483647
+    CACHE 1;
+
+ALTER SEQUENCE public.purchase_orders_id_seq
+    OWNED BY public.purchase_orders.id_order;
+
+ALTER SEQUENCE public.purchase_orders_id_seq
+    OWNER TO nextgen;
+
+ALTER TABLE IF EXISTS public.purchase_orders
+    ALTER COLUMN id_order SET DEFAULT nextval('purchase_orders_id_seq'::regclass);
+
+
+------------------------------------------------------------------------------------------------------------
+
+CREATE TABLE public.purchase_order_receipts
+(
+    id_receipts integer NOT NULL,
+    purchase_order_id integer,
+    dni_driver text,
+    truck_license text,
+    driver text,
+    quantity integer,
+    created_at timestamp without time zone DEFAULT now(),
+    created_by text,
+    updated_by text,
+    updated_at timestamp without time zone,
+    CONSTRAINT order_receipts_pkey PRIMARY KEY (id_receipts),
+    CONSTRAINT purchase_order_fkey FOREIGN KEY (purchase_order_id)
+        REFERENCES public.purchase_orders (id_order) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+);
+
+ALTER TABLE IF EXISTS public.purchase_order_receipts
+    OWNER to nextgen;
+
+
+CREATE SEQUENCE public.purchase_order_receipts_id_seq
+    INCREMENT 1
+    START 1
+    MINVALUE 1
+    MAXVALUE 2147483647
+    CACHE 1;
+
+ALTER SEQUENCE public.purchase_order_receipts_id_seq
+    OWNED BY public.purchase_order_receipts.id_receipts;
+
+ALTER SEQUENCE public.purchase_order_receipts_id_seq
+    OWNER TO nextgen;
+
+ALTER TABLE IF EXISTS public.purchase_order_receipts
+    ALTER COLUMN id_receipts SET DEFAULT nextval('purchase_order_receipts_id_seq'::regclass);

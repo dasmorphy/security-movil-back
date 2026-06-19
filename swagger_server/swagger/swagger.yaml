@@ -2525,6 +2525,101 @@ paths:
               schema:
                 $ref: "#/components/schemas/ResponseError"
       x-openapi-router-controller: swagger_server.controllers.employee_controller.EmployeeView
+  /blacklist-driver:
+    get:
+      tags:
+      - Black List
+      summary: Obtiene todos los conductores restringidos
+      description: Devuelve todos los conductores restringidos de la base
+      operationId: get_blacklist
+      parameters:
+        - name: externalTransactionId
+          in: header
+          required: true
+          schema:
+            type: string
+            example: "fcea920f7412b5da7be0cf42b8c93759"
+        - name: channel
+          in: header
+          required: true
+          schema:
+            type: string
+            example: "ZENTINEL"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenericResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+        "503":
+          description: Service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+      x-openapi-router-controller: swagger_server.controllers.logbook_controller.LogbookView
+    post:
+      tags:
+      - Black List
+      summary: Guarda del personal interno en la base de datos.
+      description: Guardado del personal interno
+      operationId: post_blacklist
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/RequestPostBlacklist"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenericResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+        "503":
+          description: Service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+      x-openapi-router-controller: swagger_server.controllers.logbook_controller.LogbookView
 components:
   schemas:
     RequestFormExpo:
@@ -2617,6 +2712,16 @@ components:
       properties:
         employee_movement:
           $ref: "#/components/schemas/EmployeeMovementData"
+        channel:
+          type: string
+          example: ZENTINEL
+        externalTransactionId:
+          type: string
+          example: fcea920f7412b5da7be0cf42b8c93759
+    RequestPostBlacklist:
+      properties:
+        data:
+          $ref: "#/components/schemas/BlacklistData"
         channel:
           type: string
           example: ZENTINEL
@@ -2915,12 +3020,10 @@ components:
           nullable: true
           example: "999999999"
         email:
-          nullable: true
           type: string
           nullable: true
           example: "daniel@hotmail.com"
         business:
-          nullable: true
           type: string
           nullable: true
           example: "Telearseg"
@@ -2938,6 +3041,36 @@ components:
         email: "daniel@hotmail.com"
         business: "Telearseg"
         interested: "N/A"
+    BlacklistData:
+      type: object
+      properties:
+        dni:
+          type: string
+          example: "09999999"
+        full_names:
+          type: string
+          example: "Daniel"
+        reason_restriction:
+          type: string
+          example: "N/A"
+        image_path:
+          type: string
+          nullable: true
+          example: "image 01"
+        observations:
+          type: string
+          nullable: true
+          example: "N/A"
+        user:
+          type: string
+          example: "dmales"
+      example:
+        dni: "09999999"
+        full_names: "Daniel"
+        reason_restriction: "N/A"
+        image_path: "image 01"
+        observations: "Sin observaciones"
+        user: "dmales"
     EmployeeMovementData:
       type: object
       properties:
