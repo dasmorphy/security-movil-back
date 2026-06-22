@@ -175,102 +175,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ResponseError"
-      x-openapi-router-controller: swagger_server.controllers.user_controller.UserView
-  /form-expo:
-    get:
-      tags:
-      - Expo
-      summary: Obtiene todos los registros del evento
-      description: Devuelve todos los registros de la base
-      operationId: get_form_expo
-      parameters:
-        - name: externalTransactionId
-          in: header
-          required: true
-          schema:
-            type: string
-            example: "fcea920f7412b5da7be0cf42b8c93759"
-        - name: channel
-          in: header
-          required: true
-          schema:
-            type: string
-            example: "ZENTINEL"
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/GenericResponse"
-        "400":
-          description: Bad request
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ResponseError"
-        "404":
-          description: Not found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ResponseError"
-        "500":
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ResponseError"
-        "503":
-          description: Service unavailable
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ResponseError"
-      x-openapi-router-controller: swagger_server.controllers.user_controller.UserView
-    post:
-      tags:
-      - Expo
-      summary: Formulario expo.
-      description: Formulario expo
-      operationId: post_form_expo
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/RequestFormExpo"
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/GenericResponse"
-        "400":
-          description: Bad request
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ResponseError"
-        "404":
-          description: Not found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ResponseError"
-        "500":
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ResponseError"
-        "503":
-          description: Service unavailable
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ResponseError"
-      x-openapi-router-controller: swagger_server.controllers.user_controller.UserView
+      x-openapi-router-controller: swagger_server.controllers.user_controller.UserView    
   /get/all-users:
     get:
       tags:
@@ -2533,6 +2438,12 @@ paths:
       description: Devuelve todos los conductores restringidos de la base
       operationId: get_blacklist
       parameters:
+        - name: business_id
+          in: query
+          required: false
+          schema:
+            type: string
+            example: "1, 2, 3"
         - name: externalTransactionId
           in: header
           required: true
@@ -2580,8 +2491,8 @@ paths:
     post:
       tags:
       - Black List
-      summary: Guarda del personal interno en la base de datos.
-      description: Guardado del personal interno
+      summary: Guarda el conductor en lista negra en la base de datos.
+      description: Guardado en lista negra
       operationId: post_blacklist
       requestBody:
         content:
@@ -2620,18 +2531,153 @@ paths:
               schema:
                 $ref: "#/components/schemas/ResponseError"
       x-openapi-router-controller: swagger_server.controllers.logbook_controller.LogbookView
+  /purchase-order-receipts:
+    post:
+      tags:
+      - Purchase order
+      summary: Guarda la llegada de cantidades de ordenes de compra en la base de datos.
+      description: Guardado de cantidades de la orden de compra
+      operationId: post_order_receipts
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/RequestPostOrderReceipts"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenericResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+        "503":
+          description: Service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+      x-openapi-router-controller: swagger_server.controllers.logbook_controller.LogbookView
+  /purchase-order:
+    get:
+      tags:
+      - Purchase order
+      summary: Obtiene todas las ordenes de compra
+      description: Devuelve todas las ordenes de comrpra de la base
+      operationId: get_order
+      parameters:
+        - name: destiny_id
+          in: query
+          required: false
+          schema:
+            type: string
+            example: "1, 2, 3"
+        - name: externalTransactionId
+          in: header
+          required: true
+          schema:
+            type: string
+            example: "fcea920f7412b5da7be0cf42b8c93759"
+        - name: channel
+          in: header
+          required: true
+          schema:
+            type: string
+            example: "ZENTINEL"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenericResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+        "503":
+          description: Service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+      x-openapi-router-controller: swagger_server.controllers.logbook_controller.LogbookView
+    post:
+      tags:
+      - Purchase order
+      summary: Guarda la orden de compra en la base de datos.
+      description: Guardado de la orden de compra
+      operationId: post_order
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RequestPostOrder"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenericResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+        "503":
+          description: Service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+      x-openapi-router-controller: swagger_server.controllers.logbook_controller.LogbookView
 components:
   schemas:
-    RequestFormExpo:
-      properties:
-        data:
-          $ref: "#/components/schemas/FormExpoData"
-        channel:
-          type: string
-          example: ZENTINEL
-        externalTransactionId:
-          type: string
-          example: fcea920f7412b5da7be0cf42b8c93759
     RequestLogin:
       properties:
         login:
@@ -2688,6 +2734,26 @@ components:
         externalTransactionId:
           type: string
           example: fcea920f7412b5da7be0cf42b8c93759
+    RequestPostOrder:
+      properties:
+          order:
+            $ref: "#/components/schemas/PurchaseOrderData"
+          channel:
+            type: string
+            example: ZENTINEL
+          externalTransactionId:
+            type: string
+            example: fcea920f7412b5da7be0cf42b8c93759
+    RequestPostOrderReceipts:
+      properties:
+          data:
+            $ref: "#/components/schemas/OrderReceiptsData"
+          channel:
+            type: string
+            example: ZENTINEL
+          externalTransactionId:
+            type: string
+            example: fcea920f7412b5da7be0cf42b8c93759
     RequestPostEmployeeIntern:
       properties:
         employee_intern:
@@ -2930,30 +2996,33 @@ components:
         created_by: dmales
         name_user: Daniel Males
         images: []
-    FormExpoData:
+    OrderReceiptsData:
       type: object
       properties:
-        names:
+        purchase_order_id:
+          type: integer
+          example: 1
+        dni_driver:
+          type: string
+          example: "0999999999"
+        truck_license:
+          type: string
+          example: "GME-511"
+        driver:
+          type: string
+          example: "Juan"
+        quantity:
+          type: integer
+          example: 1
+        user:
           type: string
           example: "dmales"
-        email:
-          type: string
-          example: "123456"
-        business:
-          type: string
-          example: "123456"
-        position:
-          type: string
-          example: "123456"
-        phone:
-          type: string
-          example: "123456"
-        type_industry:
-          type: string
-          example: "123456"
-        is_assist:
-          type: boolean
-          example: true
+        images:
+          type: array
+          maxItems: 10
+          items:
+            type: string
+            format: binary
     UpdateStatusEmployeeData:
       type: object
       properties:
@@ -2963,9 +3032,37 @@ components:
         user_update:
           type: string
           example: "dmales"
-      example:
-        status: "Autorizado"
-        user_update: "dmales"
+    PurchaseOrderData:
+      type: object
+      properties:
+        start_date:
+          format: date-time
+          example: "2026-06-20T18:00:00"
+        end_date:
+          format: date-time
+          example: "2026-06-20T19:00:00"
+        type_order:
+          type: string
+          example: "BALANCEADO"
+        destiny_id:
+          type: integer
+          example: 1
+        number_order:
+          type: string
+          example: "123456"
+        quantity:
+          type: integer
+          example: 1
+        provider:
+          type: string
+          example: "Expalsa"
+        observations:
+          type: string
+          nullable: true
+          example: "N/A"
+        user:
+          type: string
+          example: "dmales"
     EmployeeInternData:
       type: object
       properties:
@@ -2998,16 +3095,6 @@ components:
           items:
             type: string
             format: binary
-      example:
-        id_group_business: 1
-        dni: "1234567890"
-        names: "Daniel"
-        lastname: "Males"
-        position: "Operario"
-        observations: "Sin observaciones"
-        photo: "photo.jpg"
-        status: "Activo"
-        user: "dmales"
     RegisterLeadData:
       type: object
       properties:
@@ -3047,6 +3134,9 @@ components:
         dni:
           type: string
           example: "09999999"
+        business_id:
+          type: integer
+          example: 1
         full_names:
           type: string
           example: "Daniel"
@@ -3066,6 +3156,7 @@ components:
           example: "dmales"
       example:
         dni: "09999999"
+        business_id: 1
         full_names: "Daniel"
         reason_restriction: "N/A"
         image_path: "image 01"

@@ -16,10 +16,14 @@ from datetime import datetime
 import requests
 from weasyprint import HTML
 from swagger_server.exception.custom_error_exception import CustomAPIException
+from swagger_server.models.blacklist_data import BlacklistData
 from swagger_server.models.db.employee_intern import EmployeeIntern
 from swagger_server.models.db.logbook_entry import LogbookEntry
 from swagger_server.models.db.logbook_out import LogbookOut
+from swagger_server.models.db.purchase_order import PurchaseOrder
+from swagger_server.models.db.purchase_order_receipts import PurchaseOrderReceipts
 from swagger_server.models.db.request_idempotency import RequestIdempotency
+from swagger_server.models.purchase_order_data import PurchaseOrderData
 from swagger_server.models.request_post_logbook_entry import RequestPostLogbookEntry
 from swagger_server.models.request_post_logbook_out import RequestPostLogbookOut
 from swagger_server.repository.logbook_repository import LogbookRepository
@@ -1103,3 +1107,70 @@ class LogbookUseCase:
 
     def get_leads(self, internal, external):
         return self.logbook_repository.get_leads(internal, external)
+    
+    def get_blacklist(self, headers, params, internal, external):
+        business = params.get('business_id')
+
+        filters = {
+            "business": [x.strip() for x in business.split(",")] if business else [],
+        }
+
+        return self.logbook_repository.get_blacklist(filters, internal, external)
+
+    def post_blacklist(self, body, images, internal, external) -> None:
+        if len(images) > 1:
+            raise CustomAPIException("Máximo 1 imagen", 500)
+
+        blacklist = BlacklistData(
+            dni=body['dni'],
+            full_names=body['full_names'],
+            reason_restriction=body['reason_restriction'],
+            image_path=body.get('image_path'),
+            observations=body.get('observations'),
+            user=body['user'],
+        )
+
+        self.logbook_repository.post_blacklist(blacklist, images, internal, external)
+
+    def get_order(self, headers, params, internal, external):
+        destiny_id = params.get('destiny_id')
+
+        filters = {
+            "destiny_id": [int(x.strip()) for x in destiny_id.split(",")] if destiny_id else [],
+        }
+
+        return self.logbook_repository.get_order(filters, internal, external)
+
+    def post_order(self, body: PurchaseOrderData, internal, external) -> None:
+        purchase_order = PurchaseOrder(
+            destiny_id=body.destiny_id,
+            start_date=body.start_date,
+            end_date=body.end_date,
+            number_order=body.number_order,
+            type_order=body.type_order,
+            quantity=body.quantity,
+            provider=body.provider,
+            observations=body.observations,
+            created_by=body.user,
+            updated_by=body.user
+        )
+
+        self.logbook_repository.post_order(purchase_order, internal, external)
+
+
+    def post_order_receipts(self, body, images, internal, external) -> None:
+        if len(images) > 10:
+            raise CustomAPIException("Máximo 10 imagenes", 500)
+        
+        order_receipts = PurchaseOrderReceipts(
+            purchase_order_id=body['purchase_order_id'],
+            dni_driver=body['dni_driver'],
+            truck_license=body['truck_license'],
+            driver=body['driver'],
+            quantity=body['quantity'],
+            created_by=body['user'],
+            updated_by=body['user'],
+            tons_equivalent=body['quantity'] * 25 / 1000
+        )
+
+        self.logbook_repository.post_order_receipts(order_receipts, images, internal, external)

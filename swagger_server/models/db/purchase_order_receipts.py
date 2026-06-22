@@ -9,27 +9,26 @@ from sqlalchemy import (
 )
 
 
-class BlacklistDrivers(Base):
-    __tablename__ = 'blacklist_drivers'
+class PurchaseOrderReceipts(Base):
+    __tablename__ = 'purchase_order_receipts'
     __table_args__ = {'schema': 'public'}
 
-    id_blacklist = Column(
+    id_receipts = Column(
         Integer,
         primary_key=True,
         autoincrement=True
     )
 
-    business_id = Column(
+    purchase_order_id = Column(
         Integer,
-        ForeignKey('public.business.id_business', onupdate='NO ACTION', ondelete='NO ACTION'),
-        nullable=False
+        ForeignKey('public.purchase_orders.id_order', onupdate='NO ACTION', ondelete='NO ACTION'),
     )
 
-    dni = Column(Text)
-    full_names = Column(Text)
-    reason_restriction = Column(Text)
-    observations = Column(Text)
-    image_path = Column(Text)
+    dni_driver = Column(Text)
+    truck_license = Column(Text)
+    driver = Column(Text)
+    quantity = Column(Integer)
+    tons_equivalent = Column(Integer)
     
     created_at = Column(
         DateTime,

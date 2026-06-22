@@ -9,6 +9,7 @@ from sqlalchemy import ARRAY, DateTime, Integer, String, Text, and_, cast, exist
 from sqlalchemy.orm import aliased
 from swagger_server.exception.custom_error_exception import CustomAPIException
 from swagger_server.models.db.authorized import Authorized
+from swagger_server.models.db.blacklist_drivers import BlacklistDrivers
 from swagger_server.models.db.business import Business
 from swagger_server.models.db.business import Business
 from swagger_server.models.db.destiny_intern import DestinyIntern
@@ -18,6 +19,10 @@ from swagger_server.models.db.logbook_entry import LogbookEntry
 from swagger_server.models.db.category import Category
 from swagger_server.models.db.logbook_images import LogbookImages
 from swagger_server.models.db.logbook_out import LogbookOut
+from swagger_server.models.db.order_receipts_image import OrderReceiptsImages
+from swagger_server.models.db.purchase_order import PurchaseOrder
+from swagger_server.models.db.purchase_order_receipts import PurchaseOrderReceipts
+from swagger_server.models.db.status_purchase_order import StatusPurchaseOrder
 from swagger_server.models.db.report_generated import ReportGenerated
 from swagger_server.models.db.request_idempotency import RequestIdempotency
 from swagger_server.models.db.sector import Sector
@@ -1676,5 +1681,255 @@ class LogbookRepository:
                 logger.error('Error: {}', str(exception), internal=internal, external=external)
                 if isinstance(exception, CustomAPIException):
                     raise exception
-                
+
                 raise CustomAPIException("Error al obtener en la base de datos", 500)
+
+    def get_blacklist(self, filters, internal, external):
+        with self.db.session_factory() as session:
+            try:
+                result = session.execute(
+                    select(BlacklistDrivers).order_by(BlacklistDrivers.created_at.desc())
+                )
+                blacklist = [
+                    {
+                        "id_blacklist": c.id_blacklist,
+                        "dni": c.dni,
+                        "full_names": c.full_names,
+                        "reason_restriction": c.reason_restriction,
+                        "observations": c.observations,
+                        "image_path": c.image_path,
+                        "created_at": c.created_at,
+                        "updated_at": c.updated_at,
+                        "created_by": c.created_by,
+                        "updated_by": c.updated_by,
+                    }
+                    for c in result.scalars().all()
+                ]
+                return blacklist
+            except Exception as exception:
+                logger.error('Error: {}', str(exception), internal=internal, external=external)
+                if isinstance(exception, CustomAPIException):
+                    raise exception
+
+                raise CustomAPIException("Error al obtener en la base de datos", 500)
+
+    def post_blacklist(self, blacklist_body, images, internal, external) -> None:
+        saved_files = []
+
+        with self.db.session_factory() as session:
+            try:
+                data_request = RequestIdempotency(
+                    uuid=external,
+                    endpoint="/rest/zent-logbook-api/v1.0/post/blacklist-driver"
+                )
+
+                self.request_idempotency(session, data_request, internal, external)
+
+                image_path = None
+
+                # Guardar una sola imagen en la carpeta blacklist
+                if images:
+                    result = self.save_image(images[0], "blacklist")
+                    saved_files.append(result["url"])
+                    image_path = result["url"]
+
+                blacklist_driver = BlacklistDrivers(
+                    dni=blacklist_body.dni,
+                    business_id=blacklist_body.business_id,
+                    full_names=blacklist_body.full_names,
+                    reason_restriction=blacklist_body.reason_restriction,
+                    observations=blacklist_body.observations,
+                    image_path=image_path,
+                    created_by=blacklist_body.user,
+                    updated_by=blacklist_body.user,
+                )
+
+                session.add(blacklist_driver)
+                session.commit()
+
+            except OSError as e:
+                if e.errno == 36:
+                    raise CustomAPIException("Nombre de archivo demasiado largo", 400)
+
+            except Exception as exception:
+                session.rollback()
+
+                #limpia archivos guardados si falla DB
+                for path in saved_files:
+                    full_path = os.path.join("/var/www", path.lstrip("/"))
+                    if os.path.exists(full_path):
+                        os.remove(full_path)
+
+                logger.error('Error: {}', str(exception), internal=internal, external=external)
+                if isinstance(exception, CustomAPIException):
+                    raise exception
+
+                raise CustomAPIException("Error al insertar en la base de datos", 500)
+
+            finally:
+                session.close()
+
+    def get_order(self, filters, internal, external):
+        with self.db.session_factory() as session:
+            try:
+                stmt = (
+                    select(
+                        PurchaseOrder,
+                        StatusPurchaseOrder.name.label("status_name")
+                    )
+                    .outerjoin(
+                        StatusPurchaseOrder,
+                        StatusPurchaseOrder.id_status == PurchaseOrder.status_id
+                    )
+                    .order_by(PurchaseOrder.created_at.desc())
+                )
+
+                if filters.get("destiny_id"):
+                    stmt = stmt.where(PurchaseOrder.destiny_id.in_(filters.get("destiny_id")))
+
+                rows = session.execute(stmt).all()
+
+                orders = [
+                    {
+                        "id_order": c.id_order,
+                        "status_id": c.status_id,
+                        "status_name": status_name,
+                        "destiny_id": c.destiny_id,
+                        "start_date": c.start_date,
+                        "end_date": c.end_date,
+                        "number_order": c.number_order,
+                        "type_order": c.type_order,
+                        "quantity": c.quantity,
+                        "provider": c.provider,
+                        "observations": c.observations,
+                        "created_at": c.created_at,
+                        "updated_at": c.updated_at,
+                        "created_by": c.created_by,
+                        "updated_by": c.updated_by,
+                    }
+                    for c, status_name in rows
+                ]
+
+                return orders
+
+            except Exception as exception:
+                logger.error('Error: {}', str(exception), internal=internal, external=external)
+                if isinstance(exception, CustomAPIException):
+                    raise exception
+
+                raise CustomAPIException("Error al obtener en la base de datos", 500)
+
+    def post_order(self, purchase_order_body: PurchaseOrder, internal, external) -> None:
+        with self.db.session_factory() as session:
+            try:
+                data_request = RequestIdempotency(
+                    uuid=external,
+                    endpoint="/rest/zent-logbook-api/v1.0/post/purchase-order"
+                )
+
+                self.request_idempotency(session, data_request, internal, external)
+
+                status = session.execute(
+                    select(StatusPurchaseOrder).where(
+                        StatusPurchaseOrder.name == "Programado"
+                    )
+                ).scalar_one_or_none()
+
+                if not status:
+                    raise CustomAPIException(
+                        message="No existe el estado Programado",
+                        status_code=404
+                    )
+
+                purchase_order_body.status_id = status.id_status
+
+                session.add(purchase_order_body)
+                session.commit()
+
+            except Exception as exception:
+                session.rollback()
+                logger.error('Error: {}', str(exception), internal=internal, external=external)
+                if isinstance(exception, CustomAPIException):
+                    raise exception
+
+                raise CustomAPIException("Error al insertar en la base de datos", 500)
+
+            finally:
+                session.close()
+
+
+    def post_order_receipts(self, order_receipts: PurchaseOrderReceipts, images, internal, external) -> None:
+        saved_files = []
+
+        with self.db.session_factory() as session:
+            try:
+                data_request = RequestIdempotency(
+                    uuid=external,
+                    endpoint="/rest/zent-logbook-api/v1.0/purchase-order-receipts"
+                )
+                
+                self.request_idempotency(session, data_request, internal, external)
+
+                purchase_order_exists = session.get(PurchaseOrder, order_receipts.purchase_order_id)
+
+                if not purchase_order_exists:
+                    raise CustomAPIException(message="No existe la orden de compra", status_code=404)
+                
+                session.add(order_receipts)
+                session.flush()
+                
+                received_tons = sum(order_receipts.tons_equivalent) * 25 / 1000
+                is_completed: bool = True
+
+                if (purchase_order_exists.type_order == 'BALANCEADO'):
+                    is_completed = received_tons >= purchase_order_exists.quantity
+                    
+                if is_completed: 
+                    status = session.execute(
+                        select(StatusPurchaseOrder).where(
+                            StatusPurchaseOrder.name == "Completado"
+                        )
+                    ).scalar_one_or_none()
+                    
+                    if not status:
+                        raise CustomAPIException(message="No existe el estado completado", status_code=404)
+                    
+                    purchase_order_exists.status_id = status.id_status
+                    purchase_order_exists.updated_at = datetime.now()
+                    session.add(purchase_order_exists)
+
+                # Guardar imágenes (máx 10)
+                for file in images[:10]:
+                    result = self.save_image(file)
+                    saved_files.append(result["url"])
+
+                    image = OrderReceiptsImages(
+                        order_receipt_id=order_receipts.id_receipts,
+                        image_path=result["url"]
+                    )
+
+                    session.add(image)
+
+                session.commit()
+
+            except OSError as e:
+                if e.errno == 36:
+                    raise CustomAPIException("Nombre de archivo demasiado largo", 400)
+                
+            except Exception as exception:
+                session.rollback()
+
+                #limpia archivos guardados si falla DB
+                for path in saved_files:
+                    full_path = os.path.join("/var/www", path.lstrip("/"))
+                    if os.path.exists(full_path):
+                        os.remove(full_path)
+
+                logger.error('Error: {}', str(exception), internal=internal, external=external)
+                if isinstance(exception, CustomAPIException):
+                    raise exception
+                
+                raise CustomAPIException("Error al insertar en la base de datos", 500)
+
+            finally:
+                session.close()

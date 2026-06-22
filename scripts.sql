@@ -1853,6 +1853,7 @@ ALTER TABLE IF EXISTS public.employee_movements_images
 CREATE TABLE public.blacklist_drivers
 (
     id_blacklist integer NOT NULL,
+    business_id integer;
     dni text,
     full_names text,
     reason_restriction text,
@@ -1862,7 +1863,11 @@ CREATE TABLE public.blacklist_drivers
     created_by text,
     updated_at timestamp without time zone DEFAULT now(),
     updated_by text,
-    CONSTRAINT blacklist_pkey PRIMARY KEY (id_blacklist)
+    CONSTRAINT blacklist_pkey PRIMARY KEY (id_blacklist),
+    CONSTRAINT blacklist_business_fkey FOREIGN KEY (business_id)
+        REFERENCES public.business (id_business) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION;
 )
 
 TABLESPACE pg_default;
@@ -1979,6 +1984,7 @@ CREATE TABLE public.purchase_order_receipts
     truck_license text,
     driver text,
     quantity integer,
+    tons_equivalent integer,
     created_at timestamp without time zone DEFAULT now(),
     created_by text,
     updated_by text,
@@ -2009,3 +2015,40 @@ ALTER SEQUENCE public.purchase_order_receipts_id_seq
 
 ALTER TABLE IF EXISTS public.purchase_order_receipts
     ALTER COLUMN id_receipts SET DEFAULT nextval('purchase_order_receipts_id_seq'::regclass);
+
+
+--------------------------------------------------------------------------------------------------
+
+CREATE TABLE public.order_receipts_images
+(
+    id_image integer NOT NULL,
+    order_receipt_id integer,
+    image_path text,
+    created_at timestamp without time zone DEFAULT now(),
+    CONSTRAINT order_recepits_pkey PRIMARY KEY (id_image),
+    CONSTRAINT image_order_receipts_id_fkey FOREIGN KEY (order_receipt_id)
+        REFERENCES public.purchase_order_receipts (id_receipts) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.order_receipts_images
+    OWNER to nextgen;
+
+CREATE SEQUENCE public.order_receipts_images_id_seq
+    INCREMENT 1
+    START 1
+    MINVALUE 1
+    MAXVALUE 2147483647
+    CACHE 1;
+
+ALTER SEQUENCE public.order_receipts_images_id_seq
+    OWNED BY public.order_receipts_images.id_image;
+
+ALTER SEQUENCE public.order_receipts_images_id_seq
+    OWNER TO nextgen;
+
+ALTER TABLE IF EXISTS public.order_receipts_images
+    ALTER COLUMN id_image SET DEFAULT nextval('order_receipts_images_id_seq'::regclass);

@@ -13,6 +13,7 @@ from swagger_server.exception.custom_error_exception import CustomAPIException
 from swagger_server.models.request_lead import RequestLead
 from swagger_server.models.request_post_logbook_entry import RequestPostLogbookEntry  # noqa: E501
 from swagger_server.models.request_post_logbook_out import RequestPostLogbookOut  # noqa: E501
+from swagger_server.models.request_post_order import RequestPostOrder
 from swagger_server.models.response_error import ResponseError  # noqa: E501
 from swagger_server.models.response_post_logbook_entry import ResponsePostLogbookEntry  # noqa: E501
 from swagger_server.models.response_post_logbook_out import ResponsePostLogbookOut  # noqa: E501
@@ -826,6 +827,174 @@ class LogbookView(MethodView):
                 response["error_code"] = 0
                 response["message"] = "Registros obtenidos correctamente"
                 response["data"] = results
+                end_time = default_timer()
+                logger.info(f"Fin de la transacción, procesada en : {end_time - start_time} milisegundos",
+                            internal=internal_transaction_id, external=external_transaction_id)
+                status_code = 200
+        except Exception as ex:
+            response, status_code = CustomAPIException.check_exception(ex, function_name, internal_process)
+            
+        return response, status_code
+    
+    def get_blacklist(self):
+        internal_process = (None, None)
+        function_name = "get_blacklist"
+        response = {}
+        status_code = 500
+        try:
+            if connexion.request.headers:
+                start_time = default_timer()
+                internal_transaction_id = str(generate_internal_transaction_id())
+                external_transaction_id = request.headers.get('externalTransactionId')
+                internal_process = (internal_transaction_id, external_transaction_id)
+                response["internal_transaction_id"] = internal_transaction_id
+                response["external_transaction_id"] = external_transaction_id
+                message = f"start request: {function_name}, channel: {request.headers.get('channel')}"
+                logger.info(message, internal=internal_transaction_id, external=external_transaction_id)
+                headers = {k.lower(): v for k, v in request.headers.items()}
+                result = self.logbook_use_case.get_blacklist(headers, request.args, internal_transaction_id, external_transaction_id)
+                response["error_code"] = 0
+                response["message"] = "Registros obtenidos correctamente"
+                response["data"] = result
+                end_time = default_timer()
+                logger.info(f"Fin de la transacción, procesada en : {end_time - start_time} milisegundos",
+                            internal=internal_transaction_id, external=external_transaction_id)
+                status_code = 200
+        except Exception as ex:
+            response, status_code = CustomAPIException.check_exception(ex, function_name, internal_process)
+            
+        return response, status_code
+    
+
+    def post_blacklist(self):  # noqa: E501
+        internal_process = (None, None)
+        function_name = "post_blacklist"
+        response = {}
+        status_code = 500
+        try:
+            if request.content_type.startswith("multipart/form-data"):
+                start_time = default_timer()
+                internal_transaction_id = str(generate_internal_transaction_id())
+
+                data_file = request.files.get("data")
+                if not data_file:
+                    raise CustomAPIException("Campo data no enviado", 400)
+
+                data_raw = data_file.read().decode("utf-8")
+                data_dict = json.loads(data_raw)
+
+                external_transaction_id = data_dict['external_transaction_id']
+                internal_process = (internal_transaction_id, external_transaction_id)
+                response["internal_transaction_id"] = internal_transaction_id
+                response["external_transaction_id"] = external_transaction_id
+                message = f"start request: {function_name}, channel: {data_dict['channel']}"
+                logger.info(message, internal=internal_transaction_id, external=external_transaction_id)
+                files = request.files.getlist("images")
+                self.logbook_use_case.post_blacklist(data_dict, files, internal_transaction_id, external_transaction_id)
+                response["error_code"] = 0
+                response["message"] = "Registro creado correctamente"
+                end_time = default_timer()
+                logger.info(f"Fin de la transacción, procesada en : {end_time - start_time} milisegundos",
+                            internal=internal_transaction_id, external=external_transaction_id)
+                status_code = 200
+        except Exception as ex:
+            response, status_code = CustomAPIException.check_exception(ex, function_name, internal_process)
+
+        return response, status_code
+
+    def get_order(self):
+        internal_process = (None, None)
+        function_name = "get_order"
+        response = {}
+        status_code = 500
+        try:
+            if connexion.request.headers:
+                start_time = default_timer()
+                internal_transaction_id = str(generate_internal_transaction_id())
+                external_transaction_id = request.headers.get('externalTransactionId')
+                internal_process = (internal_transaction_id, external_transaction_id)
+                response["internal_transaction_id"] = internal_transaction_id
+                response["external_transaction_id"] = external_transaction_id
+                message = f"start request: {function_name}, channel: {request.headers.get('channel')}"
+                logger.info(message, internal=internal_transaction_id, external=external_transaction_id)
+                headers = {k.lower(): v for k, v in request.headers.items()}
+                result = self.logbook_use_case.get_order(headers, request.args, internal_transaction_id, external_transaction_id)
+                response["error_code"] = 0
+                response["message"] = "Registros obtenidos correctamente"
+                response["data"] = result
+                end_time = default_timer()
+                logger.info(f"Fin de la transacción, procesada en : {end_time - start_time} milisegundos",
+                            internal=internal_transaction_id, external=external_transaction_id)
+                status_code = 200
+        except Exception as ex:
+            response, status_code = CustomAPIException.check_exception(ex, function_name, internal_process)
+
+        return response, status_code
+
+    def post_order(self):  # noqa: E501
+        """Guarda la orden de compra en la base de datos.
+
+        Guardado de la orden de compra # noqa: E501
+
+        :param body:
+        :type body: dict | bytes
+
+        :rtype: GenericResponse
+        """
+        internal_process = (None, None)
+        function_name = "post_order"
+        response = {}
+        status_code = 500
+        try:
+            if connexion.request.is_json:
+                body = RequestPostOrder.from_dict(connexion.request.get_json())  # noqa: E501
+                start_time = default_timer()
+                internal_transaction_id = str(generate_internal_transaction_id())
+                external_transaction_id = body.external_transaction_id
+                internal_process = (internal_transaction_id, external_transaction_id)
+                response["internal_transaction_id"] = internal_transaction_id
+                response["external_transaction_id"] = external_transaction_id
+                message = f"start request: {function_name}, channel: {body.channel}"
+                logger.info(message, internal=internal_transaction_id, external=external_transaction_id)
+                self.logbook_use_case.post_order(body.order, internal_transaction_id, external_transaction_id)
+                response["error_code"] = 0
+                response["message"] = "Orden de compra creada correctamente"
+                end_time = default_timer()
+                logger.info(f"Fin de la transacción, procesada en : {end_time - start_time} milisegundos",
+                            internal=internal_transaction_id, external=external_transaction_id)
+                status_code = 200
+        except Exception as ex:
+            response, status_code = CustomAPIException.check_exception(ex, function_name, internal_process)
+
+        return response, status_code
+    
+    def post_order_receipts(self):
+        internal_process = (None, None)
+        function_name = "post_order_receipts"
+        response = {}
+        status_code = 500
+        try:
+            if request.content_type.startswith("multipart/form-data"):
+                start_time = default_timer()
+                internal_transaction_id = str(generate_internal_transaction_id())
+
+                data_file = request.files.get("data")
+                if not data_file:
+                    raise CustomAPIException("Campo data no enviado", 400)
+
+                data_raw = data_file.read().decode("utf-8")
+                data_dict = json.loads(data_raw)
+
+                external_transaction_id = data_dict.get('external_transaction_id')
+                internal_process = (internal_transaction_id, external_transaction_id)
+                response["internal_transaction_id"] = internal_transaction_id
+                response["external_transaction_id"] = external_transaction_id
+                message = f"start request: {function_name}, channel: {data_dict['channel']}"
+                logger.info(message, internal=internal_transaction_id, external=external_transaction_id)
+                files = request.files.getlist("images")
+                self.logbook_use_case.post_order_receipts(data_dict, files, internal_transaction_id, external_transaction_id)
+                response["error_code"] = 0
+                response["message"] = "Registro creado correctamente"
                 end_time = default_timer()
                 logger.info(f"Fin de la transacción, procesada en : {end_time - start_time} milisegundos",
                             internal=internal_transaction_id, external=external_transaction_id)

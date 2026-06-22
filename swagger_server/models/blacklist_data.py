@@ -14,11 +14,13 @@ class BlacklistData(Model):
 
     Do not edit the class manually.
     """
-    def __init__(self, dni: str=None, full_names: str=None, reason_restriction: str=None, image_path: str=None, observations: str=None, user: str=None):  # noqa: E501
+    def __init__(self, dni: str=None, business_id: int=None, full_names: str=None, reason_restriction: str=None, image_path: str=None, observations: str=None, user: str=None):  # noqa: E501
         """BlacklistData - a model defined in Swagger
 
         :param dni: The dni of this BlacklistData.  # noqa: E501
         :type dni: str
+        :param business_id: The business_id of this BlacklistData.  # noqa: E501
+        :type business_id: int
         :param full_names: The full_names of this BlacklistData.  # noqa: E501
         :type full_names: str
         :param reason_restriction: The reason_restriction of this BlacklistData.  # noqa: E501
@@ -32,6 +34,7 @@ class BlacklistData(Model):
         """
         self.swagger_types = {
             'dni': str,
+            'business_id': int,
             'full_names': str,
             'reason_restriction': str,
             'image_path': str,
@@ -41,6 +44,7 @@ class BlacklistData(Model):
 
         self.attribute_map = {
             'dni': 'dni',
+            'business_id': 'business_id',
             'full_names': 'full_names',
             'reason_restriction': 'reason_restriction',
             'image_path': 'image_path',
@@ -48,6 +52,7 @@ class BlacklistData(Model):
             'user': 'user'
         }
         self._dni = dni
+        self._business_id = business_id
         self._full_names = full_names
         self._reason_restriction = reason_restriction
         self._image_path = image_path
@@ -85,6 +90,27 @@ class BlacklistData(Model):
         """
 
         self._dni = dni
+
+    @property
+    def business_id(self) -> int:
+        """Gets the business_id of this BlacklistData.
+
+
+        :return: The business_id of this BlacklistData.
+        :rtype: int
+        """
+        return self._business_id
+
+    @business_id.setter
+    def business_id(self, business_id: int):
+        """Sets the business_id of this BlacklistData.
+
+
+        :param business_id: The business_id of this BlacklistData.
+        :type business_id: int
+        """
+
+        self._business_id = business_id
 
     @property
     def full_names(self) -> str:
