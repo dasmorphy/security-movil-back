@@ -2053,3 +2053,37 @@ ALTER SEQUENCE public.order_receipts_images_id_seq
 
 ALTER TABLE IF EXISTS public.order_receipts_images
     ALTER COLUMN id_image SET DEFAULT nextval('order_receipts_images_id_seq'::regclass);
+
+
+-------------------------------------------------------------------------------------------------------
+
+CREATE TABLE public.reason_restriction
+(
+    id_reason integer NOT NULL,
+    reason text,
+    created_at timestamp without time zone DEFAULT now(),
+    created_by text,
+    CONSTRAINT reason_restriction_pkey PRIMARY KEY (id_reason)
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.reason_restriction
+    OWNER to nextgen;
+
+
+CREATE SEQUENCE public.reason_restriction_id_seq
+    INCREMENT 1
+    START 1
+    MINVALUE 1
+    MAXVALUE 2147483647
+    CACHE 1;
+
+ALTER SEQUENCE public.reason_restriction_id_seq
+    OWNED BY public.reason_restriction.id_reason;
+
+ALTER SEQUENCE public.reason_restriction_id_seq
+    OWNER TO nextgen;
+
+ALTER TABLE IF EXISTS public.reason_restriction
+    ALTER COLUMN id_reason SET DEFAULT nextval('reason_restriction_id_seq'::regclass);

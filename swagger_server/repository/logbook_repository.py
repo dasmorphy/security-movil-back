@@ -5,7 +5,7 @@ from typing import List
 from unittest import result
 from flask import json
 from loguru import logger
-from sqlalchemy import ARRAY, DateTime, Integer, String, Text, and_, cast, exists, func, insert, literal, select, text, true, union_all
+from sqlalchemy import ARRAY, DateTime, Integer, String, Text, and_, case, cast, exists, func, insert, literal, select, text, true, union_all
 from sqlalchemy.orm import aliased
 from swagger_server.exception.custom_error_exception import CustomAPIException
 from swagger_server.models.db.authorized import Authorized
@@ -22,6 +22,7 @@ from swagger_server.models.db.logbook_out import LogbookOut
 from swagger_server.models.db.order_receipts_image import OrderReceiptsImages
 from swagger_server.models.db.purchase_order import PurchaseOrder
 from swagger_server.models.db.purchase_order_receipts import PurchaseOrderReceipts
+from swagger_server.models.db.reason_restriction import ReasonRestriction
 from swagger_server.models.db.status_purchase_order import StatusPurchaseOrder
 from swagger_server.models.db.report_generated import ReportGenerated
 from swagger_server.models.db.request_idempotency import RequestIdempotency
@@ -1933,3 +1934,35 @@ class LogbookRepository:
 
             finally:
                 session.close()
+
+        
+    def get_reason_restricition(self, filters, internal, external):
+        with self.db.session_factory() as session:
+            try:
+                result = session.execute(
+                    select(ReasonRestriction)
+                    .order_by(
+                        case(
+                            (ReasonRestriction.reason == "Otro", 1),
+                            else_=0
+                        ),
+                        ReasonRestriction.created_at.desc()
+                    )
+                )
+                
+                blacklist = [
+                    {
+                        "id_reason": c.id_reason,
+                        "reason": c.reason,
+                        "created_at": c.created_at,
+                        "created_by": c.created_by,
+                    }
+                    for c in result.scalars().all()
+                ]
+                return blacklist
+            except Exception as exception:
+                logger.error('Error: {}', str(exception), internal=internal, external=external)
+                if isinstance(exception, CustomAPIException):
+                    raise exception
+
+                raise CustomAPIException("Error al obtener en la base de datos", 500)
