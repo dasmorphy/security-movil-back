@@ -1195,6 +1195,7 @@ CREATE TABLE public.biomar_access_control
     names_visit text,
     status text DEFAULT 'Pendiente Salida';
     reason_visit text,
+    other_staff text,
     area_visit_id integer,
     staff_charge_id integer,
     observations text,

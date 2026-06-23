@@ -495,47 +495,47 @@ class LogbookRepository:
                 stmt = select(DestinyIntern)
 
                 # Caso 1: no viene business → default = 1
-                # if not business:
+                if not business:
                     # logger.info('get_all_destiny | CASO 1: business vacío, filtrando por business_id=1',
                     #         internal=internal, external=external)
-                stmt = stmt.where(DestinyIntern.business_id == 1)
+                    stmt = stmt.where(DestinyIntern.business_id == 1)
 
-                # # Caso 2: viene business distinto de Telearseg → filtrar
-                # elif business != '3':
-                #     logger.info('get_all_destiny | CASO 2: business={}, buscando en BD',
-                #             repr(business), internal=internal, external=external)
+                # Caso 2: viene business distinto de Telearseg → filtrar
+                elif business != '3':
+                    # logger.info('get_all_destiny | CASO 2: business={}, buscando en BD',
+                    #         repr(business), internal=internal, external=external)
                     
-                #     business_id = session.execute(
-                #         select(Business.id_business)
-                #         .where(Business.id_business == business)
-                #     ).scalar_one_or_none()
+                    business_id = session.execute(
+                        select(Business.id_business)
+                        .where(Business.id_business == business)
+                    ).scalar_one_or_none()
 
-                #     logger.info('get_all_destiny | business_id encontrado: {}',
-                #             repr(business_id), internal=internal, external=external)
+                    # logger.info('get_all_destiny | business_id encontrado: {}',
+                    #         repr(business_id), internal=internal, external=external)
 
-                #     if not business_id:
-                #         raise CustomAPIException("La empresa no existe", 404)
+                    if not business_id:
+                        raise CustomAPIException("La empresa no existe", 404)
 
-                #     stmt = stmt.where(DestinyIntern.business_id == business_id)
+                    stmt = stmt.where(DestinyIntern.business_id == business_id)
 
-                # # Caso 3: business == '3' → sin filtro
+                # Caso 3: business == '3' → sin filtro
                 # else:
                 #     logger.info('get_all_destiny | CASO 3: business=3 (Telearseg), sin filtro',
                 #             internal=internal, external=external)
 
                 # Imprimir query final
-                try:
-                    compiled = stmt.compile(
-                        dialect=postgresql.dialect(),
-                        compile_kwargs={"literal_binds": True}
-                    )
-                    logger.info('get_all_destiny | QUERY: {}', str(compiled),
-                            internal=internal, external=external)
-                except Exception as qe:
-                    compiled = stmt.compile(dialect=postgresql.dialect())
-                    logger.info('get_all_destiny | QUERY: {} | PARAMS: {}',
-                            str(compiled), compiled.params,
-                            internal=internal, external=external)
+                # try:
+                #     compiled = stmt.compile(
+                #         dialect=postgresql.dialect(),
+                #         compile_kwargs={"literal_binds": True}
+                #     )
+                #     logger.info('get_all_destiny | QUERY: {}', str(compiled),
+                #             internal=internal, external=external)
+                # except Exception as qe:
+                #     compiled = stmt.compile(dialect=postgresql.dialect())
+                #     logger.info('get_all_destiny | QUERY: {} | PARAMS: {}',
+                #             str(compiled), compiled.params,
+                #             internal=internal, external=external)
 
                 result = session.execute(stmt)
                 destiny = [
