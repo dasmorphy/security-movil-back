@@ -14,7 +14,7 @@ from openpyxl import load_workbook
 from datetime import datetime
 
 import requests
-from weasyprint import HTML
+# from weasyprint import HTML
 from swagger_server.exception.custom_error_exception import CustomAPIException
 from swagger_server.models.blacklist_data import BlacklistData
 from swagger_server.models.db.employee_intern import EmployeeIntern
@@ -1090,13 +1090,13 @@ class LogbookUseCase:
 
         pdf_buffer = BytesIO()
         
-        try:
-            # MAGIA DE WEASYPRINT AQUÍ
-            # Transforma el string HTML directamente al buffer PDF
-            HTML(string=html_string).write_pdf(pdf_buffer)
-        except Exception as e:
-            logger.error(f"Error en WeasyPrint generando PDF: {e}")
-            raise CustomAPIException("Error al generar el pdf", 500)
+        # try:
+        #     # MAGIA DE WEASYPRINT AQUÍ
+        #     # Transforma el string HTML directamente al buffer PDF
+        #     HTML(string=html_string).write_pdf(pdf_buffer)
+        # except Exception as e:
+        #     logger.error(f"Error en WeasyPrint generando PDF: {e}")
+        #     raise CustomAPIException("Error al generar el pdf", 500)
 
         pdf_buffer.seek(0)
         return pdf_buffer
@@ -1125,7 +1125,6 @@ class LogbookUseCase:
             dni=body['dni'],
             full_names=body['full_names'],
             reason_restriction=body['reason_restriction'],
-            image_path=body.get('image_path'),
             observations=body.get('observations'),
             user=body['user'],
         )

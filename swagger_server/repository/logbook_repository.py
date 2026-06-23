@@ -1719,6 +1719,15 @@ class LogbookRepository:
 
         with self.db.session_factory() as session:
             try:
+                dni_blacklist_exist = session.execute(
+                    select(BlacklistDrivers).where(
+                        BlacklistDrivers.dni == blacklist_body.dni
+                    )
+                ).scalar_one_or_none()
+                
+                if dni_blacklist_exist:
+                    raise CustomAPIException("Cédula ya registrada", 400)
+
                 data_request = RequestIdempotency(
                     uuid=external,
                     endpoint="/rest/zent-logbook-api/v1.0/post/blacklist-driver"
