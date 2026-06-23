@@ -488,40 +488,40 @@ class LogbookRepository:
     def get_all_destiny(self, business, internal, external):
         with self.db.session_factory() as session:
             try:
-                logger.info('get_all_destiny | business recibido: {} | type: {}', 
-                        repr(business), type(business).__name__, 
-                        internal=internal, external=external)
+                # logger.info('get_all_destiny | business recibido: {} | type: {}', 
+                #         repr(business), type(business).__name__, 
+                #         internal=internal, external=external)
 
                 stmt = select(DestinyIntern)
 
                 # Caso 1: no viene business → default = 1
-                if not business:
-                    logger.info('get_all_destiny | CASO 1: business vacío, filtrando por business_id=1',
-                            internal=internal, external=external)
-                    stmt = stmt.where(DestinyIntern.business_id == 1)
+                # if not business:
+                    # logger.info('get_all_destiny | CASO 1: business vacío, filtrando por business_id=1',
+                    #         internal=internal, external=external)
+                stmt = stmt.where(DestinyIntern.business_id == 1)
 
-                # Caso 2: viene business distinto de Telearseg → filtrar
-                elif business != '3':
-                    logger.info('get_all_destiny | CASO 2: business={}, buscando en BD',
-                            repr(business), internal=internal, external=external)
+                # # Caso 2: viene business distinto de Telearseg → filtrar
+                # elif business != '3':
+                #     logger.info('get_all_destiny | CASO 2: business={}, buscando en BD',
+                #             repr(business), internal=internal, external=external)
                     
-                    business_id = session.execute(
-                        select(Business.id_business)
-                        .where(Business.id_business == business)
-                    ).scalar_one_or_none()
+                #     business_id = session.execute(
+                #         select(Business.id_business)
+                #         .where(Business.id_business == business)
+                #     ).scalar_one_or_none()
 
-                    logger.info('get_all_destiny | business_id encontrado: {}',
-                            repr(business_id), internal=internal, external=external)
+                #     logger.info('get_all_destiny | business_id encontrado: {}',
+                #             repr(business_id), internal=internal, external=external)
 
-                    if not business_id:
-                        raise CustomAPIException("La empresa no existe", 404)
+                #     if not business_id:
+                #         raise CustomAPIException("La empresa no existe", 404)
 
-                    stmt = stmt.where(DestinyIntern.business_id == business_id)
+                #     stmt = stmt.where(DestinyIntern.business_id == business_id)
 
-                # Caso 3: business == '3' → sin filtro
-                else:
-                    logger.info('get_all_destiny | CASO 3: business=3 (Telearseg), sin filtro',
-                            internal=internal, external=external)
+                # # Caso 3: business == '3' → sin filtro
+                # else:
+                #     logger.info('get_all_destiny | CASO 3: business=3 (Telearseg), sin filtro',
+                #             internal=internal, external=external)
 
                 # Imprimir query final
                 try:
