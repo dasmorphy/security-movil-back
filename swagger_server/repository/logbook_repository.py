@@ -1902,30 +1902,55 @@ class LogbookRepository:
                 
                 self.request_idempotency(session, data_request, internal, external)
 
-                purchase_order_exists = session.get(PurchaseOrder, order_receipts.purchase_order_id)
+                purchase_order_exists = session.execute(
+                    select(PurchaseOrder)
+                    .where(
+                        PurchaseOrder.id_purchase_order ==
+                        order_receipts.purchase_order_id
+                    )
+                    .with_for_update()
+                ).scalar_one_or_none()
 
                 if not purchase_order_exists:
                     raise CustomAPIException(message="No existe la orden de compra", status_code=404)
                 
                 session.add(order_receipts)
                 session.flush()
-                
-                received_tons = sum(order_receipts.tons_equivalent) * 25 / 1000
-                is_completed: bool = True
 
-                if (purchase_order_exists.type_order == 'BALANCEADO'):
-                    is_completed = received_tons >= purchase_order_exists.quantity
-                    
-                if is_completed: 
+                total_quantity = session.execute(
+                    select(
+                        func.coalesce(
+                            func.sum(PurchaseOrderReceipts.tons_equivalent),
+                            0
+                        )
+                    ).where(
+                        PurchaseOrderReceipts.purchase_order_id == order_receipts.purchase_order_id
+                    )
+                ).scalar_one()
+                
+                status_name = None
+
+                if purchase_order_exists.type_order == 'BALANCEADO':
+                    if total_quantity == purchase_order_exists.quantity:
+                        status_name = "Completado"
+                    elif total_quantity > purchase_order_exists.quantity:
+                        status_name = "Con Novedad"
+                    else:
+                        status_name = None
+
+                if status_name:
                     status = session.execute(
                         select(StatusPurchaseOrder).where(
-                            StatusPurchaseOrder.name == "Completado"
+                            StatusPurchaseOrder.name == status_name
                         )
                     ).scalar_one_or_none()
-                    
+
                     if not status:
-                        raise CustomAPIException(message="No existe el estado completado", status_code=404)
-                    
+                        raise CustomAPIException(
+                            message=f"No existe el estado {status_name}",
+                            status_code=404
+                        )
+
                     purchase_order_exists.status_id = status.id_status
                     purchase_order_exists.updated_at = datetime.now()
                     session.add(purchase_order_exists)
