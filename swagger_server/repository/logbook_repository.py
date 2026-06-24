@@ -1905,7 +1905,7 @@ class LogbookRepository:
                 purchase_order_exists = session.execute(
                     select(PurchaseOrder)
                     .where(
-                        PurchaseOrder.id_purchase_order ==
+                        PurchaseOrder.id_order ==
                         order_receipts.purchase_order_id
                     )
                     .with_for_update()
