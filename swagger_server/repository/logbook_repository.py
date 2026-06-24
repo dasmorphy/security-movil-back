@@ -1785,11 +1785,16 @@ class LogbookRepository:
                 stmt = (
                     select(
                         PurchaseOrder,
-                        StatusPurchaseOrder.name.label("status_name")
+                        StatusPurchaseOrder.name.label("status_name"),
+                        GroupBusiness.name.label("destiny_name")
                     )
                     .outerjoin(
                         StatusPurchaseOrder,
                         StatusPurchaseOrder.id_status == PurchaseOrder.status_id
+                    )
+                    .outerjoin(
+                        GroupBusiness,
+                        GroupBusiness.id_group_business == PurchaseOrder.destiny_id
                     )
                     .order_by(PurchaseOrder.created_at.desc())
                 )
@@ -1805,6 +1810,7 @@ class LogbookRepository:
                         "status_id": c.status_id,
                         "status_name": status_name,
                         "destiny_id": c.destiny_id,
+                        "destiny_name": destinyName,
                         "start_date": c.start_date,
                         "end_date": c.end_date,
                         "number_order": c.number_order,
@@ -1817,7 +1823,7 @@ class LogbookRepository:
                         "created_by": c.created_by,
                         "updated_by": c.updated_by,
                     }
-                    for c, status_name in rows
+                    for c, status_name, destinyName in rows
                 ]
 
                 return orders
