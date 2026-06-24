@@ -4,6 +4,7 @@ from sqlalchemy import (
     DateTime,
     ForeignKey,
     Integer,
+    Numeric,
     Text,
     func
 )
@@ -34,7 +35,7 @@ class PurchaseOrder(Base):
 
     number_order = Column(Text)
     type_order = Column(Text)
-    quantity = Column(Integer)
+    quantity = Column(Numeric(12, 3))
     provider = Column(Text)
     observations = Column(Text)
     

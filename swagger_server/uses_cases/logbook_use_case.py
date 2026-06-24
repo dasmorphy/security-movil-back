@@ -3,6 +3,7 @@
 import base64
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
+from decimal import Decimal
 from io import BytesIO
 import os
 import pandas as pd
@@ -1168,7 +1169,12 @@ class LogbookUseCase:
             created_by=body['user'],
             updated_by=body['user'],
             name_user=body['name_user'],
-            tons_equivalent=body['quantity'] * 25 / 1000
+            # tons_equivalent=body['quantity'] * 25 / 1000
+            tons_equivalent = (
+                Decimal(str(body['quantity'])) *
+                Decimal('25') /
+                Decimal('1000')
+            )
         )
 
         self.logbook_repository.post_order_receipts(order_receipts, images, internal, external)

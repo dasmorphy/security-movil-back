@@ -4,6 +4,7 @@ from sqlalchemy import (
     DateTime,
     ForeignKey,
     Integer,
+    Numeric,
     Text,
     func
 )
@@ -29,7 +30,7 @@ class PurchaseOrderReceipts(Base):
     driver = Column(Text)
     name_user = Column(Text)
     quantity = Column(Integer)
-    tons_equivalent = Column(Integer)
+    tons_equivalent = Column(Numeric(12, 3))
     
     created_at = Column(
         DateTime,

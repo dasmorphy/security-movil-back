@@ -3112,8 +3112,8 @@ components:
           type: string
           example: "123456"
         quantity:
-          type: integer
-          example: 1
+          type: string
+          example: "1"
         provider:
           type: string
           example: "Expalsa"

@@ -14,7 +14,7 @@ class PurchaseOrderData(Model):
 
     Do not edit the class manually.
     """
-    def __init__(self, start_date: object=None, end_date: object=None, type_order: str=None, destiny_id: int=None, number_order: str=None, quantity: int=None, provider: str=None, observations: str=None, user: str=None):  # noqa: E501
+    def __init__(self, start_date: object=None, end_date: object=None, type_order: str=None, destiny_id: int=None, number_order: str=None, quantity: str=None, provider: str=None, observations: str=None, user: str=None):  # noqa: E501
         """PurchaseOrderData - a model defined in Swagger
 
         :param start_date: The start_date of this PurchaseOrderData.  # noqa: E501
@@ -28,7 +28,7 @@ class PurchaseOrderData(Model):
         :param number_order: The number_order of this PurchaseOrderData.  # noqa: E501
         :type number_order: str
         :param quantity: The quantity of this PurchaseOrderData.  # noqa: E501
-        :type quantity: int
+        :type quantity: str
         :param provider: The provider of this PurchaseOrderData.  # noqa: E501
         :type provider: str
         :param observations: The observations of this PurchaseOrderData.  # noqa: E501
@@ -42,7 +42,7 @@ class PurchaseOrderData(Model):
             'type_order': str,
             'destiny_id': int,
             'number_order': str,
-            'quantity': int,
+            'quantity': str,
             'provider': str,
             'observations': str,
             'user': str
@@ -186,22 +186,22 @@ class PurchaseOrderData(Model):
         self._number_order = number_order
 
     @property
-    def quantity(self) -> int:
+    def quantity(self) -> str:
         """Gets the quantity of this PurchaseOrderData.
 
 
         :return: The quantity of this PurchaseOrderData.
-        :rtype: int
+        :rtype: str
         """
         return self._quantity
 
     @quantity.setter
-    def quantity(self, quantity: int):
+    def quantity(self, quantity: str):
         """Sets the quantity of this PurchaseOrderData.
 
 
         :param quantity: The quantity of this PurchaseOrderData.
-        :type quantity: int
+        :type quantity: str
         """
 
         self._quantity = quantity
