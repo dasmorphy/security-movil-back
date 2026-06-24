@@ -27,6 +27,7 @@ class PurchaseOrderReceipts(Base):
     dni_driver = Column(Text)
     truck_license = Column(Text)
     driver = Column(Text)
+    name_user = Column(Text)
     quantity = Column(Integer)
     tons_equivalent = Column(Integer)
     

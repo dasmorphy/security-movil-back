@@ -1802,6 +1802,22 @@ class LogbookRepository:
                 if filters.get("destiny_id"):
                     stmt = stmt.where(PurchaseOrder.destiny_id.in_(filters.get("destiny_id")))
 
+                if filters.get("status"):
+                    status = session.execute(
+                        select(StatusPurchaseOrder).where(
+                            func.lower(StatusPurchaseOrder.name) ==
+                            filters.get("status").lower()
+                        )
+                    ).scalar_one_or_none()
+
+                    if not status:
+                        raise CustomAPIException(
+                            message="Estado de busqueda no existe",
+                            status_code=404
+                        )
+
+                    stmt = stmt.where(PurchaseOrder.status_id == status.id_status)
+
                 rows = session.execute(stmt).all()
 
                 orders = [
@@ -1916,7 +1932,7 @@ class LogbookRepository:
 
                 # Guardar imágenes (máx 10)
                 for file in images[:10]:
-                    result = self.save_image(file)
+                    result = self.save_image(file, "purchase_order")
                     saved_files.append(result["url"])
 
                     image = OrderReceiptsImages(

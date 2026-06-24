@@ -1133,6 +1133,7 @@ class LogbookUseCase:
 
         filters = {
             "destiny_id": [int(x.strip()) for x in destiny_id.split(",")] if destiny_id else [],
+            "status": params.get('status'),
         }
 
         return self.logbook_repository.get_order(filters, internal, external)
@@ -1166,6 +1167,7 @@ class LogbookUseCase:
             quantity=body['quantity'],
             created_by=body['user'],
             updated_by=body['user'],
+            name_user=body['name_user'],
             tons_equivalent=body['quantity'] * 25 / 1000
         )
 

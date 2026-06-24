@@ -1986,6 +1986,7 @@ CREATE TABLE public.purchase_order_receipts
     driver text,
     quantity integer,
     tons_equivalent integer,
+    name_user text,
     created_at timestamp without time zone DEFAULT now(),
     created_by text,
     updated_by text,

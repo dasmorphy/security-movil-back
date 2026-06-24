@@ -14,7 +14,7 @@ class OrderReceiptsData(Model):
 
     Do not edit the class manually.
     """
-    def __init__(self, purchase_order_id: int=None, dni_driver: str=None, truck_license: str=None, driver: str=None, quantity: int=None, user: str=None, images: List[str]=None):  # noqa: E501
+    def __init__(self, purchase_order_id: int=None, dni_driver: str=None, truck_license: str=None, driver: str=None, quantity: int=None, user: str=None, name_user: str=None, images: List[str]=None):  # noqa: E501
         """OrderReceiptsData - a model defined in Swagger
 
         :param purchase_order_id: The purchase_order_id of this OrderReceiptsData.  # noqa: E501
@@ -29,6 +29,8 @@ class OrderReceiptsData(Model):
         :type quantity: int
         :param user: The user of this OrderReceiptsData.  # noqa: E501
         :type user: str
+        :param name_user: The name_user of this OrderReceiptsData.  # noqa: E501
+        :type name_user: str
         :param images: The images of this OrderReceiptsData.  # noqa: E501
         :type images: List[str]
         """
@@ -39,6 +41,7 @@ class OrderReceiptsData(Model):
             'driver': str,
             'quantity': int,
             'user': str,
+            'name_user': str,
             'images': List[str]
         }
 
@@ -49,6 +52,7 @@ class OrderReceiptsData(Model):
             'driver': 'driver',
             'quantity': 'quantity',
             'user': 'user',
+            'name_user': 'name_user',
             'images': 'images'
         }
         self._purchase_order_id = purchase_order_id
@@ -57,6 +61,7 @@ class OrderReceiptsData(Model):
         self._driver = driver
         self._quantity = quantity
         self._user = user
+        self._name_user = name_user
         self._images = images
 
     @classmethod
@@ -195,6 +200,27 @@ class OrderReceiptsData(Model):
         """
 
         self._user = user
+
+    @property
+    def name_user(self) -> str:
+        """Gets the name_user of this OrderReceiptsData.
+
+
+        :return: The name_user of this OrderReceiptsData.
+        :rtype: str
+        """
+        return self._name_user
+
+    @name_user.setter
+    def name_user(self, name_user: str):
+        """Sets the name_user of this OrderReceiptsData.
+
+
+        :param name_user: The name_user of this OrderReceiptsData.
+        :type name_user: str
+        """
+
+        self._name_user = name_user
 
     @property
     def images(self) -> List[str]:
