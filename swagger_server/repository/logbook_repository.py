@@ -1953,6 +1953,7 @@ class LogbookRepository:
 
                     purchase_order_exists.status_id = status.id_status
                     purchase_order_exists.updated_at = datetime.now()
+                    purchase_order_exists.updated_by = order_receipts.created_by
                     session.add(purchase_order_exists)
 
                 # Guardar imágenes (máx 10)

@@ -1990,7 +1990,7 @@ CREATE TABLE public.purchase_order_receipts
     created_at timestamp without time zone DEFAULT now(),
     created_by text,
     updated_by text,
-    updated_at timestamp without time zone,
+    updated_at timestamp without time zone DEFAULT now(),
     CONSTRAINT order_receipts_pkey PRIMARY KEY (id_receipts),
     CONSTRAINT purchase_order_fkey FOREIGN KEY (purchase_order_id)
         REFERENCES public.purchase_orders (id_order) MATCH SIMPLE
