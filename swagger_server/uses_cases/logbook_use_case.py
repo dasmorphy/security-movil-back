@@ -1111,6 +1111,7 @@ class LogbookUseCase:
 
         filters = {
             "business": [x.strip() for x in business.split(",")] if business else [],
+            "dni": params.get('dni'),
         }
 
         return self.logbook_repository.get_blacklist(filters, internal, external)

@@ -2088,3 +2088,133 @@ ALTER SEQUENCE public.reason_restriction_id_seq
 
 ALTER TABLE IF EXISTS public.reason_restriction
     ALTER COLUMN id_reason SET DEFAULT nextval('reason_restriction_id_seq'::regclass);
+
+
+-------------------------------------------------------------------------------------------------------------------
+
+
+CREATE OR REPLACE FUNCTION update_purchase_orders_status()
+RETURNS void
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    incomplete_status_id INTEGER;
+BEGIN
+    -- Obtener el ID del estado "Incompleto"
+    SELECT id_status
+    INTO incomplete_status_id
+    FROM status_purchase_orders
+    WHERE name = 'Con Novedad'
+    LIMIT 1;
+
+    -- Validar que exista
+    IF incomplete_status_id IS NULL THEN
+        RAISE EXCEPTION 'No existe el estado "Con Novedad" en status_purchase_orders.';
+    END IF;
+
+    -- Actualizar las órdenes vencidas
+    UPDATE purchase_orders
+    SET 
+		status_id = incomplete_status_id,
+		updated_at = NOW(),
+    	updated_by = 'job_status_incomplete'
+    WHERE end_date < NOW()
+      AND status_id <> incomplete_status_id;
+END;
+$$;
+
+
+INSERT INTO pgagent.pga_job (
+    jobjclid,
+    jobname,
+    jobdesc,
+    jobhostagent,
+    jobenabled
+)
+VALUES (
+    1,
+    'Actualizar órdenes incompletas',
+    'Actualiza el estado de las órdenes cuya fecha fin ya expiró.',
+    '',
+    true
+);
+
+
+
+
+DO $$
+DECLARE
+    scid integer;
+BEGIN
+-- Inserting a schedule (jobid: 1)
+INSERT INTO pgagent.pga_schedule(
+    jscjobid, jscname, jscdesc, jscenabled,
+    jscstart,     jscminutes, jschours, jscweekdays, jscmonthdays, jscmonths
+) VALUES (
+    1, 'step_status'::text, ''::text, true,
+    '2026-06-26 09:25:00 -05:00'::timestamp with time zone, 
+    -- Minutes
+    '{f,f,f,f,f,t,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f}'::bool[]::boolean[],
+    -- Hours
+    '{t,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f}'::bool[]::boolean[],
+    -- Week days
+    '{t,t,t,t,t,t,t}'::bool[]::boolean[],
+    -- Month days
+    '{t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t}'::bool[]::boolean[],
+    -- Months
+    '{t,t,t,t,t,t,t,t,t,t,t,t}'::bool[]::boolean[]
+) RETURNING jscid INTO scid;END
+$$;
+
+
+
+--------------------------------------------------------------------------------------------------------
+
+--SEGUNDA OPCION DE CREAR JOB
+
+
+DO $$
+DECLARE
+    jid integer;
+    scid integer;
+BEGIN
+-- Creating a new job
+INSERT INTO pgagent.pga_job(
+    jobjclid, jobname, jobdesc, jobhostagent, jobenabled
+) VALUES (
+    1::integer, 'Actualizar órdenes incompletas'::text, 'Actualiza el estado de las órdenes cuya fecha fin ya expiró.'::text, ''::text, true
+) RETURNING jobid INTO jid;
+
+-- Steps
+-- Inserting a step (jobid: NULL)
+INSERT INTO pgagent.pga_jobstep (
+    jstjobid, jstname, jstenabled, jstkind,
+    jstconnstr, jstdbname, jstonerror,
+    jstcode, jstdesc
+) VALUES (
+    jid, 'Actualizar status'::text, true, 's'::character(1),
+    ''::text, 'zentinel'::name, 'f'::character(1),
+    'SELECT update_purchase_orders_status();'::text, ''::text
+) ;
+
+-- Schedules
+-- Inserting a schedule
+INSERT INTO pgagent.pga_schedule(
+    jscjobid, jscname, jscdesc, jscenabled,
+    jscstart,     jscminutes, jschours, jscweekdays, jscmonthdays, jscmonths
+) VALUES (
+    jid, 'step_status'::text, ''::text, true,
+    '2026-06-26 09:25:00-05'::timestamp with time zone, 
+    -- Minutes
+    '{f,f,f,f,f,t,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f}'::bool[]::boolean[],
+    -- Hours
+    '{t,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f}'::bool[]::boolean[],
+    -- Week days
+    '{t,t,t,t,t,t,t}'::bool[]::boolean[],
+    -- Month days
+    '{t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t}'::bool[]::boolean[],
+    -- Months
+    '{t,t,t,t,t,t,t,t,t,t,t,t}'::bool[]::boolean[]
+) RETURNING jscid INTO scid;
+END
+$$;

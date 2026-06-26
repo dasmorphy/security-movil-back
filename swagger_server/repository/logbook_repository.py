@@ -1688,9 +1688,15 @@ class LogbookRepository:
     def get_blacklist(self, filters, internal, external):
         with self.db.session_factory() as session:
             try:
-                result = session.execute(
+                stmt = (
                     select(BlacklistDrivers).order_by(BlacklistDrivers.created_at.desc())
                 )
+
+                if filters.get("dni"):
+                    stmt = stmt.where(BlacklistDrivers.dni == filters.get("dni"))
+
+                rows = session.execute(stmt).scalars().all()
+
                 blacklist = [
                     {
                         "id_blacklist": c.id_blacklist,
@@ -1704,7 +1710,7 @@ class LogbookRepository:
                         "created_by": c.created_by,
                         "updated_by": c.updated_by,
                     }
-                    for c in result.scalars().all()
+                    for c in rows
                 ]
                 return blacklist
             except Exception as exception:
@@ -1928,17 +1934,14 @@ class LogbookRepository:
                     )
                 ).scalar_one()
                 
-                status_name = None
 
                 if purchase_order_exists.type_order == 'BALANCEADO':
+                    status_name = "Incompleto"
                     if total_quantity == purchase_order_exists.quantity:
                         status_name = "Completado"
                     elif total_quantity > purchase_order_exists.quantity:
                         status_name = "Con Novedad"
-                    else:
-                        status_name = None
 
-                if status_name:
                     status = session.execute(
                         select(StatusPurchaseOrder).where(
                             StatusPurchaseOrder.name == status_name
