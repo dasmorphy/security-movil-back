@@ -1809,7 +1809,10 @@ class LogbookRepository:
                     stmt = stmt.where(PurchaseOrder.destiny_id.in_(filters.get("destiny_id")))
 
                 if filters.get("rol") == "guardia":
-                    stmt = stmt.where(PurchaseOrder.end_date < datetime.now())
+                    stmt = stmt.where(
+                        PurchaseOrder.end_date > datetime.now(),
+                        PurchaseOrder.status_id.in_([1, 3])
+                    )
 
 
                 if filters.get("status"):
