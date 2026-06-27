@@ -2653,6 +2653,12 @@ paths:
           schema:
             type: string
             example: "Programado"
+        - name: rol
+          in: query
+          required: false
+          schema:
+            type: string
+            example: "guardia"
         - name: externalTransactionId
           in: header
           required: true

@@ -1136,6 +1136,7 @@ class LogbookUseCase:
         filters = {
             "destiny_id": [int(x.strip()) for x in destiny_id.split(",")] if destiny_id else [],
             "status": params.get('status'),
+            "rol": params.get('rol')
         }
 
         return self.logbook_repository.get_order(filters, internal, external)

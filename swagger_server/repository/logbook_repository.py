@@ -1808,6 +1808,10 @@ class LogbookRepository:
                 if filters.get("destiny_id"):
                     stmt = stmt.where(PurchaseOrder.destiny_id.in_(filters.get("destiny_id")))
 
+                if filters.get("rol") == "guardia":
+                    stmt = stmt.where(PurchaseOrder.end_date < datetime.now())
+
+
                 if filters.get("status"):
                     status = session.execute(
                         select(StatusPurchaseOrder).where(
