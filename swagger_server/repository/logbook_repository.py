@@ -1909,7 +1909,16 @@ class LogbookRepository:
             try:
                 stmt = (
                     select(
-                        PurchaseOrderReceipts
+                        PurchaseOrderReceipts,
+                        GroupBusiness.name.label("destiny_name")
+                    )
+                    .outerjoin(
+                        PurchaseOrder,
+                        PurchaseOrder.id_order == PurchaseOrderReceipts.purchase_order_id
+                    )
+                    .outerjoin(
+                        GroupBusiness,
+                        GroupBusiness.id_group_business == PurchaseOrder.destiny_id
                     )
                     .order_by(PurchaseOrderReceipts.created_at.desc())
                 )
@@ -1920,8 +1929,8 @@ class LogbookRepository:
                 if filters.get("user"):
                     stmt = stmt.where(PurchaseOrderReceipts.created_by == filters.get("user"))
 
-                rows = session.execute(stmt).scalars().all()
-
+                rows = session.execute(stmt).all()
+                
                 orders = [
                     {
                         "id_receipts": c.id_receipts,
@@ -1931,13 +1940,14 @@ class LogbookRepository:
                         "driver": c.driver,
                         "quantity": c.quantity,
                         "tons_equivalent": c.tons_equivalent,
+                        "destiny_name": destiny_name,
                         "name_user": c.name_user,
                         "created_at": c.created_at,
                         "updated_at": c.updated_at,
                         "created_by": c.created_by,
                         "updated_by": c.updated_by,
                     }
-                    for c in rows
+                    for c, destiny_name in rows
                 ]
 
                 return orders
@@ -2198,3 +2208,64 @@ class LogbookRepository:
                 if isinstance(exception, CustomAPIException):
                     raise exception
                 raise CustomAPIException("Error al obtener el resumen de órdenes", 500)
+            
+
+    def get_order_count_by_destiny(self, filters, internal, external):
+        with self.db.session_factory() as session:
+            try:
+                stmt = (
+                    select(
+                        GroupBusiness.id_group_business,
+                        GroupBusiness.name,
+                        func.count(PurchaseOrder.id_order).label("count")
+                    )
+                    .outerjoin(
+                        PurchaseOrder,
+                        PurchaseOrder.destiny_id == GroupBusiness.id_group_business
+                    )
+                )
+
+                filters_stmt = []
+
+                if filters.get("destiny_id"):
+                    filters_stmt.append(
+                        PurchaseOrder.destiny_id.in_(filters.get("destiny_id"))
+                    )
+
+                if filters.get("start_date"):
+                    filters_stmt.append(
+                        PurchaseOrder.created_at >= filters.get("start_date")
+                    )
+
+                if filters.get("end_date"):
+                    filters_stmt.append(
+                        PurchaseOrder.created_at <= filters.get("end_date")
+                    )
+
+                if filters_stmt:
+                    stmt = stmt.where(and_(*filters_stmt))
+
+                stmt = (
+                    stmt.group_by(
+                        GroupBusiness.id_group_business,
+                        GroupBusiness.name
+                    )
+                    .order_by(GroupBusiness.name)
+                )
+
+                rows = session.execute(stmt).all()
+
+                return [
+                    {
+                        "id_destiny": row.id_group_business,
+                        "name": row.name,
+                        "count": row.count
+                    }
+                    for row in rows
+                ]
+
+            except Exception as exception:
+                logger.error('Error: {}', str(exception), internal=internal, external=external)
+                if isinstance(exception, CustomAPIException):
+                    raise exception
+                raise CustomAPIException("Error al obtener el conteo por destino", 500)

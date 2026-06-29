@@ -1200,4 +1200,17 @@ class LogbookUseCase:
         return self.logbook_repository.get_reason_restricition(filters, internal, external)
     
     def graphs_blacklist_balanced(self, headers, params, internal, external):
-        return self.logbook_repository.get_order_summary({}, internal, external)
+        
+        filters = {
+            "start_date": params.get("start_date"),
+            "end_date": params.get("end_date")
+        }
+
+        status_count = self.logbook_repository.get_order_summary(filters, internal, external)
+        count_destiny = self.logbook_repository.get_order_count_by_destiny(filters, internal, external)
+
+
+        return {
+            "status_count": status_count,
+            "count_destiny": count_destiny
+        }
