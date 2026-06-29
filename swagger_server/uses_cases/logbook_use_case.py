@@ -1189,3 +1189,6 @@ class LogbookUseCase:
         }
 
         return self.logbook_repository.get_reason_restricition(filters, internal, external)
+    
+    def graphs_blacklist_balanced(self, internal, external):
+        pass
