@@ -1910,11 +1910,17 @@ class LogbookRepository:
                 stmt = (
                     select(
                         PurchaseOrderReceipts,
-                        GroupBusiness.name.label("destiny_name")
+                        GroupBusiness.name.label("destiny_name"),
+                        PurchaseOrder,
+                        StatusPurchaseOrder.name.label("status_name"),
                     )
                     .outerjoin(
                         PurchaseOrder,
                         PurchaseOrder.id_order == PurchaseOrderReceipts.purchase_order_id
+                    )
+                    .outerjoin(
+                        StatusPurchaseOrder,
+                        StatusPurchaseOrder.id_status == PurchaseOrder.status_id
                     )
                     .outerjoin(
                         GroupBusiness,
@@ -1946,8 +1952,25 @@ class LogbookRepository:
                         "updated_at": c.updated_at,
                         "created_by": c.created_by,
                         "updated_by": c.updated_by,
+                        "purchase_order": {
+                            "id_order": purchase_order.id_order,
+                            "status_id": purchase_order.status_id,
+                            "status_name": status_name,
+                            "destiny_id": purchase_order.destiny_id,
+                            "start_date": purchase_order.start_date,
+                            "end_date": purchase_order.end_date,
+                            "number_order": purchase_order.number_order,
+                            "type_order": purchase_order.type_order,
+                            "quantity": purchase_order.quantity,
+                            "provider": purchase_order.provider,
+                            "observations": purchase_order.observations,
+                            "created_at": purchase_order.created_at,
+                            "updated_at": purchase_order.updated_at,
+                            "created_by": purchase_order.created_by,
+                            "updated_by": purchase_order.updated_by,
+                        }
                     }
-                    for c, destiny_name in rows
+                    for c, destiny_name, purchase_order, status_name in rows
                 ]
 
                 return orders
