@@ -1,6 +1,7 @@
 
 
 from datetime import datetime, timedelta
+from decimal import Decimal
 from typing import List
 from unittest import result
 from flask import json
@@ -1903,6 +1904,52 @@ class LogbookRepository:
                 session.close()
 
 
+    def get_order_receipts(self, filters, internal, external):
+        with self.db.session_factory() as session:
+            try:
+                stmt = (
+                    select(
+                        PurchaseOrderReceipts
+                    )
+                    .order_by(PurchaseOrderReceipts.created_at.desc())
+                )
+
+                if filters.get("purchase_order_id"):
+                    stmt = stmt.where(PurchaseOrderReceipts.purchase_order_id.in_(filters.get("purchase_order_id")))
+
+                if filters.get("user"):
+                    stmt = stmt.where(PurchaseOrderReceipts.created_by == filters.get("user"))
+
+                rows = session.execute(stmt).scalars().all()
+
+                orders = [
+                    {
+                        "id_receipts": c.id_receipts,
+                        "purchase_order_id": c.purchase_order_id,
+                        "dni_driver": c.dni_driver,
+                        "truck_license": c.truck_license,
+                        "driver": c.driver,
+                        "quantity": c.quantity,
+                        "tons_equivalent": c.tons_equivalent,
+                        "name_user": c.name_user,
+                        "created_at": c.created_at,
+                        "updated_at": c.updated_at,
+                        "created_by": c.created_by,
+                        "updated_by": c.updated_by,
+                    }
+                    for c in rows
+                ]
+
+                return orders
+
+            except Exception as exception:
+                logger.error('Error: {}', str(exception), internal=internal, external=external)
+                if isinstance(exception, CustomAPIException):
+                    raise exception
+
+                raise CustomAPIException("Error al obtener en la base de datos", 500)
+
+
     def post_order_receipts(self, order_receipts: PurchaseOrderReceipts, images, internal, external) -> None:
         saved_files = []
 
@@ -1927,6 +1974,15 @@ class LogbookRepository:
                 if not purchase_order_exists:
                     raise CustomAPIException(message="No existe la orden de compra", status_code=404)
                 
+                if purchase_order_exists.type_order == 'BALANCEADO':
+                    order_receipts.tons_equivalent = (
+                        Decimal(str(order_receipts.quantity)) *
+                        Decimal('25') /
+                        Decimal('1000')
+                    )
+                else:
+                    order_receipts.tons_equivalent = order_receipts.quantity
+                
                 session.add(order_receipts)
                 session.flush()
 
@@ -1942,29 +1998,29 @@ class LogbookRepository:
                 ).scalar_one()
                 
 
-                if purchase_order_exists.type_order == 'BALANCEADO':
-                    status_name = "Incompleto"
-                    if total_quantity == purchase_order_exists.quantity:
-                        status_name = "Completado"
-                    elif total_quantity > purchase_order_exists.quantity:
-                        status_name = "Con Novedad"
+                # if purchase_order_exists.type_order == 'BALANCEADO':
+                status_name = "Incompleto"
+                if total_quantity == purchase_order_exists.quantity:
+                    status_name = "Completado"
+                elif total_quantity > purchase_order_exists.quantity:
+                    status_name = "Con Novedad"
 
-                    status = session.execute(
-                        select(StatusPurchaseOrder).where(
-                            StatusPurchaseOrder.name == status_name
-                        )
-                    ).scalar_one_or_none()
+                status = session.execute(
+                    select(StatusPurchaseOrder).where(
+                        StatusPurchaseOrder.name == status_name
+                    )
+                ).scalar_one_or_none()
 
-                    if not status:
-                        raise CustomAPIException(
-                            message=f"No existe el estado {status_name}",
-                            status_code=404
-                        )
+                if not status:
+                    raise CustomAPIException(
+                        message=f"No existe el estado {status_name}",
+                        status_code=404
+                    )
 
-                    purchase_order_exists.status_id = status.id_status
-                    purchase_order_exists.updated_at = datetime.now()
-                    purchase_order_exists.updated_by = order_receipts.created_by
-                    session.add(purchase_order_exists)
+                purchase_order_exists.status_id = status.id_status
+                purchase_order_exists.updated_at = datetime.now()
+                purchase_order_exists.updated_by = order_receipts.created_by
+                session.add(purchase_order_exists)
 
                 # Guardar imágenes (máx 10)
                 for file in images[:10]:
@@ -2033,3 +2089,112 @@ class LogbookRepository:
                     raise exception
 
                 raise CustomAPIException("Error al obtener en la base de datos", 500)
+            
+
+    def get_order_summary(self, filters, internal, external):
+        with self.db.session_factory() as session:
+            try:
+                filters_stmt = []
+
+                if filters.get("destiny_id"):
+                    filters_stmt.append(
+                        PurchaseOrder.destiny_id.in_(filters.get("destiny_id"))
+                    )
+
+                if filters.get("start_date"):
+                    filters_stmt.append(PurchaseOrder.created_at >= filters.get("start_date"))
+
+                if filters.get("end_date"):
+                    filters_stmt.append(PurchaseOrder.created_at <= filters.get("end_date"))
+
+                join_condition = PurchaseOrder.status_id == StatusPurchaseOrder.id_status
+
+                if filters_stmt:
+                    join_condition = and_(join_condition, *filters_stmt)
+
+                status_stmt = (
+                    select(
+                        StatusPurchaseOrder.id_status,
+                        StatusPurchaseOrder.name,
+                        func.count(PurchaseOrder.id_order).label("count")
+                    )
+                    .outerjoin(
+                        PurchaseOrder,
+                        join_condition
+                    )
+                    .group_by(
+                        StatusPurchaseOrder.id_status,
+                        StatusPurchaseOrder.name
+                    )
+                    .order_by(StatusPurchaseOrder.id_status)
+                )
+
+                status_rows = session.execute(status_stmt).all()
+
+                # ------------------------
+                # Conteo por tipo
+                # ------------------------
+                types_stmt = (
+                    select(
+                        # Cantidad de órdenes
+                        func.sum(
+                            case(
+                                (PurchaseOrder.type_order == "BALANCEADO", 1),
+                                else_=0
+                            )
+                        ).label("balanceado"),
+
+                        func.sum(
+                            case(
+                                (PurchaseOrder.type_order == "COMBUSTIBLE", 1),
+                                else_=0
+                            )
+                        ).label("combustible"),
+
+                        # Sumatoria de toneladas
+                        func.sum(
+                            case(
+                                (PurchaseOrder.type_order == "BALANCEADO", PurchaseOrder.quantity),
+                                else_=0
+                            )
+                        ).label("quantity_balanceado"),
+
+                        func.sum(
+                            case(
+                                (PurchaseOrder.type_order == "COMBUSTIBLE", PurchaseOrder.quantity),
+                                else_=0
+                            )
+                        ).label("quantity_combustible"),
+                    )
+                )
+
+                if filters_stmt:
+                    types_stmt = types_stmt.where(and_(*filters_stmt))
+
+                types = session.execute(types_stmt).one()
+
+                return {
+                    "status": [
+                        {
+                            "id_status": row.id_status,
+                            "name": row.name,
+                            "count": row.count,
+                        }
+                        for row in status_rows
+                    ],
+                    "types": {
+                        "balanceado": {
+                            "count": types.balanceado or 0,
+                            "quantity": float(types.quantity_balanceado or 0)
+                        },
+                        "combustible": {
+                            "count": types.combustible or 0,
+                            "quantity": float(types.quantity_combustible or 0)
+                        }
+                    }
+                }
+            except Exception as exception:
+                logger.error('Error: {}', str(exception), internal=internal, external=external)
+                if isinstance(exception, CustomAPIException):
+                    raise exception
+                raise CustomAPIException("Error al obtener el resumen de órdenes", 500)

@@ -29,7 +29,7 @@ class PurchaseOrderReceipts(Base):
     truck_license = Column(Text)
     driver = Column(Text)
     name_user = Column(Text)
-    quantity = Column(Integer)
+    quantity = Column(Numeric(12, 3))
     tons_equivalent = Column(Numeric(12, 3))
     
     created_at = Column(

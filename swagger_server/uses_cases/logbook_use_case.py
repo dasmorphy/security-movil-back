@@ -1157,11 +1157,20 @@ class LogbookUseCase:
 
         self.logbook_repository.post_order(purchase_order, internal, external)
 
+    def get_order_receipts(self, headers, params, internal, external):
+        purchase_order_id = params.get('purchase_order_id')
 
+        filters = {
+            "purchase_order_id": [int(x.strip()) for x in purchase_order_id.split(",")] if purchase_order_id else [],
+            "user": params.get('user'),
+        }
+
+        return self.logbook_repository.get_order_receipts(filters, internal, external)
+    
     def post_order_receipts(self, body, images, internal, external) -> None:
         if len(images) > 10:
             raise CustomAPIException("Máximo 10 imagenes", 500)
-        
+                
         order_receipts = PurchaseOrderReceipts(
             purchase_order_id=body['purchase_order_id'],
             dni_driver=body['dni_driver'],
@@ -1172,11 +1181,11 @@ class LogbookUseCase:
             updated_by=body['user'],
             name_user=body['name_user'],
             # tons_equivalent=body['quantity'] * 25 / 1000
-            tons_equivalent = (
-                Decimal(str(body['quantity'])) *
-                Decimal('25') /
-                Decimal('1000')
-            )
+            # tons_equivalent = (
+            #     Decimal(str(body['quantity'])) *
+            #     Decimal('25') /
+            #     Decimal('1000')
+            # )
         )
 
         self.logbook_repository.post_order_receipts(order_receipts, images, internal, external)
@@ -1190,5 +1199,5 @@ class LogbookUseCase:
 
         return self.logbook_repository.get_reason_restricition(filters, internal, external)
     
-    def graphs_blacklist_balanced(self, internal, external):
-        pass
+    def graphs_blacklist_balanced(self, headers, params, internal, external):
+        return self.logbook_repository.get_order_summary({}, internal, external)
