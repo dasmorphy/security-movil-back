@@ -1789,11 +1789,40 @@ class LogbookRepository:
     def get_order(self, filters, internal, external):
         with self.db.session_factory() as session:
             try:
+                receipts_subq = (
+                    select(
+                        PurchaseOrderReceipts.purchase_order_id.label("purchase_order_id"),
+                        func.json_agg(
+                            func.json_build_object(
+                                "id_receipts", PurchaseOrderReceipts.id_receipts,
+                                "purchase_order_id", PurchaseOrderReceipts.purchase_order_id,
+                                "dni_driver", PurchaseOrderReceipts.dni_driver,
+                                "truck_license", PurchaseOrderReceipts.truck_license,
+                                "driver", PurchaseOrderReceipts.driver,
+                                "quantity", PurchaseOrderReceipts.quantity,
+                                "tons_equivalent", PurchaseOrderReceipts.tons_equivalent,
+                                "name_user", PurchaseOrderReceipts.name_user,
+                                "created_at", PurchaseOrderReceipts.created_at,
+                                "updated_at", PurchaseOrderReceipts.updated_at,
+                                "created_by", PurchaseOrderReceipts.created_by,
+                                "updated_by", PurchaseOrderReceipts.updated_by,
+                            )
+                        ).label("receipts")
+                    )
+                    .group_by(PurchaseOrderReceipts.purchase_order_id)
+                    .subquery()
+                )
+
                 stmt = (
                     select(
                         PurchaseOrder,
                         StatusPurchaseOrder.name.label("status_name"),
-                        GroupBusiness.name.label("destiny_name")
+                        GroupBusiness.name.label("destiny_name"),
+                        receipts_subq.c.receipts
+                    )
+                    .outerjoin(
+                        receipts_subq,
+                        receipts_subq.c.purchase_order_id == PurchaseOrder.id_order
                     )
                     .outerjoin(
                         StatusPurchaseOrder,
@@ -1852,8 +1881,9 @@ class LogbookRepository:
                         "updated_at": c.updated_at,
                         "created_by": c.created_by,
                         "updated_by": c.updated_by,
+                        "receipts": receipts or None,
                     }
-                    for c, status_name, destinyName in rows
+                    for c, status_name, destinyName, receipts in rows
                 ]
 
                 return orders
