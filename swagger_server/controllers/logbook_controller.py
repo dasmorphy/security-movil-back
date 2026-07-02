@@ -968,6 +968,43 @@ class LogbookView(MethodView):
 
         return response, status_code
     
+    def patch_order(self, id_order: int):  # noqa: E501
+        """Actualiza la orden de compra en la base de datos.
+
+        Actualización de la orden de compra # noqa: E501
+
+        :param body:
+        :type body: dict | bytes
+
+        :rtype: GenericResponse
+        """
+        internal_process = (None, None)
+        function_name = "patch_order"
+        response = {}
+        status_code = 500
+        try:
+            if connexion.request.is_json:
+                body = RequestPostOrder.from_dict(connexion.request.get_json())  # noqa: E501
+                start_time = default_timer()
+                internal_transaction_id = str(generate_internal_transaction_id())
+                external_transaction_id = body.external_transaction_id
+                internal_process = (internal_transaction_id, external_transaction_id)
+                response["internal_transaction_id"] = internal_transaction_id
+                response["external_transaction_id"] = external_transaction_id
+                message = f"start request: {function_name}, channel: {body.channel}"
+                logger.info(message, internal=internal_transaction_id, external=external_transaction_id)
+                self.logbook_use_case.patch_order(id_order, body.order, internal_transaction_id, external_transaction_id)
+                response["error_code"] = 0
+                response["message"] = "Orden de compra actualizada correctamente"
+                end_time = default_timer()
+                logger.info(f"Fin de la transacción, procesada en : {end_time - start_time} milisegundos",
+                            internal=internal_transaction_id, external=external_transaction_id)
+                status_code = 200
+        except Exception as ex:
+            response, status_code = CustomAPIException.check_exception(ex, function_name, internal_process)
+
+        return response, status_code
+    
     def get_order_receipts(self):
         internal_process = (None, None)
         function_name = "get_order_receipts"

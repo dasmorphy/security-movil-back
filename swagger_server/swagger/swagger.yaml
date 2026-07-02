@@ -2887,6 +2887,60 @@ paths:
               schema:
                 $ref: "#/components/schemas/ResponseError"
       x-openapi-router-controller: swagger_server.controllers.logbook_controller.LogbookView
+  /update-purchase-order/{id_order}:
+    patch:
+      tags:
+      - Purchase order
+      summary: Actualiza la orden de compra en la base de datos.
+      description: Actualiza la orden de compra
+      operationId: patch_order
+      parameters:
+      - name: id_order
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          example: 1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RequestPostOrder"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenericResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+        "503":
+          description: Service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResponseError"
+      x-openapi-router-controller: swagger_server.controllers.logbook_controller.LogbookView
+
 components:
   schemas:
     RequestLogin:
@@ -3252,31 +3306,42 @@ components:
         start_date:
           format: date-time
           example: "2026-06-20T18:00:00"
+          nullable: true
         end_date:
+          nullable: true
           format: date-time
           example: "2026-06-20T19:00:00"
         type_order:
+          nullable: true
           type: string
           example: "BALANCEADO"
         destiny_id:
+          nullable: true
           type: integer
           example: 1
         number_order:
+          nullable: true
           type: string
           example: "123456"
         quantity:
+          nullable: true
           type: string
           example: "1"
         provider:
+          nullable: true
           type: string
           example: "Expalsa"
         observations:
-          type: string
           nullable: true
+          type: string
           example: "N/A"
         user:
           type: string
           example: "dmales"
+        status_update:
+          nullable: true
+          type: string
+          example: "Incompleto"
     EmployeeInternData:
       type: object
       properties:

@@ -1841,7 +1841,7 @@ class LogbookRepository:
                 if filters.get("rol") == "guardia":
                     stmt = stmt.where(
                         PurchaseOrder.end_date > datetime.now(),
-                        PurchaseOrder.status_id.in_([1, 3])
+                        PurchaseOrder.status_id.in_([1, 3, 4])
                     )
 
 
@@ -1929,6 +1929,56 @@ class LogbookRepository:
                     raise exception
 
                 raise CustomAPIException("Error al insertar en la base de datos", 500)
+
+            finally:
+                session.close()
+
+
+    def patch_order(self, id_order: int, purchase_order_body: PurchaseOrder, status_name: str, internal: str, external: str) -> None:
+        with self.db.session_factory() as session:
+            try:
+                purchase_order_exists = session.execute(
+                    select(PurchaseOrder)
+                    .where(
+                        PurchaseOrder.id_order == id_order
+                    )
+                    .with_for_update()
+                ).scalar_one_or_none()
+
+                if not purchase_order_exists:
+                    raise CustomAPIException(message="No existe la orden de compra", status_code=404)
+                
+                if status_name:
+                    status = session.execute(
+                        select(StatusPurchaseOrder).where(
+                            StatusPurchaseOrder.name == status_name
+                        )
+                    ).scalar_one_or_none()
+
+                    if not status:
+                        raise CustomAPIException(
+                            message=f"No existe el estado {status_name}",
+                            status_code=404
+                        )
+
+                    purchase_order_exists.status_id = status.id_status
+
+
+                # Actualizar los campos de la orden de compra existente
+                for key, value in purchase_order_body.to_dict().items():
+                    if key != "id_order" and value is not None:
+                        setattr(purchase_order_exists, key, value)
+
+                session.add(purchase_order_exists)
+                session.commit()
+
+            except Exception as exception:
+                session.rollback()
+                logger.error('Error: {}', str(exception), internal=internal, external=external)
+                if isinstance(exception, CustomAPIException):
+                    raise exception
+
+                raise CustomAPIException("Error al actualizar en la base de datos", 500)
 
             finally:
                 session.close()

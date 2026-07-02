@@ -14,7 +14,7 @@ class PurchaseOrderData(Model):
 
     Do not edit the class manually.
     """
-    def __init__(self, start_date: object=None, end_date: object=None, type_order: str=None, destiny_id: int=None, number_order: str=None, quantity: str=None, provider: str=None, observations: str=None, user: str=None):  # noqa: E501
+    def __init__(self, start_date: object=None, end_date: object=None, type_order: str=None, destiny_id: int=None, number_order: str=None, quantity: str=None, provider: str=None, observations: str=None, user: str=None, status_update: str=None):  # noqa: E501
         """PurchaseOrderData - a model defined in Swagger
 
         :param start_date: The start_date of this PurchaseOrderData.  # noqa: E501
@@ -35,6 +35,8 @@ class PurchaseOrderData(Model):
         :type observations: str
         :param user: The user of this PurchaseOrderData.  # noqa: E501
         :type user: str
+        :param status_update: The status_update of this PurchaseOrderData.  # noqa: E501
+        :type status_update: str
         """
         self.swagger_types = {
             'start_date': object,
@@ -45,7 +47,8 @@ class PurchaseOrderData(Model):
             'quantity': str,
             'provider': str,
             'observations': str,
-            'user': str
+            'user': str,
+            'status_update': str
         }
 
         self.attribute_map = {
@@ -57,7 +60,8 @@ class PurchaseOrderData(Model):
             'quantity': 'quantity',
             'provider': 'provider',
             'observations': 'observations',
-            'user': 'user'
+            'user': 'user',
+            'status_update': 'status_update'
         }
         self._start_date = start_date
         self._end_date = end_date
@@ -68,6 +72,7 @@ class PurchaseOrderData(Model):
         self._provider = provider
         self._observations = observations
         self._user = user
+        self._status_update = status_update
 
     @classmethod
     def from_dict(cls, dikt) -> 'PurchaseOrderData':
@@ -268,3 +273,24 @@ class PurchaseOrderData(Model):
         """
 
         self._user = user
+
+    @property
+    def status_update(self) -> str:
+        """Gets the status_update of this PurchaseOrderData.
+
+
+        :return: The status_update of this PurchaseOrderData.
+        :rtype: str
+        """
+        return self._status_update
+
+    @status_update.setter
+    def status_update(self, status_update: str):
+        """Sets the status_update of this PurchaseOrderData.
+
+
+        :param status_update: The status_update of this PurchaseOrderData.
+        :type status_update: str
+        """
+
+        self._status_update = status_update

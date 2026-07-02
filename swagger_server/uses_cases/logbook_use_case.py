@@ -1157,6 +1157,22 @@ class LogbookUseCase:
 
         self.logbook_repository.post_order(purchase_order, internal, external)
 
+    def patch_order(self, id_order: int, body: PurchaseOrderData, internal: str, external: str) -> None:
+        purchase_order = PurchaseOrder(
+            destiny_id=body.destiny_id,
+            start_date=body.start_date,
+            end_date=body.end_date,
+            number_order=body.number_order,
+            type_order=body.type_order,
+            quantity=body.quantity,
+            provider=body.provider,
+            observations=body.observations,
+            updated_by=body.user,
+            updated_at=datetime.now()
+        )
+
+        self.logbook_repository.patch_order(id_order, purchase_order, body.status_update, internal, external)
+
     def get_order_receipts(self, headers, params, internal, external):
         purchase_order_id = params.get('purchase_order_id')
 
