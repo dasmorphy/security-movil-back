@@ -1082,6 +1082,25 @@ class LogbookRepository:
             "url": f"/uploads/{name_folder}/{filename}"
         }
     
+
+    def delete_image(self, image_path):
+        if not image_path:
+            return
+
+        full_path = os.path.join("/var/www", image_path.lstrip("/"))
+
+        if not os.path.exists(full_path):
+            raise CustomAPIException("El archivo no existe", 404)
+
+        if not os.access(full_path, os.W_OK):
+            raise CustomAPIException("No hay permisos para eliminar el archivo", 400)
+
+        try:
+            os.remove(full_path)
+        except Exception as e:
+            raise CustomAPIException(f"Error al eliminar la imagen: {str(e)}", 500)
+
+    
     def apply_filters(self, stmt, model: LogbookEntry | LogbookOut, filtersBase):
         filters = []
         last_30_days = datetime.now() - timedelta(days=30)
@@ -2372,3 +2391,28 @@ class LogbookRepository:
                 if isinstance(exception, CustomAPIException):
                     raise exception
                 raise CustomAPIException("Error al obtener el conteo por destino", 500)
+            
+
+    def delete_blacklist(self, id_blacklist, internal, external):
+        with self.db.session_factory() as session:
+            try:
+                blacklist_exist = session.execute(
+                    select(BlacklistDrivers).where(
+                        BlacklistDrivers.id_blacklist == id_blacklist
+                    )
+                ).scalar_one_or_none()
+
+                if not blacklist_exist:
+                    raise CustomAPIException(message="No existe el registro", status_code=404)
+
+                session.delete(blacklist_exist)
+                session.commit()
+                self.delete_image(blacklist_exist.image_path)
+            except Exception as exception:
+                session.rollback()
+                logger.error('Error: {}', str(exception), internal=internal, external=external)
+
+                if isinstance(exception, CustomAPIException):
+                    raise exception
+
+                raise CustomAPIException("Error al eliminar el registro en la base de datos", 500)

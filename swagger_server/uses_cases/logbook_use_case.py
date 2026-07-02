@@ -1230,3 +1230,7 @@ class LogbookUseCase:
             "status_count": status_count,
             "count_destiny": count_destiny
         }
+    
+    def delete_blacklist(self, params, internal_process: tuple):
+        internal, external = internal_process
+        self.logbook_repository.delete_blacklist(params.get('id-blacklist'), internal, external)
