@@ -2071,7 +2071,7 @@ class LogbookRepository:
                 if body.destiny_id:
                     destinations = PurchaseOrderDestinations(
                         destiny_id=body.destiny_id,
-                        purchase_order=id_order,
+                        order_id=id_order,
                         created_by=body.user,
                     )
                     session.add(destinations)
