@@ -22,6 +22,7 @@ from swagger_server.models.db.logbook_images import LogbookImages
 from swagger_server.models.db.logbook_out import LogbookOut
 from swagger_server.models.db.order_receipts_image import OrderReceiptsImages
 from swagger_server.models.db.purchase_order import PurchaseOrder
+from swagger_server.models.db.purchase_order_destinations import PurchaseOrderDestinations
 from swagger_server.models.db.purchase_order_receipts import PurchaseOrderReceipts
 from swagger_server.models.db.reason_restriction import ReasonRestriction
 from swagger_server.models.db.status_purchase_order import StatusPurchaseOrder
@@ -29,6 +30,7 @@ from swagger_server.models.db.report_generated import ReportGenerated
 from swagger_server.models.db.request_idempotency import RequestIdempotency
 from swagger_server.models.db.sector import Sector
 from swagger_server.models.db.unity_weight import UnityWeight
+from swagger_server.models.purchase_order_data import PurchaseOrderData
 from swagger_server.resources.databases import postgresql
 from swagger_server.resources.databases.postgresql import PostgreSQLClient
 from swagger_server.resources.databases.redis import RedisClient
@@ -1808,6 +1810,38 @@ class LogbookRepository:
     def get_order(self, filters, internal, external):
         with self.db.session_factory() as session:
             try:
+
+                last_destiny_subq = (
+                    select(
+                        PurchaseOrderDestinations.order_id,
+                        PurchaseOrderDestinations.destiny_id
+                    )
+                    .distinct(PurchaseOrderDestinations.order_id)
+                    .order_by(
+                        PurchaseOrderDestinations.order_id,
+                        PurchaseOrderDestinations.id_purchase_destiny.desc()
+                    )
+                    .subquery()
+                )
+
+                destinations_subq = (
+                    select(
+                        PurchaseOrderDestinations.order_id.label("order_id"),
+                        func.json_agg(
+                            func.json_build_object(
+                                "id", GroupBusiness.id_group_business,
+                                "name", GroupBusiness.name
+                            )
+                        ).label("destinations")
+                    )
+                    .join(
+                        GroupBusiness,
+                        GroupBusiness.id_group_business == PurchaseOrderDestinations.destiny_id
+                    )
+                    .group_by(PurchaseOrderDestinations.order_id)
+                    .subquery()
+                )
+                
                 receipts_subq = (
                     select(
                         PurchaseOrderReceipts.purchase_order_id.label("purchase_order_id"),
@@ -1836,7 +1870,7 @@ class LogbookRepository:
                     select(
                         PurchaseOrder,
                         StatusPurchaseOrder.name.label("status_name"),
-                        GroupBusiness.name.label("destiny_name"),
+                        destinations_subq.c.destinations,
                         receipts_subq.c.receipts
                     )
                     .outerjoin(
@@ -1848,19 +1882,33 @@ class LogbookRepository:
                         StatusPurchaseOrder.id_status == PurchaseOrder.status_id
                     )
                     .outerjoin(
-                        GroupBusiness,
-                        GroupBusiness.id_group_business == PurchaseOrder.destiny_id
+                        destinations_subq,
+                        destinations_subq.c.order_id == PurchaseOrder.id_order
+                    )
+                    .outerjoin(
+                        last_destiny_subq,
+                        last_destiny_subq.c.order_id == PurchaseOrder.id_order
                     )
                     .order_by(PurchaseOrder.created_at.desc())
                 )
-
-                if filters.get("destiny_id"):
-                    stmt = stmt.where(PurchaseOrder.destiny_id.in_(filters.get("destiny_id")))
 
                 if filters.get("rol") == "guardia":
                     stmt = stmt.where(
                         PurchaseOrder.end_date > datetime.now(),
                         PurchaseOrder.status_id.in_([1, 3, 4])
+                    )
+
+                    if filters.get("destiny_id"):
+                        stmt = stmt.where(
+                            last_destiny_subq.c.destiny_id.in_(filters["destiny_id"])
+                        )
+
+                elif filters.get("destiny_id"):
+                    stmt = stmt.join(
+                        PurchaseOrderDestinations,
+                        PurchaseOrderDestinations.order_id == PurchaseOrder.id_order
+                    ).where(
+                        PurchaseOrderDestinations.destiny_id.in_(filters["destiny_id"])
                     )
 
 
@@ -1887,8 +1935,7 @@ class LogbookRepository:
                         "id_order": c.id_order,
                         "status_id": c.status_id,
                         "status_name": status_name,
-                        "destiny_id": c.destiny_id,
-                        "destiny_name": destinyName,
+                        "destinations": destinations,
                         "start_date": c.start_date,
                         "end_date": c.end_date,
                         "number_order": c.number_order,
@@ -1902,7 +1949,7 @@ class LogbookRepository:
                         "updated_by": c.updated_by,
                         "receipts": receipts or None,
                     }
-                    for c, status_name, destinyName, receipts in rows
+                    for c, status_name, destinations, receipts in rows
                 ]
 
                 return orders
@@ -1914,9 +1961,22 @@ class LogbookRepository:
 
                 raise CustomAPIException("Error al obtener en la base de datos", 500)
 
-    def post_order(self, purchase_order_body: PurchaseOrder, internal, external) -> None:
+    def post_order(self, body: PurchaseOrderData, internal, external) -> None:
         with self.db.session_factory() as session:
             try:
+                purchase_order_body = PurchaseOrder(
+                    # destiny_id=body.destiny_id,
+                    start_date=body.start_date,
+                    end_date=body.end_date,
+                    number_order=body.number_order,
+                    type_order=body.type_order,
+                    quantity=body.quantity,
+                    provider=body.provider,
+                    observations=body.observations,
+                    created_by=body.user,
+                    updated_by=body.user
+                )
+
                 data_request = RequestIdempotency(
                     uuid=external,
                     endpoint="/rest/zent-logbook-api/v1.0/post/purchase-order"
@@ -1937,8 +1997,16 @@ class LogbookRepository:
                     )
 
                 purchase_order_body.status_id = status.id_status
-
                 session.add(purchase_order_body)
+                session.flush()
+
+                destinations = PurchaseOrderDestinations(
+                    destiny_id=body.destiny_id,
+                    order_id=purchase_order_body.id_order,
+                    created_by=body.user,
+                )
+
+                session.add(destinations)
                 session.commit()
 
             except Exception as exception:
@@ -1953,9 +2021,21 @@ class LogbookRepository:
                 session.close()
 
 
-    def patch_order(self, id_order: int, purchase_order_body: PurchaseOrder, status_name: str, internal: str, external: str) -> None:
+    def patch_order(self, id_order: int, body: PurchaseOrderData, internal: str, external: str) -> None:
         with self.db.session_factory() as session:
             try:
+                purchase_order_body = PurchaseOrder(
+                    start_date=body.start_date,
+                    end_date=body.end_date,
+                    number_order=body.number_order,
+                    type_order=body.type_order,
+                    quantity=body.quantity,
+                    provider=body.provider,
+                    observations=body.observations,
+                    updated_by=body.user,
+                    updated_at=datetime.now()
+                )
+
                 purchase_order_exists = session.execute(
                     select(PurchaseOrder)
                     .where(
@@ -1967,16 +2047,16 @@ class LogbookRepository:
                 if not purchase_order_exists:
                     raise CustomAPIException(message="No existe la orden de compra", status_code=404)
                 
-                if status_name:
+                if body.status_update:
                     status = session.execute(
                         select(StatusPurchaseOrder).where(
-                            StatusPurchaseOrder.name == status_name
+                            StatusPurchaseOrder.name == body.status_update
                         )
                     ).scalar_one_or_none()
 
                     if not status:
                         raise CustomAPIException(
-                            message=f"No existe el estado {status_name}",
+                            message=f"No existe el estado {body.status_update}",
                             status_code=404
                         )
 
@@ -1987,6 +2067,14 @@ class LogbookRepository:
                 for key, value in purchase_order_body.to_dict().items():
                     if key != "id_order" and value is not None:
                         setattr(purchase_order_exists, key, value)
+                
+                if body.destiny_id:
+                    destinations = PurchaseOrderDestinations(
+                        destiny_id=body.destiny_id,
+                        purchase_order=id_order,
+                        created_by=body.user,
+                    )
+                    session.add(destinations)
 
                 session.add(purchase_order_exists)
                 session.commit()

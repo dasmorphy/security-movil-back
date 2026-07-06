@@ -2218,3 +2218,47 @@ INSERT INTO pgagent.pga_schedule(
 ) RETURNING jscid INTO scid;
 END
 $$;
+
+
+-----------------------------------------------------------------------------------------------------------------------------------------------
+
+
+CREATE TABLE public.purchase_order_destinations
+(
+    id_purchase_destiny integer NOT NULL,
+    destiny_id integer,
+    order_id integer,
+    created_at timestamp without time zone DEFAULT now(),
+    created_by text,
+    CONSTRAINT purchase_destiny_pkey PRIMARY KEY (id_purchase_destiny),
+    CONSTRAINT order_destiny_fkey FOREIGN KEY (order_id)
+        REFERENCES public.purchase_orders (id_order) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION,
+    CONSTRAINT destiny_id_fkey FOREIGN KEY (destiny_id)
+        REFERENCES public.group_business (id_group_business) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.purchase_order_destinations
+    OWNER to nextgen;
+
+
+CREATE SEQUENCE public.purchase_order_destinations_id_seq
+    INCREMENT 1
+    START 1
+    MINVALUE 1
+    MAXVALUE 2147483647
+    CACHE 1;
+
+ALTER SEQUENCE public.purchase_order_destinations_id_seq
+    OWNED BY public.purchase_order_destinations.id_purchase_destiny;
+
+ALTER SEQUENCE public.purchase_order_destinations_id_seq
+    OWNER TO nextgen;
+
+ALTER TABLE IF EXISTS public.purchase_order_destinations
+    ALTER COLUMN id_purchase_destiny SET DEFAULT nextval('purchase_order_destinations_id_seq'::regclass);

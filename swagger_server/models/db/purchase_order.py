@@ -25,11 +25,6 @@ class PurchaseOrder(Base):
         ForeignKey('public.status_purchase_orders.id_status', onupdate='NO ACTION', ondelete='NO ACTION'),
     )
 
-    destiny_id = Column(
-        Integer,
-        ForeignKey('public.status_purchase_orders.id_status', onupdate='NO ACTION', ondelete='NO ACTION'),
-    )
-
     start_date = Column(DateTime)
     end_date = Column(DateTime)
 
