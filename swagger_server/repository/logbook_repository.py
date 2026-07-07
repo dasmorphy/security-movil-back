@@ -2036,7 +2036,8 @@ class LogbookRepository:
                     provider=body.provider,
                     observations=body.observations,
                     updated_by=body.user,
-                    updated_at=datetime.now()
+                    updated_at=datetime.now(),
+                    flag_all_destinies=body.flag_all_destinies
                 )
 
                 purchase_order_exists = session.execute(

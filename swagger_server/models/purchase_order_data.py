@@ -14,7 +14,7 @@ class PurchaseOrderData(Model):
 
     Do not edit the class manually.
     """
-    def __init__(self, start_date: object=None, end_date: object=None, type_order: str=None, destiny_id: int=None, number_order: str=None, quantity: str=None, provider: str=None, observations: str=None, user: str=None, status_update: str=None):  # noqa: E501
+    def __init__(self, start_date: object=None, end_date: object=None, type_order: str=None, destiny_id: int=None, number_order: str=None, quantity: str=None, provider: str=None, observations: str=None, flag_all_destinies: bool=None, user: str=None, status_update: str=None):  # noqa: E501
         """PurchaseOrderData - a model defined in Swagger
 
         :param start_date: The start_date of this PurchaseOrderData.  # noqa: E501
@@ -33,6 +33,8 @@ class PurchaseOrderData(Model):
         :type provider: str
         :param observations: The observations of this PurchaseOrderData.  # noqa: E501
         :type observations: str
+        :param flag_all_destinies: The flag_all_destinies of this PurchaseOrderData.  # noqa: E501
+        :type flag_all_destinies: bool
         :param user: The user of this PurchaseOrderData.  # noqa: E501
         :type user: str
         :param status_update: The status_update of this PurchaseOrderData.  # noqa: E501
@@ -47,6 +49,7 @@ class PurchaseOrderData(Model):
             'quantity': str,
             'provider': str,
             'observations': str,
+            'flag_all_destinies': bool,
             'user': str,
             'status_update': str
         }
@@ -60,6 +63,7 @@ class PurchaseOrderData(Model):
             'quantity': 'quantity',
             'provider': 'provider',
             'observations': 'observations',
+            'flag_all_destinies': 'flag_all_destinies',
             'user': 'user',
             'status_update': 'status_update'
         }
@@ -71,6 +75,7 @@ class PurchaseOrderData(Model):
         self._quantity = quantity
         self._provider = provider
         self._observations = observations
+        self._flag_all_destinies = flag_all_destinies
         self._user = user
         self._status_update = status_update
 
@@ -252,6 +257,27 @@ class PurchaseOrderData(Model):
         """
 
         self._observations = observations
+
+    @property
+    def flag_all_destinies(self) -> bool:
+        """Gets the flag_all_destinies of this PurchaseOrderData.
+
+
+        :return: The flag_all_destinies of this PurchaseOrderData.
+        :rtype: bool
+        """
+        return self._flag_all_destinies
+
+    @flag_all_destinies.setter
+    def flag_all_destinies(self, flag_all_destinies: bool):
+        """Sets the flag_all_destinies of this PurchaseOrderData.
+
+
+        :param flag_all_destinies: The flag_all_destinies of this PurchaseOrderData.
+        :type flag_all_destinies: bool
+        """
+
+        self._flag_all_destinies = flag_all_destinies
 
     @property
     def user(self) -> str:

@@ -3392,6 +3392,10 @@ components:
           nullable: true
           type: string
           example: "N/A"
+        flag_all_destinies:
+          nullable: true
+          type: boolean
+          example: false
         user:
           type: string
           example: "dmales"
