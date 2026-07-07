@@ -1,5 +1,6 @@
 from swagger_server.models.db import Base
 from sqlalchemy import (
+    Boolean,
     Column,
     DateTime,
     ForeignKey,
@@ -43,6 +44,11 @@ class PurchaseOrder(Base):
         DateTime,
         server_default=func.now(),
         onupdate=func.now()
+    )
+
+    flag_all_destinies = Column(
+        Boolean,
+        server_default='false'
     )
 
     created_by = Column(Text)

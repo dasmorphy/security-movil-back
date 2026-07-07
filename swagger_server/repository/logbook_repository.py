@@ -6,7 +6,7 @@ from typing import List
 from unittest import result
 from flask import json
 from loguru import logger
-from sqlalchemy import ARRAY, DateTime, Integer, String, Text, and_, case, cast, exists, func, insert, literal, select, text, true, union_all
+from sqlalchemy import ARRAY, DateTime, Integer, String, Text, and_, case, cast, exists, func, insert, literal, or_, select, text, true, union_all
 from sqlalchemy.orm import aliased
 from swagger_server.exception.custom_error_exception import CustomAPIException
 from swagger_server.models.db.authorized import Authorized
@@ -1900,7 +1900,10 @@ class LogbookRepository:
 
                     if filters.get("destiny_id"):
                         stmt = stmt.where(
-                            last_destiny_subq.c.destiny_id.in_(filters["destiny_id"])
+                            or_(
+                                PurchaseOrder.flag_all_destinies.is_(True),
+                                last_destiny_subq.c.destiny_id.in_(filters["destiny_id"])
+                            )
                         )
 
                 elif filters.get("destiny_id"):

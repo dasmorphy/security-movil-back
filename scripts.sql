@@ -1939,6 +1939,7 @@ CREATE TABLE public.purchase_orders
     number_order text,
     quantity integer,
     provider text,
+    flag_all_destinies boolean DEFAULT false,
     observations text,
     status_id integer,
     created_at timestamp without time zone DEFAULT now(),
