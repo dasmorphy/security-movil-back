@@ -2218,6 +2218,11 @@ class LogbookRepository:
 
                 if not purchase_order_exists:
                     raise CustomAPIException(message="No existe la orden de compra", status_code=404)
+
+
+                if purchase_order_exists.status_id == 2:
+                    raise CustomAPIException(message="La orden de compra ya se encuentra completada", status_code=400)
+
                 
                 if purchase_order_exists.type_order == 'BALANCEADO':
                     order_receipts.tons_equivalent = (
