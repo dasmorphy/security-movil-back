@@ -1841,6 +1841,17 @@ class LogbookRepository:
                     .group_by(PurchaseOrderDestinations.order_id)
                     .subquery()
                 )
+
+                receipts_images_subq = (
+                    select(
+                        OrderReceiptsImages.order_receipt_id.label("receipts_id"),
+                        func.array_agg(OrderReceiptsImages.image_path)
+                            .filter(OrderReceiptsImages.image_path.isnot(None))
+                            .label("images")
+                    )
+                    .group_by(OrderReceiptsImages.order_receipt_id)
+                    .subquery()
+                )
                 
                 receipts_subq = (
                     select(
@@ -1859,9 +1870,12 @@ class LogbookRepository:
                                 "updated_at", PurchaseOrderReceipts.updated_at,
                                 "created_by", PurchaseOrderReceipts.created_by,
                                 "updated_by", PurchaseOrderReceipts.updated_by,
+                                "images", func.coalesce(receipts_images_subq.c.images, cast([], ARRAY(Text))),
+
                             )
                         ).label("receipts")
                     )
+                    .outerjoin(receipts_images_subq, receipts_images_subq.c.receipts_id == PurchaseOrderReceipts.id_receipts)
                     .group_by(PurchaseOrderReceipts.purchase_order_id)
                     .subquery()
                 )
@@ -2098,12 +2112,23 @@ class LogbookRepository:
     def get_order_receipts(self, filters, internal, external):
         with self.db.session_factory() as session:
             try:
+                receipts_images_subq = (
+                    select(
+                        OrderReceiptsImages.order_receipt_id.label("receipts_id"),
+                        func.array_agg(OrderReceiptsImages.image_path)
+                            .filter(OrderReceiptsImages.image_path.isnot(None))
+                            .label("images")
+                    )
+                    .group_by(OrderReceiptsImages.order_receipt_id)
+                    .subquery()
+                )
+
                 stmt = (
                     select(
                         PurchaseOrderReceipts,
-                        GroupBusiness.name.label("destiny_name"),
                         PurchaseOrder,
                         StatusPurchaseOrder.name.label("status_name"),
+                        func.coalesce(receipts_images_subq.c.images, cast([], ARRAY(Text)).label("images"))
                     )
                     .outerjoin(
                         PurchaseOrder,
@@ -2113,10 +2138,7 @@ class LogbookRepository:
                         StatusPurchaseOrder,
                         StatusPurchaseOrder.id_status == PurchaseOrder.status_id
                     )
-                    .outerjoin(
-                        GroupBusiness,
-                        GroupBusiness.id_group_business == PurchaseOrder.destiny_id
-                    )
+                    .outerjoin(receipts_images_subq, receipts_images_subq.c.receipts_id == PurchaseOrderReceipts.id_receipts)
                     .order_by(PurchaseOrderReceipts.created_at.desc())
                 )
 
@@ -2137,17 +2159,16 @@ class LogbookRepository:
                         "driver": c.driver,
                         "quantity": c.quantity,
                         "tons_equivalent": c.tons_equivalent,
-                        "destiny_name": destiny_name,
                         "name_user": c.name_user,
                         "created_at": c.created_at,
                         "updated_at": c.updated_at,
                         "created_by": c.created_by,
                         "updated_by": c.updated_by,
+                        "images": images,
                         "purchase_order": {
                             "id_order": purchase_order.id_order,
                             "status_id": purchase_order.status_id,
                             "status_name": status_name,
-                            "destiny_id": purchase_order.destiny_id,
                             "start_date": purchase_order.start_date,
                             "end_date": purchase_order.end_date,
                             "number_order": purchase_order.number_order,
@@ -2161,7 +2182,7 @@ class LogbookRepository:
                             "updated_by": purchase_order.updated_by,
                         }
                     }
-                    for c, destiny_name, purchase_order, status_name in rows
+                    for c, purchase_order, status_name, images in rows
                 ]
 
                 return orders
