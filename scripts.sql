@@ -1941,7 +1941,8 @@ CREATE TABLE public.purchase_orders
     type_order text,
     destiny_id integer,
     number_order text,
-    quantity integer,
+    quantity numeric(12, 3),
+    remaining_quantity numeric(12, 3) DEFAULT 0;
     provider text,
     flag_all_destinies boolean DEFAULT false,
     observations text,

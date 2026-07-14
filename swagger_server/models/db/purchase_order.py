@@ -32,6 +32,7 @@ class PurchaseOrder(Base):
     number_order = Column(Text)
     type_order = Column(Text)
     quantity = Column(Numeric(12, 3))
+    remaining_quantity = Column(Numeric(12, 3), default=0)
     provider = Column(Text)
     observations = Column(Text)
     

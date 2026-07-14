@@ -1966,6 +1966,7 @@ class LogbookRepository:
                         "number_order": c.number_order,
                         "type_order": c.type_order,
                         "quantity": c.quantity,
+                        "remaining_quantity": c.remaining_quantity,
                         "provider": c.provider,
                         "observations": c.observations,
                         "created_at": c.created_at,
@@ -2134,24 +2135,24 @@ class LogbookRepository:
                 stmt = (
                     select(
                         PurchaseOrderReceipts,
-                        PurchaseOrder,
-                        StatusPurchaseOrder.name.label("status_name"),
+                        # PurchaseOrder,
+                        # StatusPurchaseOrder.name.label("status_name"),
                         func.coalesce(receipts_images_subq.c.images, cast([], ARRAY(Text)).label("images"))
                     )
-                    .outerjoin(
-                        PurchaseOrder,
-                        PurchaseOrder.id_order == PurchaseOrderReceipts.purchase_order_id
-                    )
-                    .outerjoin(
-                        StatusPurchaseOrder,
-                        StatusPurchaseOrder.id_status == PurchaseOrder.status_id
-                    )
+                    # .outerjoin(
+                    #     PurchaseOrder,
+                    #     PurchaseOrder.id_order == PurchaseOrderReceipts.purchase_order_id
+                    # )
+                    # .outerjoin(
+                    #     StatusPurchaseOrder,
+                    #     StatusPurchaseOrder.id_status == PurchaseOrder.status_id
+                    # )
                     .outerjoin(receipts_images_subq, receipts_images_subq.c.receipts_id == PurchaseOrderReceipts.id_receipts)
                     .order_by(PurchaseOrderReceipts.created_at.desc())
                 )
 
-                if filters.get("purchase_order_id"):
-                    stmt = stmt.where(PurchaseOrderReceipts.purchase_order_id.in_(filters.get("purchase_order_id")))
+                # if filters.get("purchase_order_id"):
+                #     stmt = stmt.where(PurchaseOrderReceipts.purchase_order_id.in_(filters.get("purchase_order_id")))
 
                 if filters.get("user"):
                     stmt = stmt.where(PurchaseOrderReceipts.created_by == filters.get("user"))
@@ -2171,26 +2172,27 @@ class LogbookRepository:
                         "created_at": c.created_at,
                         "updated_at": c.updated_at,
                         "created_by": c.created_by,
+                        "without_order": c.purchase_order_id is None if True else False,
                         "updated_by": c.updated_by,
                         "images": images,
-                        "purchase_order": {
-                            "id_order": purchase_order.id_order,
-                            "status_id": purchase_order.status_id,
-                            "status_name": status_name,
-                            "start_date": purchase_order.start_date,
-                            "end_date": purchase_order.end_date,
-                            "number_order": purchase_order.number_order,
-                            "type_order": purchase_order.type_order,
-                            "quantity": purchase_order.quantity,
-                            "provider": purchase_order.provider,
-                            "observations": purchase_order.observations,
-                            "created_at": purchase_order.created_at,
-                            "updated_at": purchase_order.updated_at,
-                            "created_by": purchase_order.created_by,
-                            "updated_by": purchase_order.updated_by,
-                        }
+                        # "purchase_order": {
+                        #     "id_order": purchase_order.id_order,
+                        #     "status_id": purchase_order.status_id,
+                        #     "status_name": status_name,
+                        #     "start_date": purchase_order.start_date,
+                        #     "end_date": purchase_order.end_date,
+                        #     "number_order": purchase_order.number_order,
+                        #     "type_order": purchase_order.type_order,
+                        #     "quantity": purchase_order.quantity,
+                        #     "provider": purchase_order.provider,
+                        #     "observations": purchase_order.observations,
+                        #     "created_at": purchase_order.created_at,
+                        #     "updated_at": purchase_order.updated_at,
+                        #     "created_by": purchase_order.created_by,
+                        #     "updated_by": purchase_order.updated_by,
+                        # }
                     }
-                    for c, purchase_order, status_name, images in rows
+                    for c, images in rows
                 ]
 
                 return orders
@@ -2233,11 +2235,7 @@ class LogbookRepository:
 
                 
                 if purchase_order_exists.type_order == 'BALANCEADO':
-                    order_receipts.tons_equivalent = (
-                        Decimal(str(order_receipts.quantity)) *
-                        Decimal('25') /
-                        Decimal('1000')
-                    )
+                    order_receipts.tons_equivalent = Decimal(str(order_receipts.quantity)) * Decimal("25")
                 else:
                     order_receipts.tons_equivalent = order_receipts.quantity
                 
@@ -2255,6 +2253,7 @@ class LogbookRepository:
                     )
                 ).scalar_one()
                 
+                remaining_quantity = purchase_order_exists.quantity - total_quantity
 
                 # if purchase_order_exists.type_order == 'BALANCEADO':
                 status_name = "Incompleto"
@@ -2275,6 +2274,7 @@ class LogbookRepository:
                         status_code=404
                     )
 
+                purchase_order_exists.remaining_quantity = remaining_quantity
                 purchase_order_exists.status_id = status.id_status
                 purchase_order_exists.updated_at = datetime.now()
                 purchase_order_exists.updated_by = order_receipts.created_by
