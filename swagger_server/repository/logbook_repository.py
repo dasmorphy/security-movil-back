@@ -2217,68 +2217,70 @@ class LogbookRepository:
                 
                 self.request_idempotency(session, data_request, internal, external)
 
-                purchase_order_exists = session.execute(
-                    select(PurchaseOrder)
-                    .where(
-                        PurchaseOrder.id_order ==
-                        order_receipts.purchase_order_id
-                    )
-                    .with_for_update()
-                ).scalar_one_or_none()
+                if order_receipts.purchase_order_id:
+                    purchase_order_exists = session.execute(
+                        select(PurchaseOrder)
+                        .where(
+                            PurchaseOrder.id_order ==
+                            order_receipts.purchase_order_id
+                        )
+                        .with_for_update()
+                    ).scalar_one_or_none()
 
-                if not purchase_order_exists:
-                    raise CustomAPIException(message="No existe la orden de compra", status_code=404)
+                    if not purchase_order_exists:
+                        raise CustomAPIException(message="No existe la orden de compra", status_code=404)
 
 
-                if purchase_order_exists.status_id == 2:
-                    raise CustomAPIException(message="La orden de compra ya se encuentra completada", status_code=400)
+                    if purchase_order_exists.status_id == 2:
+                        raise CustomAPIException(message="La orden de compra ya se encuentra completada", status_code=400)
 
                 
-                if purchase_order_exists.type_order == 'BALANCEADO':
-                    order_receipts.tons_equivalent = Decimal(str(order_receipts.quantity)) * Decimal("25")
-                else:
-                    order_receipts.tons_equivalent = order_receipts.quantity
+                    if purchase_order_exists.type_order == 'BALANCEADO':
+                        order_receipts.tons_equivalent = Decimal(str(order_receipts.quantity)) * Decimal("25")
+                    else:
+                        order_receipts.tons_equivalent = order_receipts.quantity
                 
                 session.add(order_receipts)
                 session.flush()
 
-                total_quantity = session.execute(
-                    select(
-                        func.coalesce(
-                            func.sum(PurchaseOrderReceipts.tons_equivalent),
-                            0
+                if order_receipts.purchase_order_id:
+                    total_quantity = session.execute(
+                        select(
+                            func.coalesce(
+                                func.sum(PurchaseOrderReceipts.tons_equivalent),
+                                0
+                            )
+                        ).where(
+                            PurchaseOrderReceipts.purchase_order_id == order_receipts.purchase_order_id
                         )
-                    ).where(
-                        PurchaseOrderReceipts.purchase_order_id == order_receipts.purchase_order_id
-                    )
-                ).scalar_one()
-                
-                remaining_quantity = purchase_order_exists.quantity - total_quantity
+                    ).scalar_one()
+                    
+                    remaining_quantity = purchase_order_exists.quantity - total_quantity
 
-                # if purchase_order_exists.type_order == 'BALANCEADO':
-                status_name = "Incompleto"
-                if total_quantity == purchase_order_exists.quantity:
-                    status_name = "Completado"
-                elif total_quantity > purchase_order_exists.quantity:
-                    status_name = "Con Novedad"
+                    # if purchase_order_exists.type_order == 'BALANCEADO':
+                    status_name = "Incompleto"
+                    if total_quantity == purchase_order_exists.quantity:
+                        status_name = "Completado"
+                    elif total_quantity > purchase_order_exists.quantity:
+                        status_name = "Con Novedad"
 
-                status = session.execute(
-                    select(StatusPurchaseOrder).where(
-                        StatusPurchaseOrder.name == status_name
-                    )
-                ).scalar_one_or_none()
+                    status = session.execute(
+                        select(StatusPurchaseOrder).where(
+                            StatusPurchaseOrder.name == status_name
+                        )
+                    ).scalar_one_or_none()
 
-                if not status:
-                    raise CustomAPIException(
-                        message=f"No existe el estado {status_name}",
-                        status_code=404
-                    )
+                    if not status:
+                        raise CustomAPIException(
+                            message=f"No existe el estado {status_name}",
+                            status_code=404
+                        )
 
-                purchase_order_exists.remaining_quantity = remaining_quantity
-                purchase_order_exists.status_id = status.id_status
-                purchase_order_exists.updated_at = datetime.now()
-                purchase_order_exists.updated_by = order_receipts.created_by
-                session.add(purchase_order_exists)
+                    purchase_order_exists.remaining_quantity = remaining_quantity
+                    purchase_order_exists.status_id = status.id_status
+                    purchase_order_exists.updated_at = datetime.now()
+                    purchase_order_exists.updated_by = order_receipts.created_by
+                    session.add(purchase_order_exists)
 
                 # Guardar imágenes (máx 10)
                 for file in images[:10]:
