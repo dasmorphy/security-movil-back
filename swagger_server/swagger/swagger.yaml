@@ -3188,6 +3188,12 @@ components:
         truck_license:
           type: string
           example: GME-511
+        dni_driver:
+          type: string
+          example: 099999999
+        is_blacklist:
+          type: boolean
+          example: false
         name_driver:
           type: string
           example: Jaime
@@ -3223,26 +3229,10 @@ components:
         images:
           type: array
           maxItems: 10
+          example: []
           items:
             type: string
             format: binary
-      example:
-        id_group_business: 1
-        id_category: 10
-        truck_license: "GME-511"
-        name_driver: "Daniel"
-        description: Larva de camaron
-        shipping_guide: "0045555"
-        quantity: 1
-        id_unity: 1
-        weight: 2000000.75
-        provider: Camaronera
-        destiny_intern: Camanglar
-        authorized_by: Camanglar
-        observations: Sin observaciones
-        created_by: dmales
-        name_user: Daniel
-        images: []
     LogBookOutData:
       type: object
       properties:
@@ -3255,6 +3245,12 @@ components:
         id_unity:
           type: integer
           example: 1
+        dni_driver:
+          type: string
+          example: 099999999
+        is_blacklist:
+          type: boolean
+          example: false
         shipping_guide:
           type: string
           example: "0045555"
@@ -3298,26 +3294,11 @@ components:
           example: Daniel
         images:
           type: array
+          example: []
           maxItems: 10
           items:
             type: string
             format: binary
-      example:
-        id_group_business: 1
-        id_category: 10
-        id_unity: 1
-        shipping_guide: "0045555"
-        quantity: 1
-        weight: 2000000.75
-        truck_license: "GME-511"
-        name_driver: "Jaime"
-        person_withdraws: "Juan"
-        destiny: Camanglar
-        authorized_by: Camanglar
-        observations: Sin observaciones
-        created_by: dmales
-        name_user: Daniel Males
-        images: []
     OrderReceiptsData:
       type: object
       properties:

@@ -14,7 +14,7 @@ class LogBookOutData(Model):
 
     Do not edit the class manually.
     """
-    def __init__(self, id_group_business: int=None, id_category: int=None, id_unity: int=None, shipping_guide: str=None, quantity: float=None, weight: float=None, truck_license: str=None, name_driver: str=None, lat: str=None, long: str=None, person_withdraws: str=None, destiny: str=None, authorized_by: str=None, observations: str=None, created_by: str=None, name_user: str=None, images: List[str]=None):  # noqa: E501
+    def __init__(self, id_group_business: int=None, id_category: int=None, id_unity: int=None, dni_driver: str=None, is_blacklist: bool=None, shipping_guide: str=None, quantity: float=None, weight: float=None, truck_license: str=None, name_driver: str=None, lat: str=None, long: str=None, person_withdraws: str=None, destiny: str=None, authorized_by: str=None, observations: str=None, created_by: str=None, name_user: str=None, images: List[str]=None):  # noqa: E501
         """LogBookOutData - a model defined in Swagger
 
         :param id_group_business: The id_group_business of this LogBookOutData.  # noqa: E501
@@ -23,6 +23,10 @@ class LogBookOutData(Model):
         :type id_category: int
         :param id_unity: The id_unity of this LogBookOutData.  # noqa: E501
         :type id_unity: int
+        :param dni_driver: The dni_driver of this LogBookOutData.  # noqa: E501
+        :type dni_driver: str
+        :param is_blacklist: The is_blacklist of this LogBookOutData.  # noqa: E501
+        :type is_blacklist: bool
         :param shipping_guide: The shipping_guide of this LogBookOutData.  # noqa: E501
         :type shipping_guide: str
         :param quantity: The quantity of this LogBookOutData.  # noqa: E501
@@ -56,6 +60,8 @@ class LogBookOutData(Model):
             'id_group_business': int,
             'id_category': int,
             'id_unity': int,
+            'dni_driver': str,
+            'is_blacklist': bool,
             'shipping_guide': str,
             'quantity': float,
             'weight': float,
@@ -76,6 +82,8 @@ class LogBookOutData(Model):
             'id_group_business': 'id_group_business',
             'id_category': 'id_category',
             'id_unity': 'id_unity',
+            'dni_driver': 'dni_driver',
+            'is_blacklist': 'is_blacklist',
             'shipping_guide': 'shipping_guide',
             'quantity': 'quantity',
             'weight': 'weight',
@@ -94,6 +102,8 @@ class LogBookOutData(Model):
         self._id_group_business = id_group_business
         self._id_category = id_category
         self._id_unity = id_unity
+        self._dni_driver = dni_driver
+        self._is_blacklist = is_blacklist
         self._shipping_guide = shipping_guide
         self._quantity = quantity
         self._weight = weight
@@ -182,6 +192,48 @@ class LogBookOutData(Model):
         """
 
         self._id_unity = id_unity
+
+    @property
+    def dni_driver(self) -> str:
+        """Gets the dni_driver of this LogBookOutData.
+
+
+        :return: The dni_driver of this LogBookOutData.
+        :rtype: str
+        """
+        return self._dni_driver
+
+    @dni_driver.setter
+    def dni_driver(self, dni_driver: str):
+        """Sets the dni_driver of this LogBookOutData.
+
+
+        :param dni_driver: The dni_driver of this LogBookOutData.
+        :type dni_driver: str
+        """
+
+        self._dni_driver = dni_driver
+
+    @property
+    def is_blacklist(self) -> bool:
+        """Gets the is_blacklist of this LogBookOutData.
+
+
+        :return: The is_blacklist of this LogBookOutData.
+        :rtype: bool
+        """
+        return self._is_blacklist
+
+    @is_blacklist.setter
+    def is_blacklist(self, is_blacklist: bool):
+        """Sets the is_blacklist of this LogBookOutData.
+
+
+        :param is_blacklist: The is_blacklist of this LogBookOutData.
+        :type is_blacklist: bool
+        """
+
+        self._is_blacklist = is_blacklist
 
     @property
     def shipping_guide(self) -> str:

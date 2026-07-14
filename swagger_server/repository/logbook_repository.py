@@ -6,7 +6,7 @@ from typing import List
 from unittest import result
 from flask import json
 from loguru import logger
-from sqlalchemy import ARRAY, DateTime, Integer, String, Text, and_, case, cast, exists, func, insert, literal, or_, select, text, true, union_all
+from sqlalchemy import ARRAY, Boolean, DateTime, Integer, String, Text, and_, case, cast, exists, func, insert, literal, or_, select, text, true, union_all
 from sqlalchemy.orm import aliased
 from swagger_server.exception.custom_error_exception import CustomAPIException
 from swagger_server.models.db.authorized import Authorized
@@ -1411,6 +1411,8 @@ class LogbookRepository:
                         LogbookOut.unity_id,
                         LogbookOut.category_id,
                         LogbookOut.group_business_id,
+                        LogbookOut.dni_driver,
+                        LogbookOut.is_blacklist,
                         GroupBusiness.name.label("group_name"),
                         Sector.id_sector,
                         Sector.name.label("name_sector"),
@@ -1441,6 +1443,8 @@ class LogbookRepository:
                         cast(None, Integer).label("out_unity_id"),
                         cast(None, Integer).label("out_category_id"),
                         cast(None, Integer).label("out_group_business_id"),
+                        cast(None, Text).label("out_dni_driver"),
+                        cast(None, Boolean).label("out_is_blacklist"),
                         cast(None, Text).label("out_name_user"),
                         cast(None, Text).label("out_shipping_guide"),
                         cast(None, Integer).label("out_quantity"),
@@ -1498,6 +1502,8 @@ class LogbookRepository:
                         LogbookEntry.unity_id,
                         LogbookEntry.category_id,
                         LogbookEntry.group_business_id,
+                        LogbookEntry.dni_driver,
+                        LogbookEntry.is_blacklist,
                         GroupBusiness.name.label("group_name"),
                         Sector.id_sector,
                         Sector.name.label("name_sector"),
@@ -1529,6 +1535,8 @@ class LogbookRepository:
                         LogbookOutRelated.unity_id.label("out_unity_id"),
                         LogbookOutRelated.category_id.label("out_category_id"),
                         LogbookOutRelated.group_business_id.label("out_group_business_id"),
+                        LogbookOutRelated.dni_driver.label("out_dni_driver"),
+                        LogbookOutRelated.is_blacklist.label("out_is_blacklist"),
                         LogbookOutRelated.name_user.label("out_name_user"),
                         LogbookOutRelated.shipping_guide.label("out_shipping_guide"),
                         LogbookOutRelated.quantity.label("out_quantity"),

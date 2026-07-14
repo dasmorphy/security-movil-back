@@ -14,7 +14,7 @@ class LogBookEntryData(Model):
 
     Do not edit the class manually.
     """
-    def __init__(self, id_group_business: int=None, id_category: int=None, shipping_guide: str=None, description: str=None, quantity: float=None, id_unity: int=None, truck_license: str=None, name_driver: str=None, weight: float=None, lat: str=None, long: str=None, provider: str=None, destiny_intern: str=None, authorized_by: str=None, observations: str=None, created_by: str=None, name_user: str=None, images: List[str]=None):  # noqa: E501
+    def __init__(self, id_group_business: int=None, id_category: int=None, shipping_guide: str=None, description: str=None, quantity: float=None, id_unity: int=None, truck_license: str=None, dni_driver: str=None, is_blacklist: bool=None, name_driver: str=None, weight: float=None, lat: str=None, long: str=None, provider: str=None, destiny_intern: str=None, authorized_by: str=None, observations: str=None, created_by: str=None, name_user: str=None, images: List[str]=None):  # noqa: E501
         """LogBookEntryData - a model defined in Swagger
 
         :param id_group_business: The id_group_business of this LogBookEntryData.  # noqa: E501
@@ -31,6 +31,10 @@ class LogBookEntryData(Model):
         :type id_unity: int
         :param truck_license: The truck_license of this LogBookEntryData.  # noqa: E501
         :type truck_license: str
+        :param dni_driver: The dni_driver of this LogBookEntryData.  # noqa: E501
+        :type dni_driver: str
+        :param is_blacklist: The is_blacklist of this LogBookEntryData.  # noqa: E501
+        :type is_blacklist: bool
         :param name_driver: The name_driver of this LogBookEntryData.  # noqa: E501
         :type name_driver: str
         :param weight: The weight of this LogBookEntryData.  # noqa: E501
@@ -62,6 +66,8 @@ class LogBookEntryData(Model):
             'quantity': float,
             'id_unity': int,
             'truck_license': str,
+            'dni_driver': str,
+            'is_blacklist': bool,
             'name_driver': str,
             'weight': float,
             'lat': str,
@@ -83,6 +89,8 @@ class LogBookEntryData(Model):
             'quantity': 'quantity',
             'id_unity': 'id_unity',
             'truck_license': 'truck_license',
+            'dni_driver': 'dni_driver',
+            'is_blacklist': 'is_blacklist',
             'name_driver': 'name_driver',
             'weight': 'weight',
             'lat': 'lat',
@@ -102,6 +110,8 @@ class LogBookEntryData(Model):
         self._quantity = quantity
         self._id_unity = id_unity
         self._truck_license = truck_license
+        self._dni_driver = dni_driver
+        self._is_blacklist = is_blacklist
         self._name_driver = name_driver
         self._weight = weight
         self._lat = lat
@@ -271,6 +281,48 @@ class LogBookEntryData(Model):
         """
 
         self._truck_license = truck_license
+
+    @property
+    def dni_driver(self) -> str:
+        """Gets the dni_driver of this LogBookEntryData.
+
+
+        :return: The dni_driver of this LogBookEntryData.
+        :rtype: str
+        """
+        return self._dni_driver
+
+    @dni_driver.setter
+    def dni_driver(self, dni_driver: str):
+        """Sets the dni_driver of this LogBookEntryData.
+
+
+        :param dni_driver: The dni_driver of this LogBookEntryData.
+        :type dni_driver: str
+        """
+
+        self._dni_driver = dni_driver
+
+    @property
+    def is_blacklist(self) -> bool:
+        """Gets the is_blacklist of this LogBookEntryData.
+
+
+        :return: The is_blacklist of this LogBookEntryData.
+        :rtype: bool
+        """
+        return self._is_blacklist
+
+    @is_blacklist.setter
+    def is_blacklist(self, is_blacklist: bool):
+        """Sets the is_blacklist of this LogBookEntryData.
+
+
+        :param is_blacklist: The is_blacklist of this LogBookEntryData.
+        :type is_blacklist: bool
+        """
+
+        self._is_blacklist = is_blacklist
 
     @property
     def name_driver(self) -> str:

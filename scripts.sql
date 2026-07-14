@@ -83,6 +83,7 @@ CREATE TABLE public.logbook_entry
     category_id integer NOT NULL,
     logbook_out_id integer,
     shipping_guide text,
+    dni_driver text,
     description text,
     quantity integer NOT NULL,
     weight integer,
@@ -96,6 +97,7 @@ CREATE TABLE public.logbook_entry
     observations text,
     name_user text,
     workday text,
+    is_blacklist boolean DEFAULT False;
     status text,
     created_at timestamp without time zone DEFAULT now(),
     updated_at timestamp without time zone DEFAULT now(),
@@ -147,6 +149,7 @@ CREATE TABLE public.logbook_out
     unity_id integer NOT NULL,
     category_id integer NOT NULL,
     shipping_guide text,
+    dni_driver text,
     quantity integer,
     weight integer,
     truck_license text,
@@ -158,6 +161,7 @@ CREATE TABLE public.logbook_out
     authorized_by text,
     observations text,
     workday text,
+    is_blacklist boolean DEFAULT False;
     name_user text,
     created_at timestamp without time zone DEFAULT now(),
     updated_at timestamp without time zone DEFAULT now(),

@@ -1,5 +1,6 @@
 from swagger_server.models.db import Base
 from sqlalchemy import (
+    Boolean,
     Column,
     DateTime,
     Integer,
@@ -39,6 +40,7 @@ class LogbookOut(Base):
     )
 
     shipping_guide = Column(Text)
+    dni_driver = Column(Text)
 
     quantity = Column(Integer)
     weight = Column(Integer)
@@ -53,6 +55,7 @@ class LogbookOut(Base):
     workday = Column(Text)
     lat = Column(Text)
     long = Column(Text)
+    is_blacklist = Column(Boolean, default=False)
     
     created_at = Column(
         DateTime,
