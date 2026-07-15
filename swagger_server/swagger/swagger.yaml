@@ -3173,6 +3173,10 @@ components:
         id_category:
           type: integer
           example: 10
+        order_id:
+          nullable: true
+          type: integer
+          example: 10
         shipping_guide:
           type: string
           example: "0045555"
@@ -3306,30 +3310,12 @@ components:
           nullable: true
           type: integer
           example: 1
-        dni_driver:
-          type: string
-          example: "0999999999"
-        truck_license:
-          type: string
-          example: "GME-511"
-        driver:
-          type: string
-          example: "Juan"
         quantity:
           type: integer
           example: 1
         user:
           type: string
           example: "dmales"
-        name_user:
-          type: string
-          example: "Daniel"
-        images:
-          type: array
-          maxItems: 10
-          items:
-            type: string
-            format: binary
     UpdateStatusEmployeeData:
       type: object
       properties:

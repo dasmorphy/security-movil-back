@@ -49,7 +49,7 @@ class LogbookRepository:
         self.redis_client = RedisClient()
 
 
-    def post_logbook_entry(self, logbook_entry_body: LogbookEntry, images, internal, external) -> None:
+    def post_logbook_entry(self, logbook_entry_body: LogbookEntry, order_id, images, internal, external) -> None:
         saved_files = []
 
         with self.db.session_factory() as session:
@@ -113,32 +113,42 @@ class LogbookRepository:
                 session.flush()
                 
                 logbook_entry_id = logbook_entry_body.id_logbook_entry
+                
+                if order_id:
+                    body_purchase = {
+                        "purchase_order_id": order_id,
+                        "logbook_entry_id": logbook_entry_id,
+                        "quantity": logbook_entry_body.quantity,
+                        "user": logbook_entry_body.created_by
+                    }
+
+                    self.post_order_receipts(session, body_purchase, internal, external)
 
                 #Guardar imágenes (máx 10)
-                for file in images[:10]:
-                    result = self.save_image(file)
-                    saved_files.append(result["url"])
+                # for file in images[:10]:
+                #     result = self.save_image(file)
+                #     saved_files.append(result["url"])
 
-                    image = LogbookImages(
-                        logbook_id_entry=logbook_entry_id,
-                        image_path=result["url"]
-                    )
+                #     image = LogbookImages(
+                #         logbook_id_entry=logbook_entry_id,
+                #         image_path=result["url"]
+                #     )
 
-                    session.add(image)
+                #     session.add(image)
 
                 session.commit()
 
-                logbook_entry_dict = logbook_entry_body.to_dict()
-                logbook_entry_dict["name_category"] = category.name_category
-                logbook_entry_dict["group_name"] = group_business_exists.name
+                # logbook_entry_dict = logbook_entry_body.to_dict()
+                # logbook_entry_dict["name_category"] = category.name_category
+                # logbook_entry_dict["group_name"] = group_business_exists.name
 
-                self.redis_client.client.publish(
-                    "logbook_channel",
-                    json.dumps({
-                        "type": "logbook_saved",
-                        "logbook": logbook_entry_dict
-                    })
-                )
+                # self.redis_client.client.publish(
+                #     "logbook_channel",
+                #     json.dumps({
+                #         "type": "logbook_saved",
+                #         "logbook": logbook_entry_dict
+                #     })
+                # )
 
             except OSError as e:
                 if e.errno == 36:
@@ -1868,16 +1878,9 @@ class LogbookRepository:
                             func.json_build_object(
                                 "id_receipts", PurchaseOrderReceipts.id_receipts,
                                 "purchase_order_id", PurchaseOrderReceipts.purchase_order_id,
-                                "dni_driver", PurchaseOrderReceipts.dni_driver,
-                                "truck_license", PurchaseOrderReceipts.truck_license,
-                                "driver", PurchaseOrderReceipts.driver,
-                                "quantity", PurchaseOrderReceipts.quantity,
-                                "tons_equivalent", PurchaseOrderReceipts.tons_equivalent,
-                                "name_user", PurchaseOrderReceipts.name_user,
+                                "logbook_entry_id", PurchaseOrderReceipts.logbook_entry_id,
+                                "converted_amount", PurchaseOrderReceipts.converted_amount,
                                 "created_at", PurchaseOrderReceipts.created_at,
-                                "updated_at", PurchaseOrderReceipts.updated_at,
-                                "created_by", PurchaseOrderReceipts.created_by,
-                                "updated_by", PurchaseOrderReceipts.updated_by,
                                 "images", func.coalesce(receipts_images_subq.c.images, cast([], ARRAY(Text))),
 
                             )
@@ -1917,7 +1920,7 @@ class LogbookRepository:
                 if filters.get("rol") == "guardia":
                     stmt = stmt.where(
                         PurchaseOrder.end_date > datetime.now(),
-                        PurchaseOrder.status_id.in_([1, 3, 4])
+                        PurchaseOrder.status_id.in_([1, 3])
                     )
 
                     if filters.get("destiny_id"):
@@ -2163,17 +2166,9 @@ class LogbookRepository:
                     {
                         "id_receipts": c.id_receipts,
                         "purchase_order_id": c.purchase_order_id,
-                        "dni_driver": c.dni_driver,
-                        "truck_license": c.truck_license,
-                        "driver": c.driver,
-                        "quantity": c.quantity,
-                        "tons_equivalent": c.tons_equivalent,
-                        "name_user": c.name_user,
+                        "logbook_entry_id": c.logbook_entry_id,
+                        "converted_amount": c.converted_amount,
                         "created_at": c.created_at,
-                        "updated_at": c.updated_at,
-                        "created_by": c.created_by,
-                        "without_order": c.purchase_order_id is None if True else False,
-                        "updated_by": c.updated_by,
                         "images": images,
                         # "purchase_order": {
                         #     "id_order": purchase_order.id_order,
@@ -2205,118 +2200,119 @@ class LogbookRepository:
                 raise CustomAPIException("Error al obtener en la base de datos", 500)
 
 
-    def post_order_receipts(self, order_receipts: PurchaseOrderReceipts, images, internal, external) -> None:
+    def post_order_receipts(self, session, body, internal, external) -> None:
         saved_files = []
 
-        with self.db.session_factory() as session:
-            try:
-                data_request = RequestIdempotency(
-                    uuid=external,
-                    endpoint="/rest/zent-logbook-api/v1.0/purchase-order-receipts"
-                )
+        try:
+            # data_request = RequestIdempotency(
+            #     uuid=external,
+            #     endpoint="/rest/zent-logbook-api/v1.0/purchase-order-receipts"
+            # )
+            
+            # self.request_idempotency(session, data_request, internal, external)
+
+            order_receipts = PurchaseOrderReceipts(
+                purchase_order_id=body['purchase_order_id'],
+                logbook_entry_id=body['logbook_entry_id'],
+            )
+
+            if order_receipts.purchase_order_id:
+                purchase_order_exists = session.execute(
+                    select(PurchaseOrder)
+                    .where(
+                        PurchaseOrder.id_order ==
+                        order_receipts.purchase_order_id
+                    )
+                    .with_for_update()
+                ).scalar_one_or_none()
+
+                if not purchase_order_exists:
+                    raise CustomAPIException(message="No existe la orden de compra", status_code=404)
+
+
+                if purchase_order_exists.status_id == 2:
+                    raise CustomAPIException(message="La orden de compra ya se encuentra completada", status_code=400)
+
+            
+                if purchase_order_exists.type_order == 'BALANCEADO':
+                    order_receipts.converted_amount = Decimal(str(body['quantity'])) * Decimal("25")
+                else:
+                    order_receipts.converted_amount = body['quantity']
+            
+            session.add(order_receipts)
+            session.flush()
+
+            if order_receipts.purchase_order_id:
+                total_quantity = session.execute(
+                    select(
+                        func.coalesce(
+                            func.sum(PurchaseOrderReceipts.converted_amount),
+                            0
+                        )
+                    ).where(
+                        PurchaseOrderReceipts.purchase_order_id == order_receipts.purchase_order_id
+                    )
+                ).scalar_one()
                 
-                self.request_idempotency(session, data_request, internal, external)
+                remaining_quantity = purchase_order_exists.quantity - total_quantity
 
-                if order_receipts.purchase_order_id:
-                    purchase_order_exists = session.execute(
-                        select(PurchaseOrder)
-                        .where(
-                            PurchaseOrder.id_order ==
-                            order_receipts.purchase_order_id
-                        )
-                        .with_for_update()
-                    ).scalar_one_or_none()
+                # if purchase_order_exists.type_order == 'BALANCEADO':
+                status_name = "Incompleto"
+                if total_quantity == purchase_order_exists.quantity:
+                    status_name = "Completado"
+                elif total_quantity > purchase_order_exists.quantity:
+                    status_name = "Con Novedad"
 
-                    if not purchase_order_exists:
-                        raise CustomAPIException(message="No existe la orden de compra", status_code=404)
+                status = session.execute(
+                    select(StatusPurchaseOrder).where(
+                        StatusPurchaseOrder.name == status_name
+                    )
+                ).scalar_one_or_none()
 
-
-                    if purchase_order_exists.status_id == 2:
-                        raise CustomAPIException(message="La orden de compra ya se encuentra completada", status_code=400)
-
-                
-                    if purchase_order_exists.type_order == 'BALANCEADO':
-                        order_receipts.tons_equivalent = Decimal(str(order_receipts.quantity)) * Decimal("25")
-                    else:
-                        order_receipts.tons_equivalent = order_receipts.quantity
-                
-                session.add(order_receipts)
-                session.flush()
-
-                if order_receipts.purchase_order_id:
-                    total_quantity = session.execute(
-                        select(
-                            func.coalesce(
-                                func.sum(PurchaseOrderReceipts.tons_equivalent),
-                                0
-                            )
-                        ).where(
-                            PurchaseOrderReceipts.purchase_order_id == order_receipts.purchase_order_id
-                        )
-                    ).scalar_one()
-                    
-                    remaining_quantity = purchase_order_exists.quantity - total_quantity
-
-                    # if purchase_order_exists.type_order == 'BALANCEADO':
-                    status_name = "Incompleto"
-                    if total_quantity == purchase_order_exists.quantity:
-                        status_name = "Completado"
-                    elif total_quantity > purchase_order_exists.quantity:
-                        status_name = "Con Novedad"
-
-                    status = session.execute(
-                        select(StatusPurchaseOrder).where(
-                            StatusPurchaseOrder.name == status_name
-                        )
-                    ).scalar_one_or_none()
-
-                    if not status:
-                        raise CustomAPIException(
-                            message=f"No existe el estado {status_name}",
-                            status_code=404
-                        )
-
-                    purchase_order_exists.remaining_quantity = remaining_quantity
-                    purchase_order_exists.status_id = status.id_status
-                    purchase_order_exists.updated_at = datetime.now()
-                    purchase_order_exists.updated_by = order_receipts.created_by
-                    session.add(purchase_order_exists)
-
-                # Guardar imágenes (máx 10)
-                for file in images[:10]:
-                    result = self.save_image(file, "purchase_order")
-                    saved_files.append(result["url"])
-
-                    image = OrderReceiptsImages(
-                        order_receipt_id=order_receipts.id_receipts,
-                        image_path=result["url"]
+                if not status:
+                    raise CustomAPIException(
+                        message=f"No existe el estado {status_name}",
+                        status_code=404
                     )
 
-                    session.add(image)
+                purchase_order_exists.remaining_quantity = remaining_quantity
+                purchase_order_exists.status_id = status.id_status
+                purchase_order_exists.updated_at = datetime.now()
+                purchase_order_exists.updated_by = body['user']
+                session.add(purchase_order_exists)
 
-                session.commit()
+            # Guardar imágenes (máx 10)
+            # for file in images[:10]:
+            #     result = self.save_image(file, "purchase_order")
+            #     saved_files.append(result["url"])
 
-            except OSError as e:
-                if e.errno == 36:
-                    raise CustomAPIException("Nombre de archivo demasiado largo", 400)
-                
-            except Exception as exception:
-                session.rollback()
+            #     image = OrderReceiptsImages(
+            #         order_receipt_id=order_receipts.id_receipts,
+            #         image_path=result["url"]
+            #     )
 
-                #limpia archivos guardados si falla DB
-                for path in saved_files:
-                    full_path = os.path.join("/var/www", path.lstrip("/"))
-                    if os.path.exists(full_path):
-                        os.remove(full_path)
+            #     session.add(image)
 
-                logger.error('Error: {}', str(exception), internal=internal, external=external)
-                if isinstance(exception, CustomAPIException):
-                    raise exception
-                
-                raise CustomAPIException("Error al insertar en la base de datos", 500)
+            # session.commit()
 
-            finally:
-                session.close()
+        except OSError as e:
+            if e.errno == 36:
+                raise CustomAPIException("Nombre de archivo demasiado largo", 400)
+            
+        except Exception as exception:
+            session.rollback()
+
+            #limpia archivos guardados si falla DB
+            for path in saved_files:
+                full_path = os.path.join("/var/www", path.lstrip("/"))
+                if os.path.exists(full_path):
+                    os.remove(full_path)
+
+            logger.error('Error: {}', str(exception), internal=internal, external=external)
+            if isinstance(exception, CustomAPIException):
+                raise exception
+            
+            raise CustomAPIException("Error al insertar en la base de datos", 500)
 
         
     def get_reason_restricition(self, filters, internal, external):

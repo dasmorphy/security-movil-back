@@ -25,26 +25,17 @@ class PurchaseOrderReceipts(Base):
         ForeignKey('public.purchase_orders.id_order', onupdate='NO ACTION', ondelete='NO ACTION'),
     )
 
-    dni_driver = Column(Text)
-    truck_license = Column(Text)
-    driver = Column(Text)
-    name_user = Column(Text)
-    quantity = Column(Numeric(12, 3))
-    tons_equivalent = Column(Numeric(12, 3))
+    logbook_entry_id = Column(
+        Integer,
+        ForeignKey('public.logbook_entry.id_logbook_entry', onupdate='NO ACTION', ondelete='NO ACTION'),
+    )
+
+    converted_amount = Column(Numeric(12, 3))
     
     created_at = Column(
         DateTime,
         server_default=func.now()
     )
-
-    updated_at = Column(
-        DateTime,
-        server_default=func.now(),
-        onupdate=func.now()
-    )
-
-    created_by = Column(Text)
-    updated_by = Column(Text)
 
     def to_dict(self):
         return {c.name: getattr(self, c.name) for c in self.__table__.columns}

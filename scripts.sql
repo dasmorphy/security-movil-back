@@ -1987,21 +1987,18 @@ CREATE TABLE public.purchase_order_receipts
 (
     id_receipts integer NOT NULL,
     purchase_order_id integer,
-    dni_driver text,
-    truck_license text,
-    driver text,
-    quantity integer,
-    tons_equivalent integer,
-    name_user text,
+    logbook_entry_id integer,
+    converted_amount numeric(12,3),
     created_at timestamp without time zone DEFAULT now(),
-    created_by text,
-    updated_by text,
-    updated_at timestamp without time zone DEFAULT now(),
     CONSTRAINT order_receipts_pkey PRIMARY KEY (id_receipts),
     CONSTRAINT purchase_order_fkey FOREIGN KEY (purchase_order_id)
         REFERENCES public.purchase_orders (id_order) MATCH SIMPLE
         ON UPDATE NO ACTION
         ON DELETE NO ACTION
+    CONSTRAINT recipts_logbookentry_fkey FOREIGN KEY (logbook_entry_id)
+        REFERENCES public.logbook_entry (id_logbook_entry) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION;
 );
 
 ALTER TABLE IF EXISTS public.purchase_order_receipts

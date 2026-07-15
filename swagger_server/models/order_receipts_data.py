@@ -14,55 +14,30 @@ class OrderReceiptsData(Model):
 
     Do not edit the class manually.
     """
-    def __init__(self, purchase_order_id: int=None, dni_driver: str=None, truck_license: str=None, driver: str=None, quantity: int=None, user: str=None, name_user: str=None, images: List[str]=None):  # noqa: E501
+    def __init__(self, purchase_order_id: int=None, quantity: int=None, user: str=None):  # noqa: E501
         """OrderReceiptsData - a model defined in Swagger
 
         :param purchase_order_id: The purchase_order_id of this OrderReceiptsData.  # noqa: E501
         :type purchase_order_id: int
-        :param dni_driver: The dni_driver of this OrderReceiptsData.  # noqa: E501
-        :type dni_driver: str
-        :param truck_license: The truck_license of this OrderReceiptsData.  # noqa: E501
-        :type truck_license: str
-        :param driver: The driver of this OrderReceiptsData.  # noqa: E501
-        :type driver: str
         :param quantity: The quantity of this OrderReceiptsData.  # noqa: E501
         :type quantity: int
         :param user: The user of this OrderReceiptsData.  # noqa: E501
         :type user: str
-        :param name_user: The name_user of this OrderReceiptsData.  # noqa: E501
-        :type name_user: str
-        :param images: The images of this OrderReceiptsData.  # noqa: E501
-        :type images: List[str]
         """
         self.swagger_types = {
             'purchase_order_id': int,
-            'dni_driver': str,
-            'truck_license': str,
-            'driver': str,
             'quantity': int,
-            'user': str,
-            'name_user': str,
-            'images': List[str]
+            'user': str
         }
 
         self.attribute_map = {
             'purchase_order_id': 'purchase_order_id',
-            'dni_driver': 'dni_driver',
-            'truck_license': 'truck_license',
-            'driver': 'driver',
             'quantity': 'quantity',
-            'user': 'user',
-            'name_user': 'name_user',
-            'images': 'images'
+            'user': 'user'
         }
         self._purchase_order_id = purchase_order_id
-        self._dni_driver = dni_driver
-        self._truck_license = truck_license
-        self._driver = driver
         self._quantity = quantity
         self._user = user
-        self._name_user = name_user
-        self._images = images
 
     @classmethod
     def from_dict(cls, dikt) -> 'OrderReceiptsData':
@@ -95,69 +70,6 @@ class OrderReceiptsData(Model):
         """
 
         self._purchase_order_id = purchase_order_id
-
-    @property
-    def dni_driver(self) -> str:
-        """Gets the dni_driver of this OrderReceiptsData.
-
-
-        :return: The dni_driver of this OrderReceiptsData.
-        :rtype: str
-        """
-        return self._dni_driver
-
-    @dni_driver.setter
-    def dni_driver(self, dni_driver: str):
-        """Sets the dni_driver of this OrderReceiptsData.
-
-
-        :param dni_driver: The dni_driver of this OrderReceiptsData.
-        :type dni_driver: str
-        """
-
-        self._dni_driver = dni_driver
-
-    @property
-    def truck_license(self) -> str:
-        """Gets the truck_license of this OrderReceiptsData.
-
-
-        :return: The truck_license of this OrderReceiptsData.
-        :rtype: str
-        """
-        return self._truck_license
-
-    @truck_license.setter
-    def truck_license(self, truck_license: str):
-        """Sets the truck_license of this OrderReceiptsData.
-
-
-        :param truck_license: The truck_license of this OrderReceiptsData.
-        :type truck_license: str
-        """
-
-        self._truck_license = truck_license
-
-    @property
-    def driver(self) -> str:
-        """Gets the driver of this OrderReceiptsData.
-
-
-        :return: The driver of this OrderReceiptsData.
-        :rtype: str
-        """
-        return self._driver
-
-    @driver.setter
-    def driver(self, driver: str):
-        """Sets the driver of this OrderReceiptsData.
-
-
-        :param driver: The driver of this OrderReceiptsData.
-        :type driver: str
-        """
-
-        self._driver = driver
 
     @property
     def quantity(self) -> int:
@@ -200,45 +112,3 @@ class OrderReceiptsData(Model):
         """
 
         self._user = user
-
-    @property
-    def name_user(self) -> str:
-        """Gets the name_user of this OrderReceiptsData.
-
-
-        :return: The name_user of this OrderReceiptsData.
-        :rtype: str
-        """
-        return self._name_user
-
-    @name_user.setter
-    def name_user(self, name_user: str):
-        """Sets the name_user of this OrderReceiptsData.
-
-
-        :param name_user: The name_user of this OrderReceiptsData.
-        :type name_user: str
-        """
-
-        self._name_user = name_user
-
-    @property
-    def images(self) -> List[str]:
-        """Gets the images of this OrderReceiptsData.
-
-
-        :return: The images of this OrderReceiptsData.
-        :rtype: List[str]
-        """
-        return self._images
-
-    @images.setter
-    def images(self, images: List[str]):
-        """Sets the images of this OrderReceiptsData.
-
-
-        :param images: The images of this OrderReceiptsData.
-        :type images: List[str]
-        """
-
-        self._images = images

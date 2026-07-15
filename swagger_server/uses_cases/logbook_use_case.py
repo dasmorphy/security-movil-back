@@ -13,7 +13,7 @@ from openpyxl import load_workbook
 from datetime import datetime
 
 import requests
-from weasyprint import HTML
+# from weasyprint import HTML
 from swagger_server.exception.custom_error_exception import CustomAPIException
 from swagger_server.models.blacklist_data import BlacklistData
 from swagger_server.models.db.employee_intern import EmployeeIntern
@@ -83,7 +83,7 @@ class LogbookUseCase:
             status="Pendiente Salida",
         )
 
-        self.logbook_repository.post_logbook_entry(logbook_entry, images, internal, external)
+        self.logbook_repository.post_logbook_entry(logbook_entry, body.get('order_id'), images, internal, external)
 
     def post_logbook_out(self, body, images, internal, external) -> None:
 
@@ -1092,13 +1092,13 @@ class LogbookUseCase:
 
         pdf_buffer = BytesIO()
         
-        try:
-            # MAGIA DE WEASYPRINT AQUÍ
-            # Transforma el string HTML directamente al buffer PDF
-            HTML(string=html_string).write_pdf(pdf_buffer)
-        except Exception as e:
-            logger.error(f"Error en WeasyPrint generando PDF: {e}")
-            raise CustomAPIException("Error al generar el pdf", 500)
+        # try:
+        #     # MAGIA DE WEASYPRINT AQUÍ
+        #     # Transforma el string HTML directamente al buffer PDF
+        #     HTML(string=html_string).write_pdf(pdf_buffer)
+        # except Exception as e:
+        #     logger.error(f"Error en WeasyPrint generando PDF: {e}")
+        #     raise CustomAPIException("Error al generar el pdf", 500)
 
         pdf_buffer.seek(0)
         return pdf_buffer
@@ -1164,25 +1164,8 @@ class LogbookUseCase:
     def post_order_receipts(self, body, images, internal, external) -> None:
         if len(images) > 10:
             raise CustomAPIException("Máximo 10 imagenes", 500)
-                
-        order_receipts = PurchaseOrderReceipts(
-            purchase_order_id=body['purchase_order_id'],
-            dni_driver=body['dni_driver'],
-            truck_license=body['truck_license'],
-            driver=body['driver'],
-            quantity=body['quantity'],
-            created_by=body['user'],
-            updated_by=body['user'],
-            name_user=body['name_user'],
-            # tons_equivalent=body['quantity'] * 25 / 1000
-            # tons_equivalent = (
-            #     Decimal(str(body['quantity'])) *
-            #     Decimal('25') /
-            #     Decimal('1000')
-            # )
-        )
 
-        self.logbook_repository.post_order_receipts(order_receipts, images, internal, external)
+        self.logbook_repository.post_order_receipts(body, images, internal, external)
 
     def get_reason_restricition(self, headers, params, internal, external):
         business = params.get('business_id')

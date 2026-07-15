@@ -14,13 +14,15 @@ class LogBookEntryData(Model):
 
     Do not edit the class manually.
     """
-    def __init__(self, id_group_business: int=None, id_category: int=None, shipping_guide: str=None, description: str=None, quantity: float=None, id_unity: int=None, truck_license: str=None, dni_driver: str=None, is_blacklist: bool=None, name_driver: str=None, weight: float=None, lat: str=None, long: str=None, provider: str=None, destiny_intern: str=None, authorized_by: str=None, observations: str=None, created_by: str=None, name_user: str=None, images: List[str]=None):  # noqa: E501
+    def __init__(self, id_group_business: int=None, id_category: int=None, order_id: int=None, shipping_guide: str=None, description: str=None, quantity: float=None, id_unity: int=None, truck_license: str=None, dni_driver: str=None, is_blacklist: bool=None, name_driver: str=None, weight: float=None, lat: str=None, long: str=None, provider: str=None, destiny_intern: str=None, authorized_by: str=None, observations: str=None, created_by: str=None, name_user: str=None, images: List[str]=None):  # noqa: E501
         """LogBookEntryData - a model defined in Swagger
 
         :param id_group_business: The id_group_business of this LogBookEntryData.  # noqa: E501
         :type id_group_business: int
         :param id_category: The id_category of this LogBookEntryData.  # noqa: E501
         :type id_category: int
+        :param order_id: The order_id of this LogBookEntryData.  # noqa: E501
+        :type order_id: int
         :param shipping_guide: The shipping_guide of this LogBookEntryData.  # noqa: E501
         :type shipping_guide: str
         :param description: The description of this LogBookEntryData.  # noqa: E501
@@ -61,6 +63,7 @@ class LogBookEntryData(Model):
         self.swagger_types = {
             'id_group_business': int,
             'id_category': int,
+            'order_id': int,
             'shipping_guide': str,
             'description': str,
             'quantity': float,
@@ -84,6 +87,7 @@ class LogBookEntryData(Model):
         self.attribute_map = {
             'id_group_business': 'id_group_business',
             'id_category': 'id_category',
+            'order_id': 'order_id',
             'shipping_guide': 'shipping_guide',
             'description': 'description',
             'quantity': 'quantity',
@@ -105,6 +109,7 @@ class LogBookEntryData(Model):
         }
         self._id_group_business = id_group_business
         self._id_category = id_category
+        self._order_id = order_id
         self._shipping_guide = shipping_guide
         self._description = description
         self._quantity = quantity
@@ -176,6 +181,27 @@ class LogBookEntryData(Model):
         """
 
         self._id_category = id_category
+
+    @property
+    def order_id(self) -> int:
+        """Gets the order_id of this LogBookEntryData.
+
+
+        :return: The order_id of this LogBookEntryData.
+        :rtype: int
+        """
+        return self._order_id
+
+    @order_id.setter
+    def order_id(self, order_id: int):
+        """Sets the order_id of this LogBookEntryData.
+
+
+        :param order_id: The order_id of this LogBookEntryData.
+        :type order_id: int
+        """
+
+        self._order_id = order_id
 
     @property
     def shipping_guide(self) -> str:
