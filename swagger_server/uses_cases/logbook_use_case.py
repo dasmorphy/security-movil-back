@@ -15,6 +15,7 @@ from datetime import datetime
 import requests
 # from weasyprint import HTML
 from swagger_server.exception.custom_error_exception import CustomAPIException
+from swagger_server.models.assign_order_data import AssignOrderData
 from swagger_server.models.blacklist_data import BlacklistData
 from swagger_server.models.db.employee_intern import EmployeeIntern
 from swagger_server.models.db.logbook_entry import LogbookEntry
@@ -1195,3 +1196,6 @@ class LogbookUseCase:
     def delete_blacklist(self, params, internal_process: tuple):
         internal, external = internal_process
         self.logbook_repository.delete_blacklist(params.get('id-blacklist'), internal, external)
+
+    def assign_order_to_receipt(self, body: AssignOrderData, internal, external) -> None:
+        self.logbook_repository.assign_order_to_receipt(body, internal, external)

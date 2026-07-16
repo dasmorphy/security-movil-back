@@ -10,6 +10,7 @@ import json
 from flask.views import MethodView
 
 from swagger_server.exception.custom_error_exception import CustomAPIException
+from swagger_server.models.request_assign_order import RequestAssignOrder
 from swagger_server.models.request_lead import RequestLead
 from swagger_server.models.request_post_logbook_entry import RequestPostLogbookEntry  # noqa: E501
 from swagger_server.models.request_post_logbook_out import RequestPostLogbookOut  # noqa: E501
@@ -1150,6 +1151,35 @@ class LogbookView(MethodView):
                 end_time = default_timer()
                 logger.info(f"Fin de la transacción, procesada en : {end_time - start_time} milisegundos",
                             internal=internal_transaction_id, external=external_transaction_id)
+                status_code = 200
+        except Exception as ex:
+            response, status_code = CustomAPIException.check_exception(ex, function_name, internal_process)
+            
+        return response, status_code
+
+    
+    def assign_order_to_receipt(self, body=None):  # noqa: E501
+        internal_process = (None, None)
+        function_name = "assign_order_to_receipt"
+        response = {}
+        status_code = 500
+        try:
+            if connexion.request.is_json:
+                body = RequestAssignOrder.from_dict(connexion.request.get_json())  # noqa: E501
+                start_time = default_timer()
+                internal_transaction_id = str(generate_internal_transaction_id())
+                external_transaction_id = body.external_transaction_id
+                internal_process = (internal_transaction_id, external_transaction_id)
+                response["internal_transaction_id"] = internal_transaction_id
+                response["external_transaction_id"] = external_transaction_id
+                message = f"start request: {function_name}, channel: {body.channel}"
+                logger.info(message, internal=internal_transaction_id, external=external_transaction_id)
+                self.logbook_use_case.assign_order_to_receipt(body.data, internal_transaction_id, external_transaction_id)
+                response["error_code"] = 0
+                response["message"] = "Orden asignada correctamente"
+                end_time = default_timer()
+                logger.info(f"Fin de la transacción, procesada en : {end_time - start_time} milisegundos",
+                            internal=internal_transaction_id, external=body.external_transaction_id)
                 status_code = 200
         except Exception as ex:
             response, status_code = CustomAPIException.check_exception(ex, function_name, internal_process)
