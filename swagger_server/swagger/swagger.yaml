@@ -2732,6 +2732,12 @@ paths:
       description: Devuelve todas las recepciones de compra de la base
       operationId: get_order_receipts
       parameters:
+        - name: without-order
+          in: query
+          required: false
+          schema:
+            type: boolean
+            example: false
         - name: user
           in: query
           required: false
@@ -2839,6 +2845,12 @@ paths:
       description: Devuelve todas las ordenes de comrpra de la base
       operationId: get_order
       parameters:
+        - name: without-receipts
+          in: query
+          required: false
+          schema:
+            type: boolean
+            example: false
         - name: destiny_id
           in: query
           required: false

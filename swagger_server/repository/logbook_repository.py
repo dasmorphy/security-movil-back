@@ -1847,14 +1847,14 @@ class LogbookRepository:
                     .subquery()
                 )
 
-                receipts_images_subq = (
+                logbook_images_subq = (
                     select(
-                        OrderReceiptsImages.order_receipt_id.label("receipts_id"),
-                        func.array_agg(OrderReceiptsImages.image_path)
-                            .filter(OrderReceiptsImages.image_path.isnot(None))
+                        LogbookImages.logbook_id_entry.label("logbook_entry_id"),
+                        func.array_agg(LogbookImages.image_path)
+                            .filter(LogbookImages.image_path.isnot(None))
                             .label("images")
                     )
-                    .group_by(OrderReceiptsImages.order_receipt_id)
+                    .group_by(LogbookImages.logbook_id_entry)
                     .subquery()
                 )
                 
@@ -1867,7 +1867,7 @@ class LogbookRepository:
                                 "purchase_order_id", PurchaseOrderReceipts.purchase_order_id,
                                 "converted_amount", PurchaseOrderReceipts.converted_amount,
                                 "created_at", PurchaseOrderReceipts.created_at,
-                                "images", func.coalesce(receipts_images_subq.c.images, cast([], ARRAY(Text))),
+                                "images", func.coalesce(logbook_images_subq.c.images, cast([], ARRAY(Text))),
                                 "logbook_entry", case(
                                     (
                                         LogbookEntry.id_logbook_entry.is_not(None),
@@ -1876,7 +1876,8 @@ class LogbookRepository:
                                             "truck_license", LogbookEntry.truck_license,
                                             "driver", LogbookEntry.name_driver,
                                             "user", LogbookEntry.created_by,
-                                            "name_user", LogbookEntry.name_user
+                                            "name_user", LogbookEntry.name_user,
+                                            "quantity", LogbookEntry.quantity
                                         )
                                     ),
                                     else_=None
@@ -1885,7 +1886,7 @@ class LogbookRepository:
                             )
                         ).label("receipts")
                     )
-                    .outerjoin(receipts_images_subq, receipts_images_subq.c.receipts_id == PurchaseOrderReceipts.id_receipts)
+                    .outerjoin(logbook_images_subq, logbook_images_subq.c.logbook_entry_id == PurchaseOrderReceipts.logbook_entry_id)
                     .outerjoin(LogbookEntry, LogbookEntry.id_logbook_entry == PurchaseOrderReceipts.logbook_entry_id)
                     .group_by(PurchaseOrderReceipts.purchase_order_id)
                     .subquery()
@@ -1955,6 +1956,15 @@ class LogbookRepository:
                         )
 
                     stmt = stmt.where(PurchaseOrder.status_id == status.id_status)
+
+                if filters.get("without_receipts"):
+                    stmt = stmt.where(
+                        ~exists(
+                            select(1).where(
+                                PurchaseOrderReceipts.purchase_order_id == PurchaseOrder.id_order
+                            )
+                        )
+                    )
 
                 rows = session.execute(stmt).all()
 
@@ -2126,12 +2136,12 @@ class LogbookRepository:
             try:
                 receipts_images_subq = (
                     select(
-                        OrderReceiptsImages.order_receipt_id.label("receipts_id"),
-                        func.array_agg(OrderReceiptsImages.image_path)
-                            .filter(OrderReceiptsImages.image_path.isnot(None))
+                        LogbookImages.logbook_id_entry.label("logbook_entry_id"),
+                        func.array_agg(LogbookImages.image_path)
+                            .filter(LogbookImages.image_path.isnot(None))
                             .label("images")
                     )
-                    .group_by(OrderReceiptsImages.order_receipt_id)
+                    .group_by(LogbookImages.logbook_id_entry)
                     .subquery()
                 )
 
@@ -2143,7 +2153,9 @@ class LogbookRepository:
                             "truck_license", LogbookEntry.truck_license,
                             "driver", LogbookEntry.name_driver,
                             "user", LogbookEntry.created_by,
-                            "name_user", LogbookEntry.name_user
+                            "name_user", LogbookEntry.name_user,
+                            "quantity", LogbookEntry.quantity,
+                            "dni_driver", LogbookEntry.dni_driver,
                         )
                     ),
                     else_=None
@@ -2165,7 +2177,7 @@ class LogbookRepository:
                     #     StatusPurchaseOrder,
                     #     StatusPurchaseOrder.id_status == PurchaseOrder.status_id
                     # )
-                    .outerjoin(receipts_images_subq, receipts_images_subq.c.receipts_id == PurchaseOrderReceipts.id_receipts)
+                    .outerjoin(receipts_images_subq, receipts_images_subq.c.logbook_entry_id == PurchaseOrderReceipts.logbook_entry_id)
                     .outerjoin(LogbookEntry, LogbookEntry.id_logbook_entry == PurchaseOrderReceipts.logbook_entry_id)
                     .order_by(PurchaseOrderReceipts.created_at.desc())
                 )
@@ -2174,7 +2186,10 @@ class LogbookRepository:
                 #     stmt = stmt.where(PurchaseOrderReceipts.purchase_order_id.in_(filters.get("purchase_order_id")))
 
                 if filters.get("user"):
-                    stmt = stmt.where(PurchaseOrderReceipts.created_by == filters.get("user"))
+                    stmt = stmt.where(LogbookEntry.created_by == filters.get("user"))
+
+                if filters.get("without_order"):
+                    stmt = stmt.where(PurchaseOrderReceipts.purchase_order_id == None)
 
                 rows = session.execute(stmt).all()
                 

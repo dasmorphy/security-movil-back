@@ -1141,7 +1141,8 @@ class LogbookUseCase:
         filters = {
             "destiny_id": [int(x.strip()) for x in destiny_id.split(",")] if destiny_id else [],
             "status": params.get('status'),
-            "rol": params.get('rol')
+            "rol": params.get('rol'),
+            "without_receipts": params.get('without-receipts'),
         }
 
         return self.logbook_repository.get_order(filters, internal, external)
@@ -1158,6 +1159,7 @@ class LogbookUseCase:
         filters = {
             "purchase_order_id": [int(x.strip()) for x in purchase_order_id.split(",")] if purchase_order_id else [],
             "user": params.get('user'),
+            "without_order": params.get('without-order'),
         }
 
         return self.logbook_repository.get_order_receipts(filters, internal, external)
