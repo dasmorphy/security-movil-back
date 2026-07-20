@@ -9,7 +9,8 @@ import os
 import pandas as pd
 from typing import Counter
 from loguru import logger
-from openpyxl import load_workbook
+from openpyxl import load_workbook, Workbook
+from openpyxl.utils import get_column_letter
 from datetime import datetime
 
 import requests
@@ -27,7 +28,7 @@ from swagger_server.models.purchase_order_data import PurchaseOrderData
 from swagger_server.models.request_post_logbook_entry import RequestPostLogbookEntry
 from swagger_server.models.request_post_logbook_out import RequestPostLogbookOut
 from swagger_server.repository.logbook_repository import LogbookRepository
-from openpyxl.styles import Font, PatternFill
+from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 
 from reportlab.lib.pagesizes import A4
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph
@@ -489,7 +490,184 @@ class LogbookUseCase:
             "content": output.read(),
             "mimetype": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         }
-    
+
+
+    def report_orders(self, headers, params, internal, external):
+        destiny_id = params.get('destiny_id')
+
+        filters = {
+            "destiny_id": [int(x.strip()) for x in destiny_id.split(",")] if destiny_id else [],
+            "status": params.get('status'),
+            "rol": params.get('rol'),
+            "without_receipts": params.get('without-receipts'),
+        }
+
+        orders = self.logbook_repository.get_order(filters, internal, external)
+
+        if not orders:
+            raise CustomAPIException("No se han encontrado resultados", 404)
+
+        output = self.build_orders_excel(orders)
+
+        filename = f"reporte_ordenes_compra_{datetime.now().date().isoformat()}.xlsx"
+
+        return {
+            "filename": filename,
+            "content": output.read(),
+            "mimetype": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        }
+
+
+    def build_orders_excel(self, orders):
+        """Construye un archivo excel con las ordenes de compra y sus recepciones.
+
+        Cada orden se muestra como un bloque con su encabezado y valores, seguido
+        de una sub-tabla con sus recepciones asociadas. Las filas de recepciones
+        se agrupan (outline) para que puedan colapsarse debajo de cada orden,
+        replicando el comportamiento del rowExpansion de la tabla web.
+        """
+        # Estilos
+        title_font = Font(bold=True, size=14, color="FFFFFF")
+        title_fill = PatternFill("solid", fgColor="1F4E78")
+        order_header_font = Font(bold=True, color="FFFFFF")
+        order_header_fill = PatternFill("solid", fgColor="2E75B6")
+        receipt_header_font = Font(bold=True, color="000000")
+        receipt_header_fill = PatternFill("solid", fgColor="DDEBF7")
+        receipt_label_font = Font(bold=True, italic=True, color="2E75B6")
+        empty_font = Font(italic=True, color="808080")
+        thin = Side(style="thin", color="BFBFBF")
+        border = Border(left=thin, right=thin, top=thin, bottom=thin)
+        center = Alignment(horizontal="center", vertical="center")
+        left = Alignment(horizontal="left", vertical="center", wrap_text=True)
+
+        order_columns = [
+            "Fecha inicio", "Fecha fin", "Tipo orden", "N° orden",
+            "Cantidad", "Proveedor", "Destinos", "Estado",
+            "Fecha creación", "Cantidad restante"
+        ]
+        receipt_columns = ["Placa", "Cantidad", "Conductor", "Guía"]
+
+        def fmt_date(value, with_time=False):
+            if not value:
+                return ""
+            try:
+                fmt = "%d/%m/%Y %H:%M" if with_time else "%d/%m/%Y"
+                return pd.to_datetime(value).strftime(fmt)
+            except Exception:
+                return str(value)
+
+        def fmt_qty(value):
+            if value is None:
+                return ""
+            return f"{value} KG"
+
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Órdenes de Compra"
+
+        # Título
+        ws.merge_cells(
+            start_row=1, start_column=1,
+            end_row=1, end_column=len(order_columns)
+        )
+        title_cell = ws.cell(
+            row=1, column=1,
+            value=f"Reporte de Órdenes de Compra - {datetime.now().strftime('%d/%m/%Y')}"
+        )
+        title_cell.font = title_font
+        title_cell.fill = title_fill
+        title_cell.alignment = center
+        ws.row_dimensions[1].height = 24
+
+        current_row = 3
+
+        for order in orders:
+            # Encabezado de la orden
+            for col_index, col_name in enumerate(order_columns, start=1):
+                cell = ws.cell(row=current_row, column=col_index, value=col_name)
+                cell.font = order_header_font
+                cell.fill = order_header_fill
+                cell.alignment = center
+                cell.border = border
+            current_row += 1
+
+            destinations = ", ".join(
+                d.get("name", "") for d in (order.get("destinations") or [])
+            )
+
+            order_values = [
+                fmt_date(order.get("start_date")),
+                fmt_date(order.get("end_date")),
+                order.get("type_order"),
+                order.get("number_order"),
+                fmt_qty(order.get("quantity")),
+                order.get("provider"),
+                destinations,
+                order.get("status_name"),
+                fmt_date(order.get("created_at"), with_time=True),
+                fmt_qty(order.get("remaining_quantity")),
+            ]
+            for col_index, value in enumerate(order_values, start=1):
+                cell = ws.cell(row=current_row, column=col_index, value=value)
+                cell.alignment = left
+                cell.border = border
+            current_row += 1
+
+            receipts = [r for r in (order.get("receipts") or []) if r]
+
+            # Etiqueta de la sub-tabla de recepciones
+            label_cell = ws.cell(row=current_row, column=1, value="Recepciones")
+            label_cell.font = receipt_label_font
+            ws.row_dimensions[current_row].outline_level = 1
+            current_row += 1
+
+            if receipts:
+                # Sub-encabezado de recepciones (indentado, desde la columna 2)
+                for col_index, col_name in enumerate(receipt_columns, start=2):
+                    cell = ws.cell(row=current_row, column=col_index, value=col_name)
+                    cell.font = receipt_header_font
+                    cell.fill = receipt_header_fill
+                    cell.alignment = center
+                    cell.border = border
+                ws.row_dimensions[current_row].outline_level = 1
+                current_row += 1
+
+                for receipt in receipts:
+                    entry = receipt.get("logbook_entry") or {}
+                    receipt_values = [
+                        entry.get("truck_license"),
+                        fmt_qty(receipt.get("converted_amount")),
+                        entry.get("driver"),
+                        entry.get("shipping_guide"),
+                    ]
+                    for col_index, value in enumerate(receipt_values, start=2):
+                        cell = ws.cell(row=current_row, column=col_index, value=value)
+                        cell.alignment = left
+                        cell.border = border
+                    ws.row_dimensions[current_row].outline_level = 1
+                    current_row += 1
+            else:
+                cell = ws.cell(
+                    row=current_row, column=2,
+                    value="Sin recepciones registradas"
+                )
+                cell.font = empty_font
+                ws.row_dimensions[current_row].outline_level = 1
+                current_row += 1
+
+            # Fila separadora entre ordenes
+            current_row += 1
+
+        # Ancho de columnas
+        widths = [16, 16, 16, 14, 16, 24, 32, 16, 18, 18]
+        for col_index, width in enumerate(widths, start=1):
+            ws.column_dimensions[get_column_letter(col_index)].width = width
+
+        output = BytesIO()
+        wb.save(output)
+        output.seek(0)
+        return output
+
 
     def generate_excel(self, datos, output_path, internal, external):
         now = datetime.now()
@@ -961,6 +1139,7 @@ class LogbookUseCase:
             "group_business_id": row["out_group_business_id"],
             "name_user": row["out_name_user"],
             "shipping_guide": row["out_shipping_guide"],
+            "is_blacklist": row["out_is_blacklist"],
             "quantity": row["out_quantity"],
             "weight": row["out_weight"],
             "truck_license": row["out_truck_license"],

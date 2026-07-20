@@ -1875,6 +1875,7 @@ class LogbookRepository:
                                             "id_logbook_entry", LogbookEntry.id_logbook_entry,
                                             "truck_license", LogbookEntry.truck_license,
                                             "driver", LogbookEntry.name_driver,
+                                            "shipping_guide", LogbookEntry.shipping_guide,
                                             "user", LogbookEntry.created_by,
                                             "name_user", LogbookEntry.name_user,
                                             "quantity", LogbookEntry.quantity
