@@ -1958,6 +1958,13 @@ class LogbookRepository:
 
                     stmt = stmt.where(PurchaseOrder.status_id == status.id_status)
 
+                if filters.get("start_date"):
+                    stmt = stmt.where(PurchaseOrder.created_at >= filters.get("start_date"))
+
+                if filters.get("end_date"):
+                    stmt = stmt.where(PurchaseOrder.created_at <= filters.get("end_date"))
+
+
                 if filters.get("without_receipts"):
                     stmt = stmt.where(
                         ~exists(
@@ -2047,6 +2054,79 @@ class LogbookRepository:
                 )
 
                 session.add(destinations)
+                session.commit()
+
+            except Exception as exception:
+                session.rollback()
+                logger.error('Error: {}', str(exception), internal=internal, external=external)
+                if isinstance(exception, CustomAPIException):
+                    raise exception
+
+                raise CustomAPIException("Error al insertar en la base de datos", 500)
+
+            finally:
+                session.close()
+
+
+    def import_orders(self, orders: List[dict], user, internal, external) -> None:
+        with self.db.session_factory() as session:
+            try:
+                data_request = RequestIdempotency(
+                    uuid=external,
+                    endpoint="/rest/zent-logbook-api/v1.0/import_orders"
+                )
+
+                self.request_idempotency(session, data_request, internal, external)
+
+                status = session.execute(
+                    select(StatusPurchaseOrder).where(
+                        StatusPurchaseOrder.name == "Programado"
+                    )
+                ).scalar_one_or_none()
+
+                if not status:
+                    raise CustomAPIException(
+                        message="No existe el estado Programado",
+                        status_code=404
+                    )
+
+                for order in orders:
+                    group_business = session.execute(
+                        select(GroupBusiness).where(
+                            GroupBusiness.name == order["camaronera"]
+                        )
+                    ).scalar_one_or_none()
+
+                    if not group_business:
+                        raise CustomAPIException(
+                            message=f"No existe la camaronera '{order['camaronera']}'",
+                            status_code=404
+                        )
+
+                    purchase_order_body = PurchaseOrder(
+                        start_date=order["start_date"],
+                        end_date=order["end_date"],
+                        number_order=order["number_order"],
+                        type_order="BALANCEADO",
+                        quantity=order["quantity"],
+                        provider=order["provider"],
+                        observations=None,
+                        status_id=status.id_status,
+                        created_by=user,
+                        updated_by=user
+                    )
+
+                    session.add(purchase_order_body)
+                    session.flush()
+
+                    destinations = PurchaseOrderDestinations(
+                        destiny_id=group_business.id_group_business,
+                        order_id=purchase_order_body.id_order,
+                        created_by=user,
+                    )
+
+                    session.add(destinations)
+
                 session.commit()
 
             except Exception as exception:
@@ -2191,6 +2271,12 @@ class LogbookRepository:
 
                 if filters.get("without_order"):
                     stmt = stmt.where(PurchaseOrderReceipts.purchase_order_id == None)
+
+                if filters.get("start_date"):
+                    stmt = stmt.where(PurchaseOrderReceipts.created_at >= filters.get("start_date"))
+
+                if filters.get("end_date"):
+                    stmt = stmt.where(PurchaseOrderReceipts.created_at <= filters.get("end_date"))
 
                 rows = session.execute(stmt).all()
                 

@@ -11,7 +11,7 @@ from typing import Counter
 from loguru import logger
 from openpyxl import load_workbook, Workbook
 from openpyxl.utils import get_column_letter
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import requests
 # from weasyprint import HTML
@@ -500,6 +500,8 @@ class LogbookUseCase:
             "status": params.get('status'),
             "rol": params.get('rol'),
             "without_receipts": params.get('without-receipts'),
+            "start_date": params.get("start_date"),
+            "end_date": params.get("end_date")
         }
 
         orders = self.logbook_repository.get_order(filters, internal, external)
@@ -559,7 +561,7 @@ class LogbookUseCase:
         def fmt_qty(value):
             if value is None:
                 return ""
-            return f"{value} KG"
+            return f"{round(value, 2)} KG"
 
         wb = Workbook()
         ws = wb.active
@@ -1322,6 +1324,8 @@ class LogbookUseCase:
             "status": params.get('status'),
             "rol": params.get('rol'),
             "without_receipts": params.get('without-receipts'),
+            "start_date": params.get("start_date"),
+            "end_date": params.get("end_date")
         }
 
         return self.logbook_repository.get_order(filters, internal, external)
@@ -1339,6 +1343,8 @@ class LogbookUseCase:
             "purchase_order_id": [int(x.strip()) for x in purchase_order_id.split(",")] if purchase_order_id else [],
             "user": params.get('user'),
             "without_order": params.get('without-order'),
+            "start_date": params.get("start_date"),
+            "end_date": params.get("end_date")
         }
 
         return self.logbook_repository.get_order_receipts(filters, internal, external)
@@ -1348,6 +1354,51 @@ class LogbookUseCase:
             raise CustomAPIException("Máximo 10 imagenes", 500)
 
         self.logbook_repository.post_order_receipts(body, images, internal, external)
+
+    def import_orders(self, excel_file, user, internal, external) -> int:
+        try:
+            workbook = load_workbook(BytesIO(excel_file.read()), data_only=True)
+            sheet = workbook.active
+        except Exception:
+            raise CustomAPIException("No se pudo leer el archivo Excel", 400)
+
+        orders = []
+        for row in sheet.iter_rows(min_row=1, values_only=True):
+            if not row:
+                continue
+            camaronera, number_order, provider, start_date, quantity = (list(row) + [None] * 5)[:5]
+
+            # Se omiten filas vacías y la fila de encabezado
+            if camaronera is None or number_order is None:
+                continue
+            if str(number_order).strip().lower() in ("núm de orden de compra", "num de orden de compra"):
+                continue
+
+            if not isinstance(start_date, datetime):
+                raise CustomAPIException(
+                    f"Fecha de entrega inválida para la orden {number_order}", 400
+                )
+
+            if quantity is None:
+                raise CustomAPIException(
+                    f"Cantidad inválida para la orden {number_order}", 400
+                )
+
+            orders.append({
+                "camaronera": str(camaronera).strip(),
+                "number_order": str(number_order).strip(),
+                "provider": str(provider).strip() if provider is not None else None,
+                "start_date": start_date,
+                "end_date": start_date + timedelta(days=15),
+                "quantity": Decimal(str(quantity)) * 25,
+            })
+
+        if not orders:
+            raise CustomAPIException("El archivo no contiene ordenes para importar", 400)
+
+        self.logbook_repository.import_orders(orders, user, internal, external)
+
+        return len(orders)
 
     def get_reason_restricition(self, headers, params, internal, external):
         business = params.get('business_id')
