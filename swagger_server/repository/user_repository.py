@@ -7,6 +7,7 @@ from sqlalchemy import Integer, and_, cast, exists, func, select, text
 from swagger_server.exception.custom_error_exception import CustomAPIException
 from swagger_server.models.db.business import Business
 from swagger_server.models.db.company_modules import CompanyModules
+from swagger_server.models.db.fcm_token_users import FcmTokenUser
 from swagger_server.models.db.group_business import GroupBusiness
 from swagger_server.models.db.modules import Modules
 from swagger_server.models.db.permissions import Permission
@@ -472,7 +473,7 @@ class UserRepository:
                 session.close()
 
 
-    def logout(self, token: str, internal: str, external: str):
+    def logout(self, token: str, token_fcm: str, internal: str, external: str):
         with self.db.session_factory() as session:
             try:
                 session_user = session.execute(
@@ -481,6 +482,10 @@ class UserRepository:
 
                 if not session_user:
                     raise CustomAPIException("Sesión no encontrada", 404)
+
+                session.query(FcmTokenUser).filter(
+                    FcmTokenUser.fcm_token == token_fcm
+                ).delete(synchronize_session=False)
 
                 self.delete_session_redis(token)
                 session.delete(session_user)

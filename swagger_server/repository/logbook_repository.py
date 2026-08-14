@@ -302,6 +302,12 @@ class LogbookRepository:
                         )
                     ).scalar_one_or_none()
 
+                    order_receipt = session.execute(
+                        select(PurchaseOrderReceipts).where(
+                            PurchaseOrderReceipts.logbook_entry_id == id_logbook_delete
+                        )
+                    ).scalar_one_or_none()
+
                     if not logbook_entry:
                         raise CustomAPIException(
                             message="No existe la bitacora de entrada",
@@ -331,6 +337,10 @@ class LogbookRepository:
                     session.query(LogbookImages).filter(
                         LogbookImages.logbook_id_entry == id_logbook_delete
                     ).delete(synchronize_session=False)
+
+                    if order_receipt:
+                        session.delete(order_receipt)
+                        session.flush()
 
                     # Eliminar entrada
                     session.delete(logbook_entry)

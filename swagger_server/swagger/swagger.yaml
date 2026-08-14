@@ -2814,7 +2814,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ResponseError"
       x-openapi-router-controller: swagger_server.controllers.logbook_controller.LogbookView
-  /import_orders:
+  /import-orders:
     post:
       tags:
         - Purchase order
