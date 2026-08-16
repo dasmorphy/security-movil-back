@@ -107,41 +107,41 @@ class LogbookRepository:
                 
                 logbook_entry_id = logbook_entry_body.id_logbook_entry
                 
-                if category.name_category == "Balanceado" or category.name_category == "Combustibles":
-                    body_purchase = {
-                        "purchase_order_id": order_id,
-                        "logbook_entry_id": logbook_entry_id,
-                        "quantity": logbook_entry_body.quantity,
-                        "user": logbook_entry_body.created_by
-                    }
+                # if category.name_category == "Balanceado" or category.name_category == "Combustibles":
+                #     body_purchase = {
+                #         "purchase_order_id": order_id,
+                #         "logbook_entry_id": logbook_entry_id,
+                #         "quantity": logbook_entry_body.quantity,
+                #         "user": logbook_entry_body.created_by
+                #     }
 
-                    self.post_order_receipts(session, body_purchase, internal, external)
+                #     self.post_order_receipts(session, body_purchase, internal, external)
 
                 #Guardar imágenes (máx 10)
-                # for file in images[:10]:
-                #     result = self.save_image(file)
-                #     saved_files.append(result["url"])
+                for file in images[:10]:
+                    result = self.save_image(file)
+                    saved_files.append(result["url"])
 
-                #     image = LogbookImages(
-                #         logbook_id_entry=logbook_entry_id,
-                #         image_path=result["url"]
-                #     )
+                    image = LogbookImages(
+                        logbook_id_entry=logbook_entry_id,
+                        image_path=result["url"]
+                    )
 
-                #     session.add(image)
+                    session.add(image)
 
                 session.commit()
 
-                # logbook_entry_dict = logbook_entry_body.to_dict()
-                # logbook_entry_dict["name_category"] = category.name_category
-                # logbook_entry_dict["group_name"] = group_business_exists.name
+                logbook_entry_dict = logbook_entry_body.to_dict()
+                logbook_entry_dict["name_category"] = category.name_category
+                logbook_entry_dict["group_name"] = group_business_exists.name
 
-                # self.redis_client.client.publish(
-                #     "logbook_channel",
-                #     json.dumps({
-                #         "type": "logbook_saved",
-                #         "logbook": logbook_entry_dict
-                #     })
-                # )
+                self.redis_client.client.publish(
+                    "logbook_channel",
+                    json.dumps({
+                        "type": "logbook_saved",
+                        "logbook": logbook_entry_dict
+                    })
+                )
 
             except OSError as e:
                 if e.errno == 36:
@@ -179,12 +179,10 @@ class LogbookRepository:
 
                 unity_weight_exists = True
                 category_exists = session.execute(
-                    select(
-                        exists().where(
-                            Category.id_category == logbook_out_body.category_id
-                        )
+                    select(Category).where(
+                        Category.id_category == logbook_out_body.category_id
                     )
-                ).scalar()
+                ).scalar_one_or_none()
 
                 group_business_exists = session.execute(
                     select(GroupBusiness).where(
@@ -253,17 +251,17 @@ class LogbookRepository:
 
                 session.commit()
 
-                # logbook_out_dict = logbook_out_body.to_dict()
-                # logbook_out_dict["name_category"] = category.name_category
-                # logbook_out_dict["group_name"] = group_business_exists.name
+                logbook_out_dict = logbook_out_body.to_dict()
+                logbook_out_dict["name_category"] = category_exists.name_category
+                logbook_out_dict["group_name"] = group_business_exists.name
 
-                # self.redis_client.client.publish(
-                #     "logbook_channel",
-                #     json.dumps({
-                #         "type": "logbook_saved",
-                #         "logbook": logbook_out_dict
-                #     })
-                # )
+                self.redis_client.client.publish(
+                    "logbook_channel",
+                    json.dumps({
+                        "type": "logbook_saved",
+                        "logbook": logbook_out_dict
+                    })
+                )
 
 
             except OSError as e:
