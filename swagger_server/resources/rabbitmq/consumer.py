@@ -75,8 +75,12 @@ class NotificationConsumer:
 
             print("Evento recibido:")
             print(payload)
-
-            self.logout(payload)
+            data_queue = payload.get("data")
+            self.user_use_case.logout(
+                data_queue.get("token"), 
+                payload.get("externalTransactionId"), 
+                payload.get("externalTransactionId")
+            )
 
             channel.basic_ack(
                 delivery_tag=method.delivery_tag
@@ -91,7 +95,3 @@ class NotificationConsumer:
                 delivery_tag=method.delivery_tag,
                 requeue=False
             )
-
-    def logout(self, payload):
-        # notification_request = PushNotificationData.from_dict(payload.get("data"))
-        self.user_use_case.logout(payload.get("channel"), payload.get("data"))

@@ -118,7 +118,7 @@ class UserView(MethodView):
                 response["external_transaction_id"] = external_transaction_id
                 message = f"start request: {function_name}, channel: {body.channel}"
                 logger.info(message, internal=internal_transaction_id, external=external_transaction_id)
-                self.user_use_case.logout(body, internal_transaction_id, external_transaction_id)
+                self.user_use_case.logout(body.logout.token, internal_transaction_id, external_transaction_id)
                 response["error_code"] = 0
                 response["message"] = "Sesión cerrada correctamente"
                 end_time = default_timer()

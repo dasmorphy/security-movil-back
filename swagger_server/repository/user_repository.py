@@ -475,11 +475,11 @@ class UserRepository:
                 session.close()
 
 
-    def logout(self, body: LogoutData, internal: str, external: str):
+    def logout(self, token_session: str, internal: str, external: str):
         with self.db.session_factory() as session:
             try:
                 session_user = session.execute(
-                    select(UserSessions).where(UserSessions.token_session == body.token)
+                    select(UserSessions).where(UserSessions.token_session == token_session)
                 ).scalar_one_or_none()
 
                 if not session_user:
@@ -497,7 +497,7 @@ class UserRepository:
                 session.delete(session_user)
 
 
-                self.delete_session_redis(body.token)
+                self.delete_session_redis(token_session)
                 session.delete(session_user)
                 session.commit()
             except Exception as exception:

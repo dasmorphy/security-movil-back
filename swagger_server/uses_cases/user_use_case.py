@@ -354,8 +354,8 @@ class UserUseCase:
             "user_data": user_autenticated
         }
     
-    def logout(self, body: RequestLogout, internal, external):
-        self.user_repository.logout(body.logout, internal, external)
+    def logout(self, token_session: str, internal, external):
+        self.user_repository.logout(token_session, internal, external)
 
 
     def save_session(self, authenticated_user, body: LoginData, headers, internal, external):
