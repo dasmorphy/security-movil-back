@@ -86,10 +86,12 @@ class UserView(MethodView):
                 message = f"start request: {function_name}, channel: {body.channel}"
                 logger.info(message, internal=internal_transaction_id, external=external_transaction_id)
                 authenticated_user = self.user_use_case.login(body, body.channel, internal_transaction_id, external_transaction_id)
-                self.user_use_case.save_session(authenticated_user, connexion.request.headers, internal_transaction_id, external_transaction_id)
+                access_token = self.user_use_case.save_session(authenticated_user, body.login,
+                    connexion.request.headers, internal_transaction_id, external_transaction_id
+                )
                 response["error_code"] = 0
-                response["message"] = "Login correcto",
-                response["access_token"] = authenticated_user["token"]
+                response["message"] = "Login correcto"
+                response["access_token"] = access_token
                 
                 end_time = default_timer()
                 logger.info(f"Fin de la transacción, procesada en : {end_time - start_time} milisegundos",

@@ -3787,6 +3787,18 @@ components:
         password:
           type: string
           example: "123456"
+        project_id:
+          nullable: true
+          type: integer
+          example: 1
+        fcm_token:
+          nullable: true
+          type: string
+          example: "7f9c3a1e-2b4d-4e5f-8a6b-1c2d3e4f5a6b"
+        platform:
+          nullable: true
+          type: string
+          example: "android"
       example:
         user: ""
         password: ""

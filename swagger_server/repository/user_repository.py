@@ -485,14 +485,17 @@ class UserRepository:
                 if not session_user:
                     raise CustomAPIException("Sesión no encontrada", 404)
 
-                if body.token_fcm:
-                    session.query(FcmTokenUser).filter(
-                        FcmTokenUser.fcm_token == body.token_fcm,
-                        FcmTokenUser.user_id == session_user.user_id,
-                        FcmTokenUser.is_active == True,
-                        FcmTokenUser.platform == body.platform,
-                        FcmTokenUser.project_id == body.project_id
-                    ).delete(synchronize_session=False)
+                deleted = (
+                    session.query(FcmTokenUser)
+                    .filter(
+                        FcmTokenUser.session_id == session_user.id_session
+                    )
+                    .delete(synchronize_session=False)
+                )
+
+                session.flush()
+                session.delete(session_user)
+
 
                 self.delete_session_redis(body.token)
                 session.delete(session_user)
@@ -508,6 +511,17 @@ class UserRepository:
 
     def delete_session_redis(self, token):
         self.redis_client.client.delete(f"token:{token}")
+
+
+    def generate_session_id(self, internal, external):
+        with self.db.session_factory() as session:
+            try:
+                return session.execute(
+                    text("SELECT nextval('public.user_sessions_id_seq')")
+                ).scalar_one()
+            except Exception as exception:
+                logger.error('Error: {}', str(exception), internal=internal, external=external)
+                raise CustomAPIException("Error al generar la sesión del usuario", 500)
 
 
     def save_session(self, data: UserSessions, internal, external):

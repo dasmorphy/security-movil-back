@@ -14,25 +14,40 @@ class LoginData(Model):
 
     Do not edit the class manually.
     """
-    def __init__(self, user: str=None, password: str=None):  # noqa: E501
+    def __init__(self, user: str=None, password: str=None, project_id: int=None, fcm_token: str=None, platform: str=None):  # noqa: E501
         """LoginData - a model defined in Swagger
 
         :param user: The user of this LoginData.  # noqa: E501
         :type user: str
         :param password: The password of this LoginData.  # noqa: E501
         :type password: str
+        :param project_id: The project_id of this LoginData.  # noqa: E501
+        :type project_id: int
+        :param fcm_token: The fcm_token of this LoginData.  # noqa: E501
+        :type fcm_token: str
+        :param platform: The platform of this LoginData.  # noqa: E501
+        :type platform: str
         """
         self.swagger_types = {
             'user': str,
-            'password': str
+            'password': str,
+            'project_id': int,
+            'fcm_token': str,
+            'platform': str
         }
 
         self.attribute_map = {
             'user': 'user',
-            'password': 'password'
+            'password': 'password',
+            'project_id': 'project_id',
+            'fcm_token': 'fcm_token',
+            'platform': 'platform'
         }
         self._user = user
         self._password = password
+        self._project_id = project_id
+        self._fcm_token = fcm_token
+        self._platform = platform
 
     @classmethod
     def from_dict(cls, dikt) -> 'LoginData':
@@ -86,3 +101,66 @@ class LoginData(Model):
         """
 
         self._password = password
+
+    @property
+    def project_id(self) -> int:
+        """Gets the project_id of this LoginData.
+
+
+        :return: The project_id of this LoginData.
+        :rtype: int
+        """
+        return self._project_id
+
+    @project_id.setter
+    def project_id(self, project_id: int):
+        """Sets the project_id of this LoginData.
+
+
+        :param project_id: The project_id of this LoginData.
+        :type project_id: int
+        """
+
+        self._project_id = project_id
+
+    @property
+    def fcm_token(self) -> str:
+        """Gets the fcm_token of this LoginData.
+
+
+        :return: The fcm_token of this LoginData.
+        :rtype: str
+        """
+        return self._fcm_token
+
+    @fcm_token.setter
+    def fcm_token(self, fcm_token: str):
+        """Sets the fcm_token of this LoginData.
+
+
+        :param fcm_token: The fcm_token of this LoginData.
+        :type fcm_token: str
+        """
+
+        self._fcm_token = fcm_token
+
+    @property
+    def platform(self) -> str:
+        """Gets the platform of this LoginData.
+
+
+        :return: The platform of this LoginData.
+        :rtype: str
+        """
+        return self._platform
+
+    @platform.setter
+    def platform(self, platform: str):
+        """Sets the platform of this LoginData.
+
+
+        :param platform: The platform of this LoginData.
+        :type platform: str
+        """
+
+        self._platform = platform

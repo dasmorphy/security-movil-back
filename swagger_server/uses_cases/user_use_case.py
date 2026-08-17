@@ -14,12 +14,14 @@ from swagger_server.exception.custom_error_exception import CustomAPIException
 from swagger_server.models.db.user_sessions import UserSessions
 from swagger_server.models.db.users import Users
 from swagger_server.models.form_expo_data import FormExpoData
+from swagger_server.models.login_data import LoginData
 from swagger_server.models.request_login import RequestLogin
 from swagger_server.models.request_logout import RequestLogout
 from swagger_server.models.request_post_new_user import RequestPostNewUser
 from swagger_server.repository.user_repository import UserRepository
 from passlib.context import CryptContext
 
+from swagger_server.service.rabbitMQ import RabbitMQClient
 from swagger_server.utils.utils import CONTACTS_BY_CLIENT, PREFIX_RE, WHITELIST
 
 pwd_context = CryptContext(
@@ -30,6 +32,7 @@ pwd_context = CryptContext(
 class UserUseCase:
 
     def __init__(self, user_repository: UserRepository):
+        self.rabbitMQ = RabbitMQClient()
         self.user_repository = user_repository
         with open("private.pem", "r") as f:
             self.private_key = f.read()
@@ -346,18 +349,20 @@ class UserUseCase:
                     status_code=401
                 )
 
-        token = self.generate_jwt(user_autenticated)
-
         return {
-            "token": token,
-            "user_id": user_autenticated['id_user']
+            "user_id": user_autenticated['id_user'],
+            "user_data": user_autenticated
         }
     
     def logout(self, body: RequestLogout, internal, external):
         self.user_repository.logout(body.logout, internal, external)
 
 
-    def save_session(self, authenticated_user, headers, internal, external):
+    def save_session(self, authenticated_user, body: LoginData, headers, internal, external):
+        id_session = self.user_repository.generate_session_id(internal, external)
+        authenticated_user["user_data"]["id_session"] = id_session
+        token = self.generate_jwt(authenticated_user["user_data"])
+
         ip_user = headers.get("X-Forwarded-For", "")
         ua_string = headers.get("User-Agent", "")
 
@@ -404,7 +409,8 @@ class UserUseCase:
         # print(user_agent)
 
         session = UserSessions(
-            token_session=authenticated_user["token"],
+            id_session=id_session,
+            token_session=token,
             user_id=authenticated_user["user_id"],
             ip_user=ip_user,
             device=device,
@@ -412,6 +418,20 @@ class UserUseCase:
         )
 
         self.user_repository.save_session(session, internal, external)
+
+        if body.fcm_token:
+            data_queue = {
+                "user_id":authenticated_user["user_id"],
+                "project_id":1,
+                "fcm_token":body.fcm_token,
+                "platform":body.platform,
+                "session_id":id_session,
+                "is_active":True
+            }
+
+            self.send_event(data_queue, internal, external)
+
+        return token
         
     
 
@@ -424,5 +444,15 @@ class UserUseCase:
         token = jwt.encode(user_data, self.private_key, algorithm="RS256")
 
         return token
+
+    def send_event(self, data_queue, internal, external):
+        try:
+            self.rabbitMQ.send_event(
+                routing_key="zentinel.save.fcm_token",
+                body=data_queue
+            )
+
+        except Exception as exception:
+            logger.error("No se pudo enviar evento de logout a RabbitMQ: {}", str(exception), internal=internal, external=external)
 
 
