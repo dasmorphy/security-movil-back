@@ -7,6 +7,7 @@ from sqlalchemy import Integer, and_, cast, exists, func, select, text
 from swagger_server.exception.custom_error_exception import CustomAPIException
 from swagger_server.models.db.business import Business
 from swagger_server.models.db.company_modules import CompanyModules
+from swagger_server.models.db.fcm_token_users import FcmTokenUser
 from swagger_server.models.db.group_business import GroupBusiness
 from swagger_server.models.db.modules import Modules
 from swagger_server.models.db.permissions import Permission
@@ -16,6 +17,8 @@ from swagger_server.models.db.unity_weight import UnityWeight
 from swagger_server.models.db.user_sessions import UserSessions
 from swagger_server.models.db.users import Users
 from swagger_server.models.form_expo_data import FormExpoData
+from swagger_server.models.logout_data import LogoutData
+from swagger_server.models.request_logout import RequestLogout
 from swagger_server.resources.databases.postgresql import PostgreSQLClient
 from sqlalchemy.dialects.postgresql import JSONB
 import resend
@@ -472,17 +475,26 @@ class UserRepository:
                 session.close()
 
 
-    def logout(self, token: str, internal: str, external: str):
+    def logout(self, body: LogoutData, internal: str, external: str):
         with self.db.session_factory() as session:
             try:
                 session_user = session.execute(
-                    select(UserSessions).where(UserSessions.token_session == token)
+                    select(UserSessions).where(UserSessions.token_session == body.token)
                 ).scalar_one_or_none()
 
                 if not session_user:
                     raise CustomAPIException("Sesión no encontrada", 404)
 
-                self.delete_session_redis(token)
+                if body.token_fcm:
+                    session.query(FcmTokenUser).filter(
+                        FcmTokenUser.fcm_token == body.token_fcm,
+                        FcmTokenUser.user_id == session_user.user_id,
+                        FcmTokenUser.is_active == True,
+                        FcmTokenUser.platform == body.platform,
+                        FcmTokenUser.project_id == body.project_id
+                    ).delete(synchronize_session=False)
+
+                self.delete_session_redis(body.token)
                 session.delete(session_user)
                 session.commit()
             except Exception as exception:
@@ -495,11 +507,7 @@ class UserRepository:
                 session.close()
 
     def delete_session_redis(self, token):
-        user_id = self.redis_client.client.get(f"token:{token}")
-        if user_id:
-            self.redis_client.client.delete(
-                f"token:{token}",
-            )
+        self.redis_client.client.delete(f"token:{token}")
 
 
     def save_session(self, data: UserSessions, internal, external):
