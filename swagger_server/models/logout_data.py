@@ -14,25 +14,35 @@ class LogoutData(Model):
 
     Do not edit the class manually.
     """
-    def __init__(self, user: str=None, token: str=None):  # noqa: E501
+    def __init__(self, token: str=None, token_fcm: str=None, platform: str=None, project_id: int=None):  # noqa: E501
         """LogoutData - a model defined in Swagger
 
-        :param user: The user of this LogoutData.  # noqa: E501
-        :type user: str
         :param token: The token of this LogoutData.  # noqa: E501
         :type token: str
+        :param token_fcm: The token_fcm of this LogoutData.  # noqa: E501
+        :type token_fcm: str
+        :param platform: The platform of this LogoutData.  # noqa: E501
+        :type platform: str
+        :param project_id: The project_id of this LogoutData.  # noqa: E501
+        :type project_id: int
         """
         self.swagger_types = {
-            'user': str,
-            'token': str
+            'token': str,
+            'token_fcm': str,
+            'platform': str,
+            'project_id': int
         }
 
         self.attribute_map = {
-            'user': 'user',
-            'token': 'token'
+            'token': 'token',
+            'token_fcm': 'token_fcm',
+            'platform': 'platform',
+            'project_id': 'project_id'
         }
-        self._user = user
         self._token = token
+        self._token_fcm = token_fcm
+        self._platform = platform
+        self._project_id = project_id
 
     @classmethod
     def from_dict(cls, dikt) -> 'LogoutData':
@@ -44,27 +54,6 @@ class LogoutData(Model):
         :rtype: LogoutData
         """
         return util.deserialize_model(dikt, cls)
-
-    @property
-    def user(self) -> str:
-        """Gets the user of this LogoutData.
-
-
-        :return: The user of this LogoutData.
-        :rtype: str
-        """
-        return self._user
-
-    @user.setter
-    def user(self, user: str):
-        """Sets the user of this LogoutData.
-
-
-        :param user: The user of this LogoutData.
-        :type user: str
-        """
-
-        self._user = user
 
     @property
     def token(self) -> str:
@@ -86,3 +75,66 @@ class LogoutData(Model):
         """
 
         self._token = token
+
+    @property
+    def token_fcm(self) -> str:
+        """Gets the token_fcm of this LogoutData.
+
+
+        :return: The token_fcm of this LogoutData.
+        :rtype: str
+        """
+        return self._token_fcm
+
+    @token_fcm.setter
+    def token_fcm(self, token_fcm: str):
+        """Sets the token_fcm of this LogoutData.
+
+
+        :param token_fcm: The token_fcm of this LogoutData.
+        :type token_fcm: str
+        """
+
+        self._token_fcm = token_fcm
+
+    @property
+    def platform(self) -> str:
+        """Gets the platform of this LogoutData.
+
+
+        :return: The platform of this LogoutData.
+        :rtype: str
+        """
+        return self._platform
+
+    @platform.setter
+    def platform(self, platform: str):
+        """Sets the platform of this LogoutData.
+
+
+        :param platform: The platform of this LogoutData.
+        :type platform: str
+        """
+
+        self._platform = platform
+
+    @property
+    def project_id(self) -> int:
+        """Gets the project_id of this LogoutData.
+
+
+        :return: The project_id of this LogoutData.
+        :rtype: int
+        """
+        return self._project_id
+
+    @project_id.setter
+    def project_id(self, project_id: int):
+        """Sets the project_id of this LogoutData.
+
+
+        :param project_id: The project_id of this LogoutData.
+        :type project_id: int
+        """
+
+        self._project_id = project_id

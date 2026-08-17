@@ -3243,13 +3243,7 @@ components:
     RequestLogout:
       properties:
         logout:
-          type: object
-          properties:
-            token:
-              type: string
-              example: "fcea920f7412b5da7be0cf42b8c93759"
-          example:
-            token: ""
+          $ref: "#/components/schemas/LogoutData"
         channel:
           type: string
           example: ZENTINEL
@@ -3796,6 +3790,24 @@ components:
       example:
         user: ""
         password: ""
+    LogoutData:
+      type: object
+      properties:
+        token:
+          type: string
+          example: "fcea920f7412b5da7be0cf42b8c93759"
+        token_fcm:
+          nullable: true
+          type: string
+          example: "fcea920f7412b5da7be0cf42b8c93759"
+        platform:
+          nullable: true
+          type: string
+          example: "android"
+        project_id:
+          nullable: true
+          type: integer
+          example: 1
     NewUserData:
       type: object
       properties:
