@@ -3799,9 +3799,6 @@ components:
           nullable: true
           type: string
           example: "android"
-      example:
-        user: ""
-        password: ""
     LogoutData:
       type: object
       properties:
