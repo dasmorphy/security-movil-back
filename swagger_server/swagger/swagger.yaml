@@ -184,6 +184,14 @@ paths:
       description: Devuelve todos los usuarios de la base
       operationId: get_all_users
       parameters:
+        - name: roles
+          in: header
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+            example: ["tecnico", "admin", "guardia"]
         - name: externalTransactionId
           in: header
           required: true

@@ -23,38 +23,36 @@ class UserView(MethodView):
         self.user_use_case = UserUseCase(user_repository)
 
 
-    def get_all_users(self, body=None):  # noqa: E501
-        """Guarda el usuario de ingreso en la base de datos.
-
-        Guardado de usuario # noqa: E501
-
-        :param body: 
-        :type body: dict | bytes
-
-        :rtype: ResponseGeneric
-        """
+    def get_all_users(self, roles=None):  # noqa: E501
+        """Obtiene todos los usuarios, filtrados opcionalmente por rol."""
         internal_process = (None, None)
         function_name = "get_all_users"
         response = {}
         status_code = 500
         try:
-            if connexion.request.is_json:
-                body = RequestPostNewUser.from_dict(connexion.request.get_json())  # noqa: E501
-                start_time = default_timer()
-                internal_transaction_id = str(generate_internal_transaction_id())
-                external_transaction_id = body.external_transaction_id
-                internal_process = (internal_transaction_id, external_transaction_id)
-                response["internal_transaction_id"] = internal_transaction_id
-                response["external_transaction_id"] = external_transaction_id
-                message = f"start request: {function_name}, channel: {body.channel}"
-                logger.info(message, internal=internal_transaction_id, external=external_transaction_id)
-                self.user_use_case.post_new_user(body, internal_transaction_id, external_transaction_id)
-                response["error_code"] = 0
-                response["message"] = "Usuario creado correctamente"
-                end_time = default_timer()
-                logger.info(f"Fin de la transacción, procesada en : {end_time - start_time} milisegundos",
-                            internal=internal_transaction_id, external=body.external_transaction_id)
-                status_code = 200
+            start_time = default_timer()
+            internal_transaction_id = str(generate_internal_transaction_id())
+            external_transaction_id = request.headers.get('externalTransactionId')
+            internal_process = (internal_transaction_id, external_transaction_id)
+            response["internal_transaction_id"] = internal_transaction_id
+            response["external_transaction_id"] = external_transaction_id
+
+            if roles is None:
+                roles = request.headers.get('roles')
+            if isinstance(roles, str):
+                roles = [role.strip() for role in roles.split(',') if role.strip()]
+
+            message = f"start request: {function_name}, channel: {request.headers.get('channel')}"
+            logger.info(message, internal=internal_transaction_id, external=external_transaction_id)
+            response["data"] = self.user_use_case.get_all_users(
+                roles, internal_transaction_id, external_transaction_id
+            )
+            response["error_code"] = 0
+            response["message"] = "Usuarios obtenidos correctamente"
+            end_time = default_timer()
+            logger.info(f"Fin de la transacción, procesada en : {end_time - start_time} milisegundos",
+                        internal=internal_transaction_id, external=external_transaction_id)
+            status_code = 200
         except Exception as ex:
             response, status_code = CustomAPIException.check_exception(ex, function_name, internal_process)
             

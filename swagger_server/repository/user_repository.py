@@ -299,6 +299,52 @@ class UserRepository:
                 raise CustomAPIException("Error al obtener en la base de datos", 500)
 
 
+    def get_all_users(self, roles, internal, external):
+        with self.db.session_factory() as session:
+            try:
+                stmt = (
+                    select(
+                        Users.id_user,
+                        Users.user,
+                        Users.email,
+                        Users.platform,
+                        Roles.name.label("role"),
+                        Users.attributes,
+                        Users.is_active,
+                        Users.created_at,
+                        Users.updated_at,
+                    )
+                    .join(Roles, Roles.id_rol == Users.role_id)
+                    .order_by(Users.created_at.desc())
+                )
+
+                if roles:
+                    stmt = stmt.where(Roles.name.in_(roles))
+
+                rows = session.execute(stmt).mappings().all()
+
+                return [
+                    {
+                        "id_user": str(row["id_user"]),
+                        "user": row["user"],
+                        "email": row["email"],
+                        "platform": row["platform"],
+                        "role": row["role"],
+                        "attributes": row["attributes"],
+                        "is_active": row["is_active"],
+                        "created_at": row["created_at"],
+                        "updated_at": row["updated_at"],
+                    }
+                    for row in rows
+                ]
+            except Exception as exception:
+                logger.error('Error: {}', str(exception), internal=internal, external=external)
+                if isinstance(exception, CustomAPIException):
+                    raise exception
+
+                raise CustomAPIException("Error al obtener en la base de datos", 500)
+
+
     def post_new_user(self, new_user_body: Users, internal, external) -> None:
         with self.db.session_factory() as session:
             try:

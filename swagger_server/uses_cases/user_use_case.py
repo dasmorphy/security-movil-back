@@ -50,6 +50,9 @@ class UserUseCase:
 
         self.user_repository.post_new_user(new_user, internal, external)
 
+    def get_all_users(self, roles, internal, external):
+        return self.user_repository.get_all_users(roles, internal, external)
+
 
     def form_expo(self, data: FormExpoData, internal, external):
         form_saved = self.user_repository.post_form_expo(data, internal, external)
