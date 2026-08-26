@@ -56,9 +56,6 @@ class LogbookUseCase:
         self.logbook_repository = logbook_repository
 
     def post_logbook_entry(self, body, images, internal, external) -> None:
-        if len(images) > 10:
-            raise CustomAPIException("Máximo 10 imagenes", 500)
-        
         logbook_entry = LogbookEntry(
             unity_id=body['id_unity'],
             category_id=body['id_category'],
@@ -88,10 +85,6 @@ class LogbookUseCase:
         self.logbook_repository.post_logbook_entry(logbook_entry, body.get('order_id'), images, internal, external)
 
     def post_logbook_out(self, body, images, internal, external) -> None:
-
-        if len(images) > 10:
-            raise CustomAPIException("Máximo 10 imagenes", 500)
-        
         logbook_out = LogbookOut(
             unity_id=body['id_unity'],
             category_id=body['id_category'],
