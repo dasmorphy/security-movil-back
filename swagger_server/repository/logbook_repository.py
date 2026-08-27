@@ -118,7 +118,7 @@ class LogbookRepository:
                 #     self.post_order_receipts(session, body_purchase, internal, external)
 
                 #Guardar imágenes (máx 10)
-                for file in images[:10]:
+                for file in images:
                     result = self.save_image(file)
                     saved_files.append(result["url"])
 
@@ -238,7 +238,7 @@ class LogbookRepository:
                     logbook_entry.status = "Finalizado"
 
                 # Guardar imágenes (máx 10)
-                for file in images[:10]:
+                for file in images:
                     result = self.save_image(file)
                     saved_files.append(result["url"])
 
