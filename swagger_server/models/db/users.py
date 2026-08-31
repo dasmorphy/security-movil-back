@@ -39,6 +39,10 @@ class Users(Base):
 
     is_active = Column(Boolean, default=True)
 
+    last_access = Column(
+        DateTime(timezone=False)
+    )
+
     created_at = Column(
         DateTime(timezone=False),
         server_default=func.now()

@@ -3,6 +3,7 @@ import os
 import io
 
 from loguru import logger
+from datetime import datetime
 from sqlalchemy import Integer, and_, cast, exists, func, select, text
 from swagger_server.exception.custom_error_exception import CustomAPIException
 from swagger_server.models.db.business import Business
@@ -574,6 +575,9 @@ class UserRepository:
         with self.db.session_factory() as session:
             try:
                 self.save_token_cache(data.token_session, str(data.user_id), internal, external)
+                user = session.get(Users, data.user_id)
+                if user:
+                    user.last_access = datetime.now()
                 session.add(data)
                 session.commit()
             except Exception as exception:

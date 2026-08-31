@@ -448,6 +448,7 @@ CREATE TABLE public.users
     role_id uuid NOT NULL,
     attributes jsonb,
     is_active boolean DEFAULT true,
+    last_access timestamp without time zone,
     created_at timestamp without time zone DEFAULT now(),
     updated_at timestamp without time zone DEFAULT now(),
     CONSTRAINT users_pkey PRIMARY KEY (id_user),
