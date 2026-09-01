@@ -459,3 +459,7 @@ class UserUseCase:
             logger.error("No se pudo enviar evento de logout a RabbitMQ: {}", str(exception), internal=internal, external=external)
 
 
+    def get_roles(self, internal, external):
+        return self.user_repository.get_roles(internal, external)
+
+

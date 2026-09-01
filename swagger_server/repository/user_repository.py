@@ -628,3 +628,24 @@ class UserRepository:
             except Exception as exception:
                 logger.error('Error: {}', str(exception), internal=internal, external=external)
                 raise CustomAPIException("No se encontro la sesion del usuario", 401)
+
+
+    def get_roles(self, internal, external):
+        with self.db.session_factory() as session:
+            try:
+                stmt = select(Roles)
+
+                roles = session.execute(stmt).scalars().all()
+
+                return [
+                    {
+                        "id_rol": role.id_rol,
+                        "name": role.name,
+                        "created_at": role.created_at,
+                    }
+                    for role in roles
+                ]
+
+            except Exception as exception:
+                logger.error('Error: {}', str(exception), internal=internal, external=external)
+                raise CustomAPIException("Error al obtener en la base de datos", 500)
