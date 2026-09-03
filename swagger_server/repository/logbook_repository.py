@@ -107,15 +107,15 @@ class LogbookRepository:
                 
                 logbook_entry_id = logbook_entry_body.id_logbook_entry
                 
-                # if category.name_category == "Balanceado" or category.name_category == "Combustibles":
-                #     body_purchase = {
-                #         "purchase_order_id": order_id,
-                #         "logbook_entry_id": logbook_entry_id,
-                #         "quantity": logbook_entry_body.quantity,
-                #         "user": logbook_entry_body.created_by
-                #     }
+                if category.name_category == "Balanceado" or category.name_category == "Combustibles":
+                    body_purchase = {
+                        "purchase_order_id": order_id,
+                        "logbook_entry_id": logbook_entry_id,
+                        "quantity": logbook_entry_body.quantity,
+                        "user": logbook_entry_body.created_by
+                    }
 
-                #     self.post_order_receipts(session, body_purchase, internal, external)
+                    self.post_order_receipts(session, body_purchase, internal, external)
 
                 #Guardar imágenes (máx 10)
                 for file in images:
