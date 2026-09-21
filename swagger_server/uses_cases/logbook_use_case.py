@@ -1136,6 +1136,7 @@ class LogbookUseCase:
             "shipping_guide": row["out_shipping_guide"],
             "is_blacklist": row["out_is_blacklist"],
             "quantity": row["out_quantity"],
+            "dni_driver": row["dni_driver"],
             "weight": row["out_weight"],
             "truck_license": row["out_truck_license"],
             "name_driver": row["out_name_driver"],
