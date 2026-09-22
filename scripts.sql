@@ -2267,3 +2267,40 @@ ALTER SEQUENCE public.purchase_order_destinations_id_seq
 ALTER TABLE IF EXISTS public.purchase_order_destinations
     ALTER COLUMN id_purchase_destiny SET DEFAULT nextval('purchase_order_destinations_id_seq'::regclass);
 
+
+
+-------------------------------------------------------------------------------------------------------------------
+
+CREATE TABLE public.application_channels
+(
+    id_channel integer NOT NULL,
+    channel text,
+    platform text,
+    application text,
+    is_enabled boolean DEFAULT True,
+    created_at timestamp without time zone DEFAULT now(),
+    created_by text,
+    PRIMARY KEY (id_channel)
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.application_channels
+    OWNER to nextgen;
+
+
+CREATE SEQUENCE public.application_channels_id_seq
+    INCREMENT 1
+    START 1
+    MINVALUE 1
+    MAXVALUE 2147483647
+    CACHE 1;
+
+ALTER SEQUENCE public.application_channels_id_seq
+    OWNED BY public.application_channels.id_channel;
+
+ALTER SEQUENCE public.application_channels_id_seq
+    OWNER TO nextgen;
+
+ALTER TABLE IF EXISTS public.application_channels
+    ALTER COLUMN id_channel SET DEFAULT nextval('application_channels_id_seq'::regclass);

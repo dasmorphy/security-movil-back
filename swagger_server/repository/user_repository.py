@@ -6,6 +6,7 @@ from loguru import logger
 from datetime import datetime
 from sqlalchemy import Integer, and_, cast, exists, func, select, text
 from swagger_server.exception.custom_error_exception import CustomAPIException
+from swagger_server.models.db.application_channels import ApplicationChannels
 from swagger_server.models.db.business import Business
 from swagger_server.models.db.company_modules import CompanyModules
 from swagger_server.models.db.fcm_token_users import FcmTokenUser
@@ -432,6 +433,27 @@ class UserRepository:
                     raise CustomAPIException(message="Credenciales incorrectas", status_code=401)
 
                 return user_found
+            
+            except Exception as exception:
+                session.rollback()
+                logger.error('Error: {}', str(exception), internal=internal, external=external)
+                if isinstance(exception, CustomAPIException):
+                    raise exception
+                
+                raise CustomAPIException("Error al obtener en la base de datos", 500)
+
+            finally:
+                session.close()
+
+
+    def get_by_channel(self, channel: str, internal, external) -> ApplicationChannels | None:
+        with self.db.session_factory() as session:
+            try:
+                channel = session.execute(
+                    select(ApplicationChannels).where(ApplicationChannels.channel == channel)
+                ).scalar_one_or_none()
+
+                return channel
             
             except Exception as exception:
                 session.rollback()

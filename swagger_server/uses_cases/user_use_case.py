@@ -322,35 +322,23 @@ class UserUseCase:
     def login(self, body: RequestLogin, channel: str, internal, external):
         pass_hash = self.user_repository.get_pass_hash(body.login.user, internal, external)
         pass_verify = pwd_context.verify(body.login.password, pass_hash)
+        channel_config = self.user_repository.get_by_channel(channel, internal, external)
 
-        VALID_CHANNELS = {
-            'ZENTINEL',
-            'ZENTINEL_WEB',
-            'ZENTINEL_TEST'
-        }
-
-        CHANNEL_PLATFORMS = {
-            'ZENTINEL': 'MOVIL',
-            'ZENTINEL_WEB': 'WEB',
-            'ZENTINEL_TEST': 'HIBRID'
-        }
-
-        if channel not in VALID_CHANNELS:
+        if channel_config is None:
             raise CustomAPIException(message="Canal no registrado", status_code=401)
+
+        expected_platform = channel_config.platform
 
         if not pass_verify:
             raise CustomAPIException(message="Credenciales incorrectas", status_code=401)
         
         user_autenticated = self.user_repository.get_user(body.login.user, internal, external)
 
-        if user_autenticated["platform"] != 'HIBRID':
-            expected_platform = CHANNEL_PLATFORMS[channel]
-
-            if user_autenticated["platform"] != expected_platform:
-                raise CustomAPIException(
-                    message=f"Usuario no habilitado para el ambiente {expected_platform.lower()}",
-                    status_code=401
-                )
+        if user_autenticated["platform"] != 'HIBRID' and user_autenticated["platform"] != channel_config.platform:
+            raise CustomAPIException(
+                message=f"Usuario no habilitado para el ambiente {expected_platform.lower()}",
+                status_code=401
+            )
 
         return {
             "user_id": user_autenticated['id_user'],
