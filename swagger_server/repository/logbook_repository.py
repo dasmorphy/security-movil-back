@@ -42,6 +42,8 @@ from uuid import uuid4
 from werkzeug.utils import secure_filename
 import getpass
 from sqlalchemy.dialects import postgresql
+from sqlalchemy.exc import DataError
+from psycopg2 import errors as pg_errors
 
 class LogbookRepository:
     
@@ -102,6 +104,16 @@ class LogbookRepository:
                         status_code=404
                     )
                 
+                MAX_QUANTITY = 1_000_000
+                FALLBACK_QUANTITY = 999_999
+
+                if logbook_entry_body.quantity is not None and int(logbook_entry_body.quantity) > MAX_QUANTITY:
+                    logger.warning('quantity fuera de rango ({}), se reemplaza por {}',
+                        logbook_entry_body.quantity, FALLBACK_QUANTITY,
+                        internal=internal, external=external)
+                    logbook_entry_body.quantity = FALLBACK_QUANTITY
+
+                
                 session.add(logbook_entry_body)
                 session.flush()
                 
@@ -147,6 +159,15 @@ class LogbookRepository:
                 if e.errno == 36:
                     raise CustomAPIException("Nombre de archivo demasiado largo", 400)
 
+            except DataError as e:
+                session.rollback()
+                logger.error('Error: {}', str(e), internal=internal, external=external)
+
+                if isinstance(e.orig, pg_errors.NumericValueOutOfRange):  # o e.orig.pgcode == "22003"
+                    raise CustomAPIException("La cantidad ingresada excede el valor máximo permitido", 400)
+
+                raise CustomAPIException("Los datos enviados no son válidos", 400)
+
             except Exception as exception:
                 session.rollback()
 
@@ -162,8 +183,6 @@ class LogbookRepository:
                 
                 raise CustomAPIException("Error al insertar en la base de datos", 500)
 
-            finally:
-                session.close()
 
     def post_logbook_out(self, logbook_out_body: LogbookOut, images, id_logbook_entry, internal, external) -> None:
         saved_files = []
@@ -217,6 +236,15 @@ class LogbookRepository:
                         message="No existe el grupo de negocio",
                         status_code=404
                     )
+
+                MAX_QUANTITY = 1_000_000
+                FALLBACK_QUANTITY = 999_999
+
+                if logbook_out_body.quantity is not None and int(logbook_out_body.quantity) > MAX_QUANTITY:
+                    logger.warning('quantity fuera de rango ({}), se reemplaza por {}',
+                        logbook_out_body.quantity, FALLBACK_QUANTITY,
+                        internal=internal, external=external)
+                    logbook_out_body.quantity = FALLBACK_QUANTITY
                 
                 session.add(logbook_out_body)
                 session.flush()
@@ -267,6 +295,15 @@ class LogbookRepository:
             except OSError as e:
                 if e.errno == 36:
                     raise CustomAPIException("Nombre de archivo demasiado largo", 400)
+
+            except DataError as e:
+                session.rollback()
+                logger.error('Error: {}', str(e), internal=internal, external=external)
+
+                if isinstance(e.orig, pg_errors.NumericValueOutOfRange):  # o e.orig.pgcode == "22003"
+                    raise CustomAPIException("La cantidad ingresada excede el valor máximo permitido", 400)
+
+                raise CustomAPIException("Los datos enviados no son válidos", 400)
                 
             except Exception as exception:
                 session.rollback()
