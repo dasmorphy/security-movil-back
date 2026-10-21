@@ -14,7 +14,7 @@ class NewUserData(Model):
 
     Do not edit the class manually.
     """
-    def __init__(self, user: str=None, email: str=None, password: str=None, attributes: object=None, role_id: str=None):  # noqa: E501
+    def __init__(self, user: str=None, email: str=None, password: str=None, attributes: object=None, role: str=None, platform: str=None):  # noqa: E501
         """NewUserData - a model defined in Swagger
 
         :param user: The user of this NewUserData.  # noqa: E501
@@ -25,15 +25,18 @@ class NewUserData(Model):
         :type password: str
         :param attributes: The attributes of this NewUserData.  # noqa: E501
         :type attributes: object
-        :param role_id: The role_id of this NewUserData.  # noqa: E501
-        :type role_id: str
+        :param role: The role of this NewUserData.  # noqa: E501
+        :type role: str
+        :param platform: The platform of this NewUserData.  # noqa: E501
+        :type platform: str
         """
         self.swagger_types = {
             'user': str,
             'email': str,
             'password': str,
             'attributes': object,
-            'role_id': str
+            'role': str,
+            'platform': str
         }
 
         self.attribute_map = {
@@ -41,13 +44,15 @@ class NewUserData(Model):
             'email': 'email',
             'password': 'password',
             'attributes': 'attributes',
-            'role_id': 'role_id'
+            'role': 'role',
+            'platform': 'platform'
         }
         self._user = user
         self._email = email
         self._password = password
         self._attributes = attributes
-        self._role_id = role_id
+        self._role = role
+        self._platform = platform
 
     @classmethod
     def from_dict(cls, dikt) -> 'NewUserData':
@@ -145,22 +150,43 @@ class NewUserData(Model):
         self._attributes = attributes
 
     @property
-    def role_id(self) -> str:
-        """Gets the role_id of this NewUserData.
+    def role(self) -> str:
+        """Gets the role of this NewUserData.
 
 
-        :return: The role_id of this NewUserData.
+        :return: The role of this NewUserData.
         :rtype: str
         """
-        return self._role_id
+        return self._role
 
-    @role_id.setter
-    def role_id(self, role_id: str):
-        """Sets the role_id of this NewUserData.
+    @role.setter
+    def role(self, role: str):
+        """Sets the role of this NewUserData.
 
 
-        :param role_id: The role_id of this NewUserData.
-        :type role_id: str
+        :param role: The role of this NewUserData.
+        :type role: str
         """
 
-        self._role_id = role_id
+        self._role = role
+
+    @property
+    def platform(self) -> str:
+        """Gets the platform of this NewUserData.
+
+
+        :return: The platform of this NewUserData.
+        :rtype: str
+        """
+        return self._platform
+
+    @platform.setter
+    def platform(self, platform: str):
+        """Sets the platform of this NewUserData.
+
+
+        :param platform: The platform of this NewUserData.
+        :type platform: str
+        """
+
+        self._platform = platform

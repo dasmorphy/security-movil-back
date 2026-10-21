@@ -2,6 +2,7 @@
 
 from datetime import datetime, timezone
 from uuid import UUID
+from wsgiref import headers
 from loguru import logger
 from user_agents import parse
 from rapidfuzz import fuzz
@@ -11,6 +12,7 @@ import pandas as pd
 import jwt
 
 from swagger_server.exception.custom_error_exception import CustomAPIException
+from swagger_server.models.db import roles
 from swagger_server.models.db.user_sessions import UserSessions
 from swagger_server.models.db.users import Users
 from swagger_server.models.form_expo_data import FormExpoData
@@ -44,14 +46,26 @@ class UserUseCase:
             user=body.new_user.user,
             email=body.new_user.email,
             password=hashed_password,
-            role_id=body.new_user.role_id,
+            role_id=body.new_user.role,
             attributes=body.new_user.attributes,
+            platform=body.new_user.platform
         )
 
         self.user_repository.post_new_user(new_user, internal, external)
 
-    def get_all_users(self, roles, internal, external):
-        return self.user_repository.get_all_users(roles, internal, external)
+    def get_all_users(self, headers, roles, internal, external):
+        users_headers = headers.getlist("users")
+        filters = {
+            "users": [
+                user.strip()
+                for header_value in users_headers
+                for user in header_value.split(",")
+                if user.strip()
+            ],            
+            "roles": roles
+        }
+        
+        return self.user_repository.get_all_users(filters, internal, external)
 
 
     def form_expo(self, data: FormExpoData, internal, external):

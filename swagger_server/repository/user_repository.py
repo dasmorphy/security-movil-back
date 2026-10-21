@@ -301,7 +301,7 @@ class UserRepository:
                 raise CustomAPIException("Error al obtener en la base de datos", 500)
 
 
-    def get_all_users(self, roles, internal, external):
+    def get_all_users(self, filtersBase, internal, external):
         with self.db.session_factory() as session:
             try:
                 stmt = (
@@ -320,8 +320,16 @@ class UserRepository:
                     .order_by(Users.created_at.desc())
                 )
 
-                if roles:
-                    stmt = stmt.where(Roles.name.in_(roles))
+                filters = []
+
+                if filtersBase.get("roles"):
+                    filters.append(Roles.name.in_(filtersBase.get("roles")))
+
+                if filtersBase.get("users"):
+                    filters.append(Users.id_user.in_(filtersBase.get("users")))
+
+                if filters:
+                    stmt = stmt.where(and_(*filters))
 
                 rows = session.execute(stmt).mappings().all()
 
@@ -405,6 +413,7 @@ class UserRepository:
                     password= new_user_body.password,
                     role_id= role.id_rol,
                     attributes=new_user_body.attributes,
+                    platform=new_user_body.platform
                 )
 
                 session.add(new_user)

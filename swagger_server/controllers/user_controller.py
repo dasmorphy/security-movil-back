@@ -45,7 +45,7 @@ class UserView(MethodView):
             message = f"start request: {function_name}, channel: {request.headers.get('channel')}"
             logger.info(message, internal=internal_transaction_id, external=external_transaction_id)
             response["data"] = self.user_use_case.get_all_users(
-                roles, internal_transaction_id, external_transaction_id
+                request.headers, roles, internal_transaction_id, external_transaction_id
             )
             response["error_code"] = 0
             response["message"] = "Usuarios obtenidos correctamente"
