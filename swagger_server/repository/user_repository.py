@@ -4,7 +4,7 @@ import io
 
 from loguru import logger
 from datetime import datetime
-from sqlalchemy import Integer, and_, cast, exists, func, select, text
+from sqlalchemy import Integer, and_, cast, exists, func, or_, select, text
 from swagger_server.exception.custom_error_exception import CustomAPIException
 from swagger_server.models.db.application_channels import ApplicationChannels
 from swagger_server.models.db.business import Business
@@ -329,7 +329,7 @@ class UserRepository:
                     filters.append(Users.id_user.in_(filtersBase.get("users")))
 
                 if filters:
-                    stmt = stmt.where(and_(*filters))
+                    stmt = stmt.where(or_(*filters))
 
                 rows = session.execute(stmt).mappings().all()
 
