@@ -317,6 +317,7 @@ class UserRepository:
                         Users.updated_at,
                     )
                     .join(Roles, Roles.id_rol == Users.role_id)
+                    .where(Users.is_active == True)
                     .order_by(Users.created_at.desc())
                 )
 
