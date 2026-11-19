@@ -624,17 +624,26 @@ class UserRepository:
                 session.close()
 
     def save_token_cache(self, token: str, usr_id: str, internal, external):
-        try:
-            ttl = 60 * 60 * 24  # 24 horas
-            self.redis_client.client.set(
-                f"token:{token}",
-                usr_id,
-                ex=ttl
-            )
-                        
-        except Exception as exception:
-            logger.error('Error: {}', str(exception), internal=internal, external=external)                
-            raise CustomAPIException("Error al guardar el token del usuario", 500)
+        with self.db.session_factory() as session:
+            try:
+                ttl = 60 * 60 * 24  # 24 horas
+
+                user = session.execute(
+                    select(Users).where(Users.id_user == usr_id)
+                ).scalar_one_or_none()
+                
+                if user and str(user.role_id) == 'cadc60ed-e569-41b9-98f7-196ddc1dca49': # rol de guardia
+                    ttl = 60 * 60 * 24 * 30 # 30 días
+
+                self.redis_client.client.set(
+                    f"token:{token}",
+                    usr_id,
+                    ex=ttl
+                )
+                            
+            except Exception as exception:
+                logger.error('Error: {}', str(exception), internal=internal, external=external)                
+                raise CustomAPIException("Error al guardar el token del usuario", 500)
         
         
     def search_user_session(self, id_user: str, internal, external):
